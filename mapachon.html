@@ -217,6 +217,28 @@ const ROOMS = {
       { type:'pillar', x:830, y:420, h:60 },
     ],
   },
+  5: {
+    name: 'Armería Olvidada',
+    bg: ['#060412', '#0e0820'],
+    floorColor: '#1c1430',
+    platColor:  '#2c2048',
+    edgeColor:  '#4a3870',
+    particleColor: '#9944ff',
+    platforms: [
+      { x:   0, y: 480, w: 960, h: 60 },
+      { x:  80, y: 390, w: 150, h: 18 },
+      { x: 405, y: 390, w: 150, h: 18 },
+      { x: 730, y: 390, w: 150, h: 18 },
+    ],
+    exits: { left: { room: 0, spawnX: 890, spawnY: 400 } },
+    decorations: [
+      { type:'pillar', x: 40, y:420, h:60 },
+      { type:'pillar', x:920, y:420, h:60 },
+      { type:'pillar', x:250, y:420, h:60 },
+      { type:'pillar', x:480, y:420, h:60 },
+      { type:'pillar', x:710, y:420, h:60 },
+    ],
+  },
 };
 
 // ─── ENEMIGOS — plantillas por sala ──────────────────────────────────────────
@@ -240,6 +262,7 @@ const ENEMY_TEMPLATES = {
     { x: 660, y: 346, dir: -1, patrolMin: 640, patrolMax: 795, speed: 1.4 },
   ],
   4: [], // sala del jefe — sin enemigos normales
+  5: [], // armería secreta
 };
 
 // ─── PARTÍCULAS ───────────────────────────────────────────────────────────────
@@ -302,7 +325,16 @@ const JUMP_V     = -13.5;
 const MAX_FALL   = 18;
 const COYOTE_MAX = 8;
 const FRICTION   = 0.82;
-const PLAYER_DMG = 1;
+let playerDmg   = 1;
+let weaponName  = 'Blaster';
+let weaponColor = '#40c8ff';
+
+const WEAPONS = [
+  { id:0, name:'Blaster',  damage:1, color:'#40c8ff', col2:'#006688' },
+  { id:1, name:'Hacha',    damage:2, color:'#ff8840', col2:'#cc3300' },
+  { id:2, name:'Lanza',    damage:3, color:'#44ff88', col2:'#008844' },
+  { id:3, name:'Cañón+',   damage:5, color:'#ff44ff', col2:'#aa00cc' },
+];
 
 // ─── TECLADO ─────────────────────────────────────────────────────────────────
 const keys = {};
@@ -582,11 +614,13 @@ function updateTransition() {
       initEnemies(currentRoom);
       if (pendingRoom === 4 && !bossDefeated) initBoss();
       if (pendingRoom === 3 && !boss2Defeated) initBoss2();
+      if (pendingRoom === 5) initWeaponItems();
       if (isDeath) {
         player.hp = player.maxHp; player.invFrames = 0;
         bossDefeated = false; initBoss();
         boss2Defeated = false; initBoss2();
         hasKey = false; keyUsed = false; keyItem.active = false;
+        playerDmg = 1; weaponName = 'Blaster'; weaponColor = '#40c8ff';
       }
       roomLabelAlpha = 1;
       roomLabelTimer = 200;
@@ -876,7 +910,7 @@ function checkBossCollisions() {
   // Ataque del jugador golpea al jefe
   if (player.attackActive > 0 && boss.invFrames === 0 &&
       collideRect(atkX, atkY, atkW, atkH, boss.x, boss.y, boss.w, boss.h)) {
-    boss.hp -= PLAYER_DMG;
+    boss.hp -= playerDmg;
     boss.invFrames = 28;
     if (boss.hp <= 0) { boss.hp = 0; boss.dead = true; boss.deathTimer = 130; boss.projectiles = []; return; }
   }
@@ -885,7 +919,7 @@ function checkBossCollisions() {
   const onBoss   = collideRect(player.x, player.y, player.w, player.h, boss.x, boss.y, boss.w, boss.h);
   const fromTop  = player.vy > 1 && (player.y + player.h) < (boss.y + boss.h * 0.5);
   if (onBoss && fromTop && boss.invFrames === 0) {
-    boss.hp -= PLAYER_DMG;
+    boss.hp -= playerDmg;
     boss.invFrames = 28;
     player.vy = -12;
     if (boss.hp <= 0) { boss.hp = 0; boss.dead = true; boss.deathTimer = 130; boss.projectiles = []; return; }
@@ -1314,7 +1348,7 @@ function checkBoss2Collisions() {
 
   if (player.attackActive > 0 && boss2.invFrames === 0 &&
       collideRect(atkX, atkY, atkW, atkH, boss2.x, boss2.y, boss2.w, boss2.h)) {
-    boss2.hp -= PLAYER_DMG;
+    boss2.hp -= playerDmg;
     boss2.invFrames = 26;
     if (boss2.hp <= 0) { boss2.hp = 0; boss2.dead = true; boss2.deathTimer = 150; boss2.projectiles = []; return; }
   }
@@ -1322,7 +1356,7 @@ function checkBoss2Collisions() {
   const onBoss2  = collideRect(player.x, player.y, player.w, player.h, boss2.x, boss2.y, boss2.w, boss2.h);
   const fromTop2 = player.vy > 1 && (player.y + player.h) < (boss2.y + boss2.h * 0.5);
   if (onBoss2 && fromTop2 && boss2.invFrames === 0) {
-    boss2.hp -= PLAYER_DMG;
+    boss2.hp -= playerDmg;
     boss2.invFrames = 26;
     player.vy = -13;
     if (boss2.hp <= 0) { boss2.hp = 0; boss2.dead = true; boss2.deathTimer = 150; boss2.projectiles = []; return; }
@@ -2027,11 +2061,13 @@ function drawHUD() {
     ctx.fillRect(16, 64, barW * prog, 4);
   }
 
-  // Tecla de ataque (hint)
-  ctx.fillStyle = 'rgba(255,255,255,0.18)';
-  ctx.font = '12px monospace';
-  ctx.textAlign = 'right';
-  ctx.fillText('Z / J: atacar  |  Encima del enemigo: pisotón', W - 16, H - 16);
+  // Arma actual
+  ctx.font = '11px monospace'; ctx.textAlign = 'right';
+  ctx.fillStyle = weaponColor;
+  ctx.fillText('⚔ ' + weaponName + '  x' + playerDmg, W - 16, H - 28);
+  ctx.fillStyle = 'rgba(255,255,255,0.16)';
+  ctx.font = '10px monospace';
+  ctx.fillText('Z / J: atacar  |  pisotón: caer encima', W - 16, H - 14);
 }
 
 function drawInventory() {
@@ -2074,11 +2110,11 @@ function drawInventory() {
 
   // Fila: Daño
   ctx.textAlign = 'left';
-  ctx.fillStyle = '#40c8ff';
-  ctx.fillText('⚔  Daño de ataque', px + 26, py + 114);
+  ctx.fillStyle = weaponColor;
+  ctx.fillText('⚔  ' + weaponName, px + 26, py + 114);
   ctx.fillStyle = '#ffffff';
   ctx.textAlign = 'right';
-  ctx.fillText(PLAYER_DMG, px + pw - 26, py + 114);
+  ctx.fillText('x' + playerDmg, px + pw - 26, py + 114);
 
   // Hint cierre
   ctx.textAlign = 'center';
@@ -2089,11 +2125,12 @@ function drawInventory() {
 
 // ─── CHEAT MENU ───────────────────────────────────────────────────────────────
 const CHEAT_NODES = [
-  { id:0, x:130, y:310, name:'Entrada',  boss:false },
-  { id:1, x:330, y:310, name:'Cristales',boss:false },
-  { id:2, x:530, y:310, name:'Jardín',   boss:false },
-  { id:3, x:330, y:180, name:'La Cima',  boss:true  },
-  { id:4, x:730, y:310, name:'Rey Final',boss:true  },
+  { id:0, x:130, y:310, name:'Entrada',  boss:false,   secret:false },
+  { id:1, x:330, y:310, name:'Cristales',boss:false,   secret:false },
+  { id:2, x:530, y:310, name:'Jardín',   boss:false,   secret:false },
+  { id:3, x:330, y:180, name:'La Cima',  boss:true,    secret:false },
+  { id:4, x:730, y:310, name:'Rey Final',boss:true,    secret:false },
+  { id:5, x:760, y:180, name:'Armería',  boss:false,   secret:true  },
 ];
 const CHEAT_EDGES = [[0,1],[1,2],[2,4],[1,3]];
 
@@ -2198,21 +2235,20 @@ function drawCheatMap() {
     glow.addColorStop(1,'transparent');
     ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(n.x,n.y,50,0,Math.PI*2); ctx.fill();
 
-    ctx.fillStyle=n.boss?'#3a0808':'#160828';
+    const nc = n.secret ? `255,210,0` : (n.boss ? `255,60,60` : `154,106,255`);
+    ctx.fillStyle=n.secret?'#2a1e00':(n.boss?'#3a0808':'#160828');
     ctx.beginPath(); ctx.arc(n.x,n.y,34,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle=n.boss?`rgba(255,60,60,${pulse.toFixed(2)})`:`rgba(154,106,255,${pulse.toFixed(2)})`;
-    ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(n.x,n.y,34,0,Math.PI*2); ctx.stroke();
+    ctx.strokeStyle=`rgba(${nc},${pulse.toFixed(2)})`;
+    ctx.lineWidth=n.secret?3:2.5; ctx.beginPath(); ctx.arc(n.x,n.y,34,0,Math.PI*2); ctx.stroke();
 
     ctx.fillStyle='#fff'; ctx.font='bold 16px monospace'; ctx.textAlign='center';
-    ctx.fillText(n.id+1, n.x, n.y+6);
+    ctx.fillText(n.secret?'★':(n.id+1), n.x, n.y+6);
 
-    ctx.fillStyle=n.boss?'#ff8888':'#d0b0ff';
+    ctx.fillStyle=n.secret?'#ffd060':(n.boss?'#ff8888':'#d0b0ff');
     ctx.font='10px monospace';
     ctx.fillText(n.name, n.x, n.y+54);
-    if (n.boss) {
-      ctx.fillStyle='rgba(255,80,80,0.7)'; ctx.font='8px monospace';
-      ctx.fillText('[ JEFE ]', n.x, n.y+67);
-    }
+    if (n.boss)   { ctx.fillStyle='rgba(255,80,80,0.7)';   ctx.font='8px monospace'; ctx.fillText('[ JEFE ]',   n.x, n.y+67); }
+    if (n.secret) { ctx.fillStyle='rgba(255,210,0,0.75)';  ctx.font='8px monospace'; ctx.fillText('[ SECRETO ]',n.x, n.y+67); }
   }
 
   ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.font='10px monospace'; ctx.textAlign='center';
@@ -2271,6 +2307,88 @@ function drawTransition() {
   ctx.fillRect(0, 0, W, H);
 }
 
+// ─── ARMAS ────────────────────────────────────────────────────────────────────
+const ROOM5_WEAPONS = [
+  { wid:1, x:155, y:356, active:true, bobTimer:0 },
+  { wid:2, x:480, y:356, active:true, bobTimer:0 },
+  { wid:3, x:805, y:356, active:true, bobTimer:0 },
+];
+
+function initWeaponItems() {
+  for (const it of ROOM5_WEAPONS) { it.active = true; it.bobTimer = 0; }
+}
+
+function updateWeaponItems() {
+  if (currentRoom !== 5) return;
+  for (const it of ROOM5_WEAPONS) {
+    if (!it.active) continue;
+    it.bobTimer += 0.05;
+    if (collideRect(player.x, player.y, player.w, player.h, it.x-22, it.y-22, 44, 44)) {
+      it.active = false;
+      const w = WEAPONS[it.wid];
+      playerDmg  = w.damage;
+      weaponName = w.name;
+      weaponColor= w.color;
+    }
+  }
+}
+
+function drawWeaponIcon(id, c1, c2) {
+  if (id === 1) {
+    ctx.fillStyle='#7a4a28'; ctx.fillRect(-3,4,6,20);
+    ctx.fillStyle=c1;
+    ctx.beginPath(); ctx.moveTo(-20,-8); ctx.lineTo(2,-16); ctx.lineTo(2,6); ctx.lineTo(-16,6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.4)';
+    ctx.beginPath(); ctx.moveTo(-14,-4); ctx.lineTo(-4,-10); ctx.lineTo(-4,0); ctx.closePath(); ctx.fill();
+  } else if (id === 2) {
+    ctx.strokeStyle='#7a4a28'; ctx.lineWidth=4; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(0,22); ctx.lineTo(0,-12); ctx.stroke();
+    ctx.fillStyle=c1;
+    ctx.beginPath(); ctx.moveTo(0,-26); ctx.lineTo(-10,-8); ctx.lineTo(10,-8); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.45)';
+    ctx.beginPath(); ctx.moveTo(0,-26); ctx.lineTo(-4,-12); ctx.lineTo(0,-12); ctx.closePath(); ctx.fill();
+  } else if (id === 3) {
+    ctx.fillStyle=c2;
+    ctx.beginPath(); ctx.ellipse(0,4,18,12,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=c1;
+    ctx.beginPath(); ctx.ellipse(0,2,18,12,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=c2; ctx.fillRect(12,-4,14,8);
+    ctx.fillStyle='rgba(255,255,255,0.28)'; ctx.fillRect(13,-3,12,3);
+    const now=Date.now()*0.003;
+    for (let i=0;i<5;i++) {
+      const a=now+i*Math.PI*0.4, r=21+Math.sin(now*1.3+i)*3;
+      ctx.globalAlpha=0.75;
+      ctx.fillStyle=i%2===0?c1:'#fff';
+      ctx.beginPath(); ctx.arc(Math.cos(a)*r,Math.sin(a)*r,2,0,Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }
+}
+
+function drawWeaponItems() {
+  if (currentRoom !== 5) return;
+  for (const it of ROOM5_WEAPONS) {
+    if (!it.active) continue;
+    const w = WEAPONS[it.wid];
+    const iy = it.y + Math.sin(it.bobTimer)*6;
+
+    const g = ctx.createRadialGradient(it.x,iy,0,it.x,iy,36);
+    g.addColorStop(0, hexAlpha(w.color, 0.35));
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(it.x,iy,36,0,Math.PI*2); ctx.fill();
+
+    ctx.save();
+    ctx.translate(it.x, iy);
+    drawWeaponIcon(it.wid, w.color, w.col2);
+    ctx.restore();
+
+    ctx.fillStyle=w.color; ctx.font='bold 13px monospace'; ctx.textAlign='center';
+    ctx.fillText('x'+w.damage, it.x, iy+48);
+    ctx.fillStyle='rgba(255,255,255,0.55)'; ctx.font='9px monospace';
+    ctx.fillText(w.name, it.x, iy+60);
+  }
+}
+
 // ─── LOOP PRINCIPAL ───────────────────────────────────────────────────────────
 function frame() {
   if (!transitioning && cheatState === 'closed') {
@@ -2282,6 +2400,7 @@ function frame() {
     updateBoss2();
     checkBoss2Collisions();
     updateKey();
+    updateWeaponItems();
     checkExits();
   }
   updateTransition();
@@ -2302,6 +2421,7 @@ function frame() {
   drawBoss();
   drawBoss2();
   drawKey();
+  drawWeaponItems();
   drawPlayer();
   drawRoomLabel();
   drawBossUI();
