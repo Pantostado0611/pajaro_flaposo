@@ -1,0 +1,1975 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Mapachón - Explorador de Ruinas</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
+  canvas { display: block; image-rendering: pixelated; }
+  #controls { color: #555; font-size: 12px; margin-top: 8px; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+<canvas id="c" width="960" height="540"></canvas>
+<div id="controls">WASD / FLECHAS: mover &nbsp;|&nbsp; ESPACIO / W / ↑: saltar &nbsp;|&nbsp; Llega al borde de la pantalla para cambiar de sala</div>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = 960, H = 540;
+
+// ─── SALAS ───────────────────────────────────────────────────────────────────
+const ROOMS = {
+  0: {
+    name: 'Entrada a las Ruinas',
+    bg: ['#050810', '#0a1020'],
+    floorColor: '#1a2238',
+    platColor:  '#243050',
+    edgeColor:  '#314068',
+    particleColor: '#4060b0',
+    platforms: [
+      { x:   0, y: 480, w: 960, h: 60 }, // suelo
+      { x: 180, y: 370, w: 130, h: 18 },
+      { x: 400, y: 300, w: 110, h: 18 },
+      { x: 620, y: 370, w: 130, h: 18 },
+      { x: 820, y: 290, w: 100, h: 18 },
+    ],
+    exits: { right: { room: 1, spawnX: 30, spawnY: 400 } },
+    decorations: [
+      { type:'pillar', x:100,  y:420, h:60 },
+      { type:'pillar', x:830,  y:420, h:60 },
+      { type:'arch',   x:860,  y:200 },
+    ],
+  },
+  1: {
+    name: 'Sala de los Cristales',
+    bg: ['#05100a', '#0a1f14'],
+    floorColor: '#1a3028',
+    platColor:  '#224038',
+    edgeColor:  '#2e5448',
+    particleColor: '#30c090',
+    platforms: [
+      { x:   0, y: 480, w: 320, h: 60 },
+      { x: 640, y: 480, w: 320, h: 60 },
+      { x: 150, y: 360, w: 120, h: 18 },
+      { x: 380, y: 290, w: 200, h: 18 },
+      { x: 680, y: 360, w: 120, h: 18 },
+      { x: 420, y: 180, w: 120, h: 18 },
+    ],
+    exits: {
+      left:  { room: 0, spawnX: 890, spawnY: 400 },
+      right: { room: 2, spawnX:  30, spawnY: 400 },
+      up:    { room: 3, spawnX: 180, spawnY: 450 },
+    },
+    decorations: [
+      { type:'crystal', x:320, y:0,   h:H },
+      { type:'crystal', x:500, y:100, h:380 },
+      { type:'arch',    x:60,  y:200 },
+      { type:'arch',    x:860, y:200 },
+    ],
+  },
+  2: {
+    name: 'Jardín Putrefacto',
+    bg: ['#0a0805', '#1a1205'],
+    floorColor: '#2a2010',
+    platColor:  '#3a2e18',
+    edgeColor:  '#4a3e28',
+    particleColor: '#c08030',
+    platforms: [
+      { x:   0, y: 480, w: 960, h: 60 },
+      { x:  80, y: 380, w: 150, h: 18 },
+      { x: 310, y: 310, w: 120, h: 18 },
+      { x: 500, y: 240, w: 160, h: 18 },
+      { x: 720, y: 310, w: 120, h: 18 },
+      { x: 820, y: 390, w: 100, h: 18 },
+    ],
+    exits: {
+      left:  { room: 1, spawnX: 890, spawnY: 400 },
+      right: { room: 4, spawnX:  30, spawnY: 400 },
+    },
+    decorations: [
+      { type:'mushroom', x:160, y:480 },
+      { type:'mushroom', x:450, y:480 },
+      { type:'mushroom', x:700, y:480 },
+    ],
+  },
+  3: {
+    name: 'La Cima — Cielo Fracturado',
+    bg: ['#100818', '#1a0e28'],
+    floorColor: '#2a1848',
+    platColor:  '#3a2060',
+    edgeColor:  '#503080',
+    particleColor: '#c080ff',
+    platforms: [
+      { x:   0, y: 480, w: 370, h: 60 }, // suelo izquierdo
+      { x: 590, y: 480, w: 370, h: 60 }, // suelo derecho
+      { x: 370, y: 480, w: 220, h: 60, trapdoor: true }, // puerta al cielo fracturado
+      { x: 200, y: 370, w: 160, h: 18 },
+      { x: 420, y: 270, w: 120, h: 18 },
+      { x: 640, y: 370, w: 160, h: 18 },
+      { x: 360, y: 160, w: 240, h: 18 },
+    ],
+    exits: {
+      down: { room: 1, spawnX: 420, spawnY: 200 },
+    },
+    decorations: [
+      { type:'star', x:100, y: 80 },
+      { type:'star', x:300, y:140 },
+      { type:'star', x:600, y: 60 },
+      { type:'star', x:800, y:120 },
+    ],
+  },
+  4: {
+    name: 'Sala del Último Rey',
+    bg: ['#100505', '#200808'],
+    floorColor: '#301010',
+    platColor:  '#481818',
+    edgeColor:  '#602020',
+    particleColor: '#ff4040',
+    platforms: [
+      { x:   0, y: 480, w: 960, h: 60 },
+      { x:  80, y: 400, w: 120, h: 18 },
+      { x: 280, y: 320, w: 160, h: 18 },
+      { x: 500, y: 240, w: 160, h: 18 },
+      { x: 720, y: 320, w: 160, h: 18 },
+      { x: 850, y: 400, w: 110, h: 18 },
+    ],
+    exits: {
+      left: { room: 2, spawnX: 890, spawnY: 400 },
+    },
+    decorations: [
+      { type:'throne', x:430, y:180 },
+      { type:'pillar', x:100, y:420, h:60 },
+      { type:'pillar', x:830, y:420, h:60 },
+    ],
+  },
+};
+
+// ─── ENEMIGOS — plantillas por sala ──────────────────────────────────────────
+// y = superficie de plataforma - 24 (altura enemigo)
+const ENEMY_TEMPLATES = {
+  0: [
+    { x: 250, y: 456, dir:  1, patrolMin:  80, patrolMax: 400, speed: 1.2 },
+    { x: 700, y: 456, dir: -1, patrolMin: 500, patrolMax: 880, speed: 1.2 },
+  ],
+  1: [
+    { x:  60, y: 456, dir:  1, patrolMin:  10, patrolMax: 290, speed: 1.3 },
+    { x: 760, y: 456, dir: -1, patrolMin: 640, patrolMax: 930, speed: 1.3 },
+  ],
+  2: [
+    { x: 150, y: 456, dir:  1, patrolMin:  10, patrolMax: 940, speed: 1.4 },
+    { x: 330, y: 286, dir:  1, patrolMin: 310, patrolMax: 420, speed: 1.2 },
+    { x: 740, y: 286, dir: -1, patrolMin: 720, patrolMax: 830, speed: 1.2 },
+  ],
+  3: [
+    { x: 220, y: 346, dir:  1, patrolMin: 200, patrolMax: 355, speed: 1.4 },
+    { x: 660, y: 346, dir: -1, patrolMin: 640, patrolMax: 795, speed: 1.4 },
+  ],
+  4: [], // sala del jefe — sin enemigos normales
+};
+
+// ─── PARTÍCULAS ───────────────────────────────────────────────────────────────
+const MAX_PARTICLES = 35;
+let particles = [];
+
+function resetParticles(roomId) {
+  particles = [];
+  const col = ROOMS[roomId].particleColor;
+  for (let i = 0; i < MAX_PARTICLES; i++) {
+    particles.push(makeParticle(col, true));
+  }
+}
+
+function makeParticle(col, randomY = false) {
+  return {
+    x: Math.random() * W,
+    y: randomY ? Math.random() * H : H + 10,
+    vy: -(Math.random() * 0.4 + 0.1),
+    vx: (Math.random() - 0.5) * 0.15,
+    size: Math.random() * 2.5 + 0.5,
+    alpha: Math.random() * 0.6 + 0.1,
+    col,
+  };
+}
+
+function updateParticles(roomId) {
+  const col = ROOMS[roomId].particleColor;
+  for (const p of particles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.y < -5) {
+      Object.assign(p, makeParticle(col));
+    }
+  }
+}
+
+// ─── JUGADOR ─────────────────────────────────────────────────────────────────
+const player = {
+  x: 80, y: 400,
+  w: 26, h: 38,
+  vx: 0, vy: 0,
+  onGround: false,
+  facing: 1,
+  coyoteTime: 0,
+  jumpBuffered: false,
+  bobTimer: 0,
+  hp: 5,
+  maxHp: 5,
+  invFrames: 0,
+  knockbackTimer: 0,
+  attackTimer: 0,
+  attackActive: 0,
+  healTimer: 0,
+};
+
+const GRAVITY    = 0.55;
+const MOVE_SPD   = 4.5;
+const JUMP_V     = -13.5;
+const MAX_FALL   = 18;
+const COYOTE_MAX = 8;
+const FRICTION   = 0.82;
+
+// ─── TECLADO ─────────────────────────────────────────────────────────────────
+const keys = {};
+document.addEventListener('keydown', e => {
+  if (!keys[e.code]) {
+    if (['Space','ArrowUp','KeyW'].includes(e.code)) player.jumpBuffered = true;
+    if (['KeyZ','KeyJ','KeyX'].includes(e.code) && player.attackTimer === 0) {
+      player.attackTimer  = 26;
+      player.attackActive = 9;
+    }
+  }
+  keys[e.code] = true;
+  e.preventDefault();
+});
+document.addEventListener('keyup', e => { keys[e.code] = false; });
+
+function left()  { return keys['ArrowLeft']  || keys['KeyA']; }
+function right() { return keys['ArrowRight'] || keys['KeyD']; }
+function jumpHeld() { return keys['Space'] || keys['ArrowUp'] || keys['KeyW']; }
+
+// ─── ESTADO DE JUEGO ─────────────────────────────────────────────────────────
+let currentRoom = 0;
+let transitioning = false;
+let transAlpha = 0;           // 0 = transparente, 1 = negro total
+let transPhase = 'none';      // 'fade-out' | 'black' | 'fade-in'
+let transBlackFrames = 0;
+let pendingRoom = null;
+let pendingPos  = null;
+let roomLabelAlpha = 0;
+let roomLabelTimer = 0;
+let isDeath = false;
+let currentEnemies = [];
+
+// ─── JEFE ─────────────────────────────────────────────────────────────────────
+let bossDefeated  = false;
+let bossAttackIdx = 0;
+const BOSS_FLOOR_Y = 424; // 480 - 56
+
+const boss = {
+  x: 440, y: BOSS_FLOOR_Y,
+  w: 72,  h: 56,
+  vx: 0,  vy: 0,
+  hp: 10, maxHp: 10,
+  state: 'wait', stateTimer: 90,
+  phase: 1,
+  invFrames: 0,
+  facing: -1,
+  dead: false, deathTimer: 0,
+  projectiles: [],
+};
+
+// ─── LLAVE ────────────────────────────────────────────────────────────────────
+let hasKey  = false;
+let keyUsed = false;
+const keyItem = { x: 0, y: 0, active: false, bobTimer: 0 };
+
+// ─── JEFE 2 ───────────────────────────────────────────────────────────────────
+let boss2Defeated  = false;
+let boss2AttackIdx = 0;
+const BOSS2_HOVER_Y = 105;
+
+const boss2 = {
+  x: 440, y: BOSS2_HOVER_Y,
+  w: 78,  h: 62,
+  vx: 0,  vy: 0,
+  hp: 12, maxHp: 12,
+  state: 'hover', stateTimer: 90,
+  swoopPhase: 'down',
+  phase: 1,
+  invFrames: 0,
+  facing: 1,
+  dead: false, deathTimer: 0,
+  projectiles: [],
+};
+
+function startTransition(roomId, px, py) {
+  if (transitioning) return;
+  transitioning = true;
+  transPhase = 'fade-out';
+  transAlpha = 0;
+  pendingRoom = roomId;
+  pendingPos  = { x: px, y: py };
+}
+
+// ─── COLISIÓN ─────────────────────────────────────────────────────────────────
+function collideRect(ax, ay, aw, ah, bx, by, bw, bh) {
+  return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+}
+
+function resolveCollisions() {
+  const plats = ROOMS[currentRoom].platforms;
+  player.onGround = false;
+
+  // X primero
+  player.x += player.vx;
+  for (const p of plats) {
+    if (p.trapdoor && boss2Defeated) continue;
+    if (collideRect(player.x, player.y, player.w, player.h, p.x, p.y, p.w, p.h)) {
+      if (player.vx > 0) player.x = p.x - player.w;
+      if (player.vx < 0) player.x = p.x + p.w;
+      player.vx = 0;
+    }
+  }
+
+  // Y después
+  player.y += player.vy;
+  for (const p of plats) {
+    if (p.trapdoor && boss2Defeated) continue;
+    if (collideRect(player.x, player.y, player.w, player.h, p.x, p.y, p.w, p.h)) {
+      if (player.vy > 0) {
+        player.y = p.y - player.h;
+        player.onGround = true;
+      } else {
+        player.y = p.y + p.h;
+      }
+      player.vy = 0;
+    }
+  }
+}
+
+// ─── ACTUALIZAR ───────────────────────────────────────────────────────────────
+function updatePlayer() {
+  // Movimiento horizontal
+  if (left()) {
+    player.vx = -MOVE_SPD;
+    player.facing = -1;
+  } else if (right()) {
+    player.vx = MOVE_SPD;
+    player.facing = 1;
+  } else {
+    player.vx *= FRICTION;
+    if (Math.abs(player.vx) < 0.2) player.vx = 0;
+  }
+
+  // Coyote time
+  if (player.onGround) {
+    player.coyoteTime = COYOTE_MAX;
+  } else if (player.coyoteTime > 0) {
+    player.coyoteTime--;
+  }
+
+  // Saltar
+  if (player.jumpBuffered && player.coyoteTime > 0) {
+    player.vy = JUMP_V;
+    player.coyoteTime = 0;
+    player.jumpBuffered = false;
+  }
+  player.jumpBuffered = false;
+
+  // Gravedad variable (soltar el botón = caída más rápida)
+  if (player.vy < 0 && !jumpHeld()) {
+    player.vy += GRAVITY * 1.6;
+  } else {
+    player.vy += GRAVITY;
+  }
+  if (player.vy > MAX_FALL) player.vy = MAX_FALL;
+
+  if (player.attackTimer  > 0) player.attackTimer--;
+  if (player.attackActive > 0) player.attackActive--;
+  if (player.invFrames    > 0) player.invFrames--;
+  if (player.knockbackTimer > 0) { player.knockbackTimer--; }
+
+  // Regeneración: 1 corazón cada 12 segundos (720 frames a 60fps)
+  player.healTimer++;
+  if (player.healTimer >= 720) {
+    player.healTimer = 0;
+    if (player.hp < player.maxHp) player.hp++;
+  }
+
+  resolveCollisions();
+
+  // Bob (animación de caminar)
+  if (player.onGround && Math.abs(player.vx) > 0.5) {
+    player.bobTimer += 0.25;
+  } else {
+    player.bobTimer *= 0.8;
+  }
+}
+
+function checkExits() {
+  const exits = ROOMS[currentRoom].exits;
+  if (!exits) return;
+
+  if (exits.right && player.x + player.w >= W) {
+    const e = exits.right;
+    startTransition(e.room, e.spawnX, e.spawnY);
+  }
+  if (exits.left && player.x <= 0) {
+    if (currentRoom === 4 && !bossDefeated) return; // puerta bloqueada
+    const e = exits.left;
+    startTransition(e.room, e.spawnX, e.spawnY);
+  }
+  if (exits.up && player.y <= 0) {
+    if (currentRoom === 1 && !hasKey && !keyUsed) return; // puerta con llave
+    if (currentRoom === 1 && hasKey) { hasKey = false; keyUsed = true; }
+    const e = exits.up;
+    startTransition(e.room, e.spawnX, e.spawnY);
+  }
+  if (exits.down && player.y + player.h >= H + 30) {
+    if (currentRoom === 3 && !boss2Defeated) return; // debes matar al guardián
+    const e = exits.down;
+    startTransition(e.room, e.spawnX, e.spawnY);
+  }
+
+  // Muerte: caer fuera del mapa
+  if (player.y > H + 100) {
+    isDeath = true;
+    startTransition(0, 80, 400);
+  }
+}
+
+function updateTransition() {
+  if (!transitioning) return;
+
+  if (transPhase === 'fade-out') {
+    transAlpha += 0.055;
+    if (transAlpha >= 1) {
+      transAlpha = 1;
+      transPhase = 'black';
+      transBlackFrames = 18;
+      // Cambiar sala ahora
+      currentRoom = pendingRoom;
+      player.x = pendingPos.x;
+      player.y = pendingPos.y;
+      player.vx = 0;
+      player.vy = 0;
+      resetParticles(currentRoom);
+      initEnemies(currentRoom);
+      if (pendingRoom === 4 && !bossDefeated) initBoss();
+      if (pendingRoom === 3 && !boss2Defeated) initBoss2();
+      if (isDeath) {
+        player.hp = player.maxHp; player.invFrames = 0;
+        bossDefeated = false; initBoss();
+        boss2Defeated = false; initBoss2();
+        hasKey = false; keyUsed = false; keyItem.active = false;
+      }
+      roomLabelAlpha = 1;
+      roomLabelTimer = 200;
+    }
+  } else if (transPhase === 'black') {
+    transBlackFrames--;
+    if (transBlackFrames <= 0) transPhase = 'fade-in';
+  } else if (transPhase === 'fade-in') {
+    transAlpha -= 0.04;
+    if (transAlpha <= 0) {
+      transAlpha = 0;
+      transPhase = 'none';
+      transitioning = false;
+      isDeath = false;
+    }
+  }
+}
+
+// ─── ENEMIGOS ─────────────────────────────────────────────────────────────────
+function initEnemies(roomId) {
+  const templates = ENEMY_TEMPLATES[roomId] || [];
+  currentEnemies = templates.map(t => ({ ...t, w: 28, h: 24, vy: 0, dead: false, deathTimer: 0 }));
+}
+
+function updateEnemies() {
+  for (const e of currentEnemies) {
+    if (e.dead) { if (e.deathTimer > 0) e.deathTimer--; continue; }
+    e.x += e.dir * e.speed;
+    if (e.x <= e.patrolMin)       { e.x = e.patrolMin; e.dir =  1; }
+    if (e.x + e.w >= e.patrolMax) { e.x = e.patrolMax - e.w; e.dir = -1; }
+  }
+}
+
+function checkEnemyCollisions() {
+  // Hitbox de ataque del jugador
+  const atkW = 52, atkH = 30;
+  const atkX = player.facing === 1 ? player.x + player.w : player.x - atkW;
+  const atkY = player.y + 6;
+
+  for (const e of currentEnemies) {
+    if (e.dead) continue;
+
+    // Ataque del jugador golpea al enemigo
+    if (player.attackActive > 0 &&
+        collideRect(atkX, atkY, atkW, atkH, e.x, e.y, e.w, e.h)) {
+      e.dead = true;
+      e.deathTimer = 22;
+      // Rebote ligero al golpear
+      if (player.knockbackTimer === 0) { player.vy = Math.min(player.vy, -4); }
+      continue;
+    }
+
+    // Stomp (caer encima mata al enemigo)
+    const stompOverlap = collideRect(player.x, player.y, player.w, player.h, e.x, e.y, e.w, e.h);
+    const fromAbove    = player.vy > 1 && (player.y + player.h) < (e.y + e.h * 0.6);
+    if (stompOverlap && fromAbove) {
+      e.dead = true;
+      e.deathTimer = 22;
+      player.vy = -11;
+      continue;
+    }
+
+    // Contacto lateral/desde abajo → daño al jugador
+    if (player.invFrames === 0 &&
+        collideRect(player.x + 3, player.y + 3, player.w - 6, player.h - 3, e.x, e.y, e.w, e.h)) {
+      player.hp--;
+      if (player.hp <= 0) {
+        player.hp = 0;
+        isDeath = true;
+        startTransition(0, 80, 400);
+        return;
+      }
+      player.invFrames = 90;
+      player.knockbackTimer = 14;
+      const dir = player.x + player.w / 2 < e.x + e.w / 2 ? -1 : 1;
+      player.vx = dir * 6;
+      player.vy = -7;
+    }
+  }
+}
+
+function drawEnemy(e) {
+  const cx = Math.round(e.x + e.w / 2);
+  const cy = Math.round(e.y + e.h / 2);
+
+  // Animación de muerte (poof)
+  if (e.dead) {
+    if (e.deathTimer <= 0) return;
+    const t = e.deathTimer / 22;
+    ctx.save();
+    ctx.globalAlpha = t;
+    for (let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
+      const dist  = (1 - t) * 28;
+      ctx.fillStyle = i % 2 === 0 ? '#c060ff' : '#ff6040';
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(angle) * dist, cy + Math.sin(angle) * dist, 4 * t, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+    return;
+  }
+
+  const t = Date.now() * 0.003;
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(e.dir, 1);
+
+  // Sombra
+  ctx.fillStyle = 'rgba(0,0,0,0.22)';
+  ctx.beginPath();
+  ctx.ellipse(0, e.h / 2 + 2, e.w * 0.38, 3, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Cuerpo oscuro
+  ctx.fillStyle = '#18082a';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, e.w / 2, e.h / 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Caparazón brillante (mitad superior)
+  ctx.fillStyle = '#2e1248';
+  ctx.beginPath();
+  ctx.ellipse(-1, -2, e.w / 2 - 2, e.h / 2 - 3, -0.1, Math.PI, 0);
+  ctx.fill();
+
+  // Ojo rojo brillante
+  const ex = e.w / 2 - 7, ey = -3;
+  const glow = ctx.createRadialGradient(ex, ey, 0, ex, ey, 7);
+  glow.addColorStop(0, '#ff5050');
+  glow.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(ex, ey, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ff2020';
+  ctx.beginPath();
+  ctx.arc(ex, ey, 3.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffaaaa';
+  ctx.beginPath();
+  ctx.arc(ex - 1, ey - 1, 1.1, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Patas animadas (3 pares)
+  ctx.strokeStyle = '#3a1858';
+  ctx.lineWidth = 1.5;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 3; i++) {
+    const lx    = -6 + i * 6;
+    const swing = Math.sin(t * 7 + i * 1.1) * 3.5;
+    ctx.beginPath(); ctx.moveTo(lx, 5); ctx.lineTo(lx - 8, 11 + swing);  ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(lx, 5); ctx.lineTo(lx + 8, 11 - swing);  ctx.stroke();
+  }
+
+  // Antena
+  ctx.strokeStyle = '#4a2068';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(e.w / 2 - 9, -e.h / 2 + 1);
+  ctx.quadraticCurveTo(e.w / 2, -e.h / 2 - 7, e.w / 2 + 3, -e.h / 2 - 13);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawEnemies() {
+  for (const e of currentEnemies) drawEnemy(e);
+}
+
+// ─── FUNCIONES DE JEFE ────────────────────────────────────────────────────────
+function initBoss() {
+  Object.assign(boss, {
+    x: 440, y: BOSS_FLOOR_Y,
+    vx: 0, vy: 0,
+    hp: 10, state: 'wait', stateTimer: 90,
+    phase: 1, invFrames: 0, facing: -1,
+    dead: false, deathTimer: 0, projectiles: [],
+  });
+  bossAttackIdx = 0;
+}
+
+function fireBossOrbs() {
+  const cx = boss.x + boss.w / 2, cy = boss.y + boss.h / 2;
+  const dx = (player.x + player.w / 2) - cx;
+  const dy = (player.y + player.h / 2) - cy;
+  const len = Math.hypot(dx, dy) || 1;
+  const nx = dx / len, ny = dy / len;
+  for (const a of [-0.4, 0, 0.4]) {
+    const cos = Math.cos(a), sin = Math.sin(a);
+    boss.projectiles.push({
+      x: cx, y: cy,
+      vx: (nx * cos - ny * sin) * 4.5,
+      vy: (nx * sin + ny * cos) * 4.5,
+      r: 9, life: 220,
+    });
+  }
+}
+
+function updateBoss() {
+  if (currentRoom !== 4) return;
+
+  // Actualizar proyectiles
+  for (const p of boss.projectiles) {
+    p.x += p.vx; p.y += p.vy;
+    p.vy += 0.12;
+    p.life--;
+  }
+  boss.projectiles = boss.projectiles.filter(
+    p => p.life > 0 && p.x > -30 && p.x < W + 30 && p.y < H + 30
+  );
+
+  if (boss.dead) {
+    if (boss.deathTimer > 0) { boss.deathTimer--; }
+    else if (!bossDefeated)  {
+      bossDefeated = true;
+      keyItem.x = boss.x + boss.w / 2 - 12;
+      keyItem.y = BOSS_FLOOR_Y - 28;
+      keyItem.active = true;
+      keyItem.bobTimer = 0;
+    }
+    return;
+  }
+
+  if (boss.invFrames > 0) boss.invFrames--;
+  boss.phase = boss.hp <= Math.floor(boss.maxHp / 2) ? 2 : 1;
+
+  // Gravedad (al saltar)
+  if (boss.y < BOSS_FLOOR_Y) {
+    boss.vy += 0.65;
+    boss.y  += boss.vy;
+    if (boss.y >= BOSS_FLOOR_Y) {
+      boss.y = BOSS_FLOOR_Y; boss.vy = 0;
+      if (boss.state === 'jump') { boss.state = 'wait'; boss.vx = 0; boss.stateTimer = 55; }
+    }
+  }
+
+  boss.stateTimer--;
+
+  if (boss.state === 'charge') {
+    boss.x += boss.vx;
+    if (boss.x <= 20)              { boss.x = 20;              boss.vx =  Math.abs(boss.vx) * 0.92; boss.facing =  1; }
+    if (boss.x + boss.w >= W - 20) { boss.x = W - 20 - boss.w; boss.vx = -Math.abs(boss.vx) * 0.92; boss.facing = -1; }
+    if (boss.stateTimer <= 0)      { boss.state = 'wait'; boss.vx = 0; boss.stateTimer = boss.phase === 2 ? 40 : 55; }
+
+  } else if (boss.state === 'jump') {
+    boss.x += boss.vx;
+    if (boss.x <= 20)              { boss.x = 20;              boss.vx =  Math.abs(boss.vx); boss.facing =  1; }
+    if (boss.x + boss.w >= W - 20) { boss.x = W - 20 - boss.w; boss.vx = -Math.abs(boss.vx); boss.facing = -1; }
+    if (boss.stateTimer <= 0)      { boss.y = BOSS_FLOOR_Y; boss.vy = 0; boss.state = 'wait'; boss.vx = 0; boss.stateTimer = 50; }
+
+  } else if (boss.state === 'wait') {
+    if (boss.stateTimer <= 0) {
+      const pattern = boss.phase === 2
+        ? ['charge','jump','shoot','charge','jump','shoot','charge','charge']
+        : ['charge','jump','charge','jump'];
+      const next = pattern[bossAttackIdx % pattern.length];
+      bossAttackIdx++;
+      const pdx = (player.x + player.w / 2) - (boss.x + boss.w / 2);
+      boss.facing = pdx > 0 ? 1 : -1;
+
+      if (next === 'shoot') {
+        fireBossOrbs();
+        boss.stateTimer = boss.phase === 2 ? 35 : 50;
+      } else {
+        boss.state = next;
+        if (next === 'charge') {
+          boss.vx = boss.facing * (boss.phase === 2 ? 7.8 : 6.2);
+          boss.stateTimer = 130;
+        } else {
+          boss.vx = boss.facing * 4.5;
+          boss.vy = -14;
+          boss.stateTimer = 160;
+        }
+      }
+    }
+  }
+}
+
+function checkBossCollisions() {
+  if (currentRoom !== 4 || boss.dead) return;
+
+  const atkW = 52, atkH = 30;
+  const atkX = player.facing === 1 ? player.x + player.w : player.x - atkW;
+  const atkY = player.y + 6;
+
+  // Ataque del jugador golpea al jefe
+  if (player.attackActive > 0 && boss.invFrames === 0 &&
+      collideRect(atkX, atkY, atkW, atkH, boss.x, boss.y, boss.w, boss.h)) {
+    boss.hp--;
+    boss.invFrames = 28;
+    if (boss.hp <= 0) { boss.hp = 0; boss.dead = true; boss.deathTimer = 130; boss.projectiles = []; return; }
+  }
+
+  // Pisotón al jefe
+  const onBoss   = collideRect(player.x, player.y, player.w, player.h, boss.x, boss.y, boss.w, boss.h);
+  const fromTop  = player.vy > 1 && (player.y + player.h) < (boss.y + boss.h * 0.5);
+  if (onBoss && fromTop && boss.invFrames === 0) {
+    boss.hp--;
+    boss.invFrames = 28;
+    player.vy = -12;
+    if (boss.hp <= 0) { boss.hp = 0; boss.dead = true; boss.deathTimer = 130; boss.projectiles = []; return; }
+  }
+
+  // Cuerpo del jefe daña al jugador
+  if (player.invFrames === 0 && !fromTop &&
+      collideRect(player.x + 3, player.y + 3, player.w - 6, player.h - 3, boss.x, boss.y, boss.w, boss.h)) {
+    player.hp--;
+    if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+    player.invFrames = 90;
+    const dir = (player.x + player.w / 2) < (boss.x + boss.w / 2) ? -1 : 1;
+    player.vx = dir * 7; player.vy = -8;
+  }
+
+  // Proyectiles dañan al jugador
+  for (let i = boss.projectiles.length - 1; i >= 0; i--) {
+    const p = boss.projectiles[i];
+    // Ataque destruye proyectil
+    if (player.attackActive > 0 &&
+        collideRect(atkX, atkY, atkW, atkH, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2)) {
+      boss.projectiles.splice(i, 1); continue;
+    }
+    const dist = Math.hypot((player.x + player.w / 2) - p.x, (player.y + player.h / 2) - p.y);
+    if (dist < p.r + 12 && player.invFrames === 0) {
+      player.hp--;
+      boss.projectiles.splice(i, 1);
+      if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+      player.invFrames = 70;
+      const dir = player.x < p.x ? -1 : 1;
+      player.vx = dir * 5; player.vy = -6;
+    }
+  }
+}
+
+function drawBoss() {
+  if (currentRoom !== 4) return;
+
+  // Proyectiles
+  for (const p of boss.projectiles) {
+    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.2);
+    g.addColorStop(0, 'rgba(180,60,255,0.85)'); g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#d070ff';
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(p.x - p.r * 0.3, p.y - p.r * 0.3, p.r * 0.35, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Animación de muerte
+  if (boss.dead) {
+    if (boss.deathTimer <= 0) return;
+    const t  = boss.deathTimer / 130;
+    const cx = boss.x + boss.w / 2, cy = boss.y + boss.h / 2;
+    const cols = ['#ff4040','#ffaa00','#ff80ff','#ffffff','#40ffff','#ffff00'];
+    for (let i = 0; i < 12; i++) {
+      const angle = (i / 12) * Math.PI * 2 + (1 - t) * 6;
+      const dist  = (1 - t) * 110;
+      ctx.fillStyle  = cols[i % cols.length];
+      ctx.globalAlpha = t;
+      ctx.beginPath(); ctx.arc(cx + Math.cos(angle) * dist, cy + Math.sin(angle) * dist, 9 * t + 2, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    return;
+  }
+
+  const cx = Math.round(boss.x + boss.w / 2), cy = Math.round(boss.y + boss.h / 2);
+  const hw = boss.w / 2, hh = boss.h / 2;
+  const hy = -hh + 2;
+  const t  = Date.now() * 0.002;
+  const p2 = boss.phase === 2;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(boss.facing, 1);
+  if (boss.invFrames > 0 && Math.floor(boss.invFrames / 4) % 2 === 0) ctx.globalAlpha = 0.45;
+
+  // Sombra
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.beginPath(); ctx.ellipse(0, hh + 5, hw * 0.8, 7, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Capa real
+  ctx.fillStyle = p2 ? '#2a0808' : '#1a0a28';
+  ctx.beginPath();
+  ctx.moveTo(-hw - 10, -hh + 18); ctx.lineTo(-hw - 16, hh + 10);
+  ctx.lineTo(hw + 16, hh + 10);   ctx.lineTo(hw + 10, -hh + 18);
+  ctx.closePath(); ctx.fill();
+
+  // Cuerpo (mapache grande)
+  ctx.fillStyle = p2 ? '#501818' : '#484848';
+  ctx.beginPath(); ctx.ellipse(0, hh * 0.2, hw * 0.92, hh * 0.82, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = p2 ? '#703030' : '#909090';
+  ctx.beginPath(); ctx.ellipse(2, hh * 0.35, hw * 0.52, hh * 0.52, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Cabeza
+  ctx.fillStyle = p2 ? '#401818' : '#545454';
+  ctx.beginPath(); ctx.arc(0, hy, 21, 0, Math.PI * 2); ctx.fill();
+
+  // Corona
+  const cc = p2 ? '#cc3311' : '#c8a000';
+  ctx.fillStyle = cc;
+  ctx.beginPath();
+  ctx.moveTo(-19, hy - 14); ctx.lineTo(-14, hy - 32); ctx.lineTo(-8,  hy - 17);
+  ctx.lineTo(  0, hy - 38); ctx.lineTo( 8,  hy - 17); ctx.lineTo(14, hy - 32);
+  ctx.lineTo( 19, hy - 14); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = p2 ? '#ff5533' : '#44ccff';
+  ctx.beginPath(); ctx.arc(-14, hy - 30, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(  0, hy - 36, 4.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc( 14, hy - 30, 3.5, 0, Math.PI * 2); ctx.fill();
+
+  // Orejas
+  ctx.fillStyle = p2 ? '#3a1010' : '#424242';
+  ctx.beginPath(); ctx.arc(-17, hy - 18, 10, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc( 17, hy - 18, 10, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#b07070';
+  ctx.beginPath(); ctx.arc(-17, hy - 18, 4.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc( 17, hy - 18, 4.5, 0, Math.PI * 2); ctx.fill();
+
+  // Máscara de mapache
+  ctx.fillStyle = '#111111';
+  ctx.beginPath(); ctx.ellipse(8, hy - 1, 13, 9, 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillRect(-2, hy - 6, 3, 8);
+
+  // Ojos
+  const ec = p2 ? '#ff2020' : '#ffcc00';
+  const ep = 1 + 0.25 * Math.sin(t * 5);
+  const eg = ctx.createRadialGradient(8, hy - 1, 0, 8, hy - 1, 11 * ep);
+  eg.addColorStop(0, p2 ? '#ff9090' : '#ffee88'); eg.addColorStop(1, 'transparent');
+  ctx.fillStyle = eg;
+  ctx.beginPath(); ctx.arc(8, hy - 1, 11 * ep, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = ec;
+  ctx.beginPath(); ctx.arc(8, hy - 1, 5.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(6.5, hy - 2.8, 2, 0, Math.PI * 2); ctx.fill();
+
+  // Hocico
+  ctx.fillStyle = p2 ? '#704040' : '#a09090';
+  ctx.beginPath(); ctx.ellipse(-2, hy + 9, 10, 8, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#111';
+  ctx.beginPath(); ctx.ellipse(-2, hy + 6, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 1; ctx.lineCap = 'round';
+  for (const s of [-1, 1]) {
+    ctx.beginPath(); ctx.moveTo(s * 4, hy + 9);  ctx.lineTo(s * 23, hy + 7);  ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s * 4, hy + 11); ctx.lineTo(s * 23, hy + 13); ctx.stroke();
+  }
+
+  // Cetro real
+  ctx.strokeStyle = cc; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(hw + 5, -hh + 26); ctx.lineTo(hw + 22, -hh - 12); ctx.stroke();
+  ctx.fillStyle = p2 ? '#ff4040' : '#44ccff';
+  ctx.beginPath(); ctx.arc(hw + 22, -hh - 12, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(hw + 19, -hh - 15, 2.5, 0, Math.PI * 2); ctx.fill();
+
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function drawBossUI() {
+  if (currentRoom !== 4) return;
+
+  // Puerta de hierro (bloqueada mientras vive el jefe)
+  if (!bossDefeated) {
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.fillRect(0, 100, 20, H - 200);
+    for (let yg = 108; yg < H - 108; yg += 44) {
+      ctx.fillStyle = '#3a3a48';
+      ctx.fillRect(0, yg, 20, 28);
+      ctx.fillStyle = '#545464';
+      ctx.fillRect(2, yg + 2, 5, 24);
+    }
+    ctx.strokeStyle = '#2a2a38'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(0, H / 2 - 10); ctx.lineTo(26, H / 2 - 10); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, H / 2 + 10); ctx.lineTo(26, H / 2 + 10); ctx.stroke();
+  }
+
+  // Barra de vida del jefe
+  if (!boss.dead) {
+    const barW = 400, barH = 18;
+    const bx = (W - barW) / 2, by = H - 44;
+    ctx.fillStyle = 'rgba(0,0,0,0.72)';
+    ctx.fillRect(bx - 6, by - 26, barW + 12, barH + 36);
+    ctx.fillStyle = boss.phase === 2 ? '#cc2222' : '#9922cc';
+    ctx.font = 'bold 14px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('✦  ÚLTIMO REY  ✦', W / 2, by - 8);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(bx, by, barW, barH);
+    const fill = (boss.hp / boss.maxHp) * barW;
+    ctx.fillStyle = boss.phase === 2 ? '#cc2233' : '#9922dd';
+    ctx.fillRect(bx, by, fill, barH);
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillRect(bx, by, fill, barH / 2);
+    ctx.strokeStyle = boss.phase === 2 ? '#ff5544' : '#cc55ff';
+    ctx.lineWidth = 1.5; ctx.strokeRect(bx, by, barW, barH);
+  }
+
+  // Mensaje de victoria
+  if (bossDefeated && boss.deathTimer === 0) {
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = '#ffe060';
+    ctx.font = 'bold 34px serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('¡Victoria!  El rey ha caído.', W / 2, 110);
+    ctx.font = '18px serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('La salida está abierta →← …regresa a la izquierda', W / 2, 144);
+    // Brillo dorado en la salida
+    const pulse = 0.3 + 0.2 * Math.sin(Date.now() * 0.004);
+    const g = ctx.createLinearGradient(0, 0, 70, 0);
+    g.addColorStop(0, `rgba(255,220,80,${pulse})`); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.globalAlpha = 1;
+    ctx.fillRect(0, 100, 70, H - 200);
+    ctx.restore();
+  }
+}
+
+// ─── LLAVE ────────────────────────────────────────────────────────────────────
+function updateKey() {
+  if (!keyItem.active || hasKey) return;
+  keyItem.bobTimer += 0.055;
+  if (currentRoom !== 4) return;
+  if (collideRect(player.x, player.y, player.w, player.h,
+      keyItem.x - 4, keyItem.y - 12, 40, 28)) {
+    hasKey = true;
+    keyItem.active = false;
+  }
+}
+
+function drawKey() {
+  if (currentRoom !== 4 || !keyItem.active || hasKey) return;
+  const kx = keyItem.x;
+  const ky = keyItem.y + Math.sin(keyItem.bobTimer) * 6;
+  ctx.save();
+  ctx.translate(kx, ky);
+  // Halo dorado
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 26);
+  g.addColorStop(0, 'rgba(255,200,40,0.55)'); g.addColorStop(1, 'transparent');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, 0, 26, 0, Math.PI * 2); ctx.fill();
+  // Cabeza de la llave
+  ctx.strokeStyle = '#ffd040'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.arc(-8, 0, 9, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,200,0,0.25)';
+  ctx.beginPath(); ctx.arc(-8, 0, 9, 0, Math.PI * 2); ctx.fill();
+  // Agujero de la llave
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.beginPath(); ctx.arc(-8, 0, 3.5, 0, Math.PI * 2); ctx.fill();
+  // Mango
+  ctx.fillStyle = '#ffd040';
+  ctx.fillRect(-1, -3, 22, 6);
+  // Dientes
+  ctx.fillRect(13,  3, 4, 7);
+  ctx.fillRect(19,  3, 3, 5);
+  ctx.restore();
+}
+
+function drawKeyHUD() {
+  if (!hasKey && !keyUsed) return;
+  // Icono de llave en HUD (junto a los corazones)
+  const kx = 22 + player.maxHp * 28 + 16;
+  const ky = 44;
+  ctx.save();
+  ctx.translate(kx, ky);
+  ctx.globalAlpha = hasKey ? 1 : 0.35;
+  ctx.strokeStyle = hasKey ? '#ffd040' : '#888'; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(-5, 0, 6, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = hasKey ? '#ffd040' : '#888';
+  ctx.fillRect(-1, -2, 13, 4);
+  ctx.fillRect( 7,  2, 3, 5);
+  ctx.fillRect(10,  2, 2, 4);
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function drawKeyGate() {
+  // Reja dorada en la salida superior de sala 1
+  if (currentRoom !== 1 || keyUsed) return;
+  const gx = 370, gw = 220;
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.fillRect(gx, 0, gw, 22);
+  const barCol  = hasKey ? '#c8a000' : '#4a4858';
+  const shinCol = hasKey ? 'rgba(255,220,80,0.3)' : 'rgba(255,255,255,0.06)';
+  for (let bx = gx + 8; bx < gx + gw - 8; bx += 26) {
+    ctx.fillStyle = barCol;
+    ctx.fillRect(bx, 0, 14, 22);
+    ctx.fillStyle = shinCol;
+    ctx.fillRect(bx + 2, 0, 5, 22);
+  }
+  // Ícono de candado en el centro
+  if (!hasKey) {
+    const lx = gx + gw / 2, ly = 10;
+    ctx.fillStyle = '#6a6a88';
+    ctx.fillRect(lx - 6, ly - 4, 12, 9);
+    ctx.strokeStyle = '#6a6a88'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(lx, ly - 4, 5, Math.PI, 0); ctx.stroke();
+  }
+  // Texto de pista si el jefe del trono está muerto
+  if (bossDefeated && !hasKey) {
+    const pulse = 0.6 + 0.4 * Math.sin(Date.now() * 0.004);
+    ctx.globalAlpha = pulse;
+    ctx.fillStyle = '#ffd040'; ctx.font = '13px serif'; ctx.textAlign = 'center';
+    ctx.fillText('¡Recoge la llave del rey!', W / 2, 44);
+    ctx.globalAlpha = 1;
+  }
+  if (hasKey) {
+    const pulse = 0.6 + 0.4 * Math.sin(Date.now() * 0.005);
+    ctx.globalAlpha = pulse;
+    ctx.fillStyle = '#ffd040'; ctx.font = '13px serif'; ctx.textAlign = 'center';
+    ctx.fillText('Presiona ↑ para abrir con la llave', W / 2, 44);
+    ctx.globalAlpha = 1;
+  }
+}
+
+// ─── JEFE 2 ───────────────────────────────────────────────────────────────────
+function initBoss2() {
+  Object.assign(boss2, {
+    x: 440, y: BOSS2_HOVER_Y,
+    vx: 0, vy: 0,
+    hp: 12, state: 'hover', stateTimer: 90,
+    swoopPhase: 'down', phase: 1, invFrames: 0, facing: 1,
+    dead: false, deathTimer: 0, projectiles: [],
+  });
+  boss2AttackIdx = 0;
+}
+
+function fireBoss2Burst() {
+  const cx = boss2.x + boss2.w / 2, cy = boss2.y + boss2.h / 2;
+  const count = boss2.phase === 2 ? 8 : 6;
+  for (let i = 0; i < count; i++) {
+    const a = (i / count) * Math.PI * 2;
+    boss2.projectiles.push({ x: cx, y: cy, vx: Math.cos(a) * 4, vy: Math.sin(a) * 4, r: 8, life: 240 });
+  }
+}
+
+function updateBoss2() {
+  if (currentRoom !== 3) return;
+
+  for (const p of boss2.projectiles) {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.08; p.life--;
+  }
+  boss2.projectiles = boss2.projectiles.filter(
+    p => p.life > 0 && p.x > -30 && p.x < W + 30 && p.y < H + 30
+  );
+
+  if (boss2.dead) {
+    if (boss2.deathTimer > 0) { boss2.deathTimer--; }
+    else if (!boss2Defeated)  { boss2Defeated = true; }
+    return;
+  }
+
+  if (boss2.invFrames > 0) boss2.invFrames--;
+  boss2.phase = boss2.hp <= 6 ? 2 : 1;
+  boss2.stateTimer--;
+
+  if (boss2.state === 'hover') {
+    // Flotar suavemente de lado a lado
+    const targetX = W / 2 + Math.sin(Date.now() * 0.0009) * 220;
+    boss2.vx += (targetX - (boss2.x + boss2.w / 2)) * 0.004;
+    boss2.vx  = Math.max(-3.5, Math.min(3.5, boss2.vx));
+    boss2.x  += boss2.vx;
+    boss2.y   = BOSS2_HOVER_Y + Math.sin(Date.now() * 0.003) * 14;
+    boss2.facing = boss2.vx > 0 ? 1 : -1;
+
+    if (boss2.stateTimer <= 0) {
+      const pattern = boss2.phase === 2
+        ? ['swoop','burst','swoop','swoop','burst','swoop']
+        : ['swoop','burst','swoop'];
+      const next = pattern[boss2AttackIdx % pattern.length];
+      boss2AttackIdx++;
+
+      if (next === 'burst') {
+        fireBoss2Burst();
+        boss2.stateTimer = boss2.phase === 2 ? 40 : 55;
+      } else {
+        boss2.state = 'swoop';
+        boss2.swoopPhase = 'down';
+        boss2.stateTimer = 200;
+        const pdx = (player.x + player.w / 2) - (boss2.x + boss2.w / 2);
+        boss2.facing = pdx > 0 ? 1 : -1;
+      }
+    }
+
+  } else if (boss2.state === 'swoop') {
+    const spd = boss2.phase === 2 ? 1.1 : 0.8;
+    if (boss2.swoopPhase === 'down') {
+      const pdx = (player.x + player.w / 2) - (boss2.x + boss2.w / 2);
+      boss2.vx += Math.sign(pdx) * spd;
+      boss2.vx  = Math.max(-10, Math.min(10, boss2.vx));
+      boss2.vy += spd * 0.9;
+      boss2.vy  = Math.min(11, boss2.vy);
+      boss2.x  += boss2.vx;
+      boss2.y  += boss2.vy;
+      boss2.facing = boss2.vx > 0 ? 1 : -1;
+      if (boss2.y > 370 || boss2.stateTimer <= 80) {
+        boss2.swoopPhase = 'up';
+        boss2.vy = -14;
+      }
+    } else {
+      boss2.vx *= 0.92;
+      boss2.vy *= 0.92;
+      boss2.x  += boss2.vx;
+      boss2.y  += boss2.vy;
+      if (boss2.y <= BOSS2_HOVER_Y) {
+        boss2.y = BOSS2_HOVER_Y; boss2.vy = 0; boss2.vx = 0;
+        boss2.state = 'hover';
+        boss2.stateTimer = boss2.phase === 2 ? 35 : 55;
+      }
+    }
+    if (boss2.stateTimer <= 0) {
+      boss2.y = BOSS2_HOVER_Y; boss2.vy = 0; boss2.vx = 0;
+      boss2.state = 'hover'; boss2.stateTimer = 45;
+    }
+  }
+}
+
+function checkBoss2Collisions() {
+  if (currentRoom !== 3 || boss2.dead) return;
+
+  const atkW = 52, atkH = 30;
+  const atkX = player.facing === 1 ? player.x + player.w : player.x - atkW;
+  const atkY = player.y + 6;
+
+  if (player.attackActive > 0 && boss2.invFrames === 0 &&
+      collideRect(atkX, atkY, atkW, atkH, boss2.x, boss2.y, boss2.w, boss2.h)) {
+    boss2.hp--;
+    boss2.invFrames = 26;
+    if (boss2.hp <= 0) { boss2.hp = 0; boss2.dead = true; boss2.deathTimer = 150; boss2.projectiles = []; return; }
+  }
+
+  const onBoss2  = collideRect(player.x, player.y, player.w, player.h, boss2.x, boss2.y, boss2.w, boss2.h);
+  const fromTop2 = player.vy > 1 && (player.y + player.h) < (boss2.y + boss2.h * 0.5);
+  if (onBoss2 && fromTop2 && boss2.invFrames === 0) {
+    boss2.hp--;
+    boss2.invFrames = 26;
+    player.vy = -13;
+    if (boss2.hp <= 0) { boss2.hp = 0; boss2.dead = true; boss2.deathTimer = 150; boss2.projectiles = []; return; }
+  }
+
+  if (player.invFrames === 0 && !fromTop2 &&
+      collideRect(player.x + 3, player.y + 3, player.w - 6, player.h - 3, boss2.x, boss2.y, boss2.w, boss2.h)) {
+    player.hp--;
+    if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+    player.invFrames = 90;
+    const dir = (player.x + player.w / 2) < (boss2.x + boss2.w / 2) ? -1 : 1;
+    player.vx = dir * 7; player.vy = -8;
+  }
+
+  for (let i = boss2.projectiles.length - 1; i >= 0; i--) {
+    const p = boss2.projectiles[i];
+    if (player.attackActive > 0 &&
+        collideRect(atkX, atkY, atkW, atkH, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2)) {
+      boss2.projectiles.splice(i, 1); continue;
+    }
+    const dist = Math.hypot((player.x + player.w / 2) - p.x, (player.y + player.h / 2) - p.y);
+    if (dist < p.r + 12 && player.invFrames === 0) {
+      player.hp--;
+      boss2.projectiles.splice(i, 1);
+      if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+      player.invFrames = 70;
+      const dir = player.x < p.x ? -1 : 1;
+      player.vx = dir * 5; player.vy = -6;
+    }
+  }
+}
+
+function drawBoss2() {
+  if (currentRoom !== 3) return;
+
+  // Proyectiles
+  for (const p of boss2.projectiles) {
+    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.2);
+    g.addColorStop(0, 'rgba(220,130,255,0.9)'); g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#e0a0ff';
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(p.x - p.r * 0.3, p.y - p.r * 0.3, p.r * 0.35, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Muerte
+  if (boss2.dead) {
+    if (boss2.deathTimer <= 0) return;
+    const t  = boss2.deathTimer / 150;
+    const cx = boss2.x + boss2.w / 2, cy = boss2.y + boss2.h / 2;
+    const cols = ['#ff80ff','#ffffff','#8080ff','#ffff80','#80ffff','#ff80a0'];
+    for (let i = 0; i < 14; i++) {
+      const angle = (i / 14) * Math.PI * 2 + (1 - t) * 7;
+      const dist  = (1 - t) * 130;
+      ctx.fillStyle = cols[i % cols.length];
+      ctx.globalAlpha = t;
+      ctx.beginPath(); ctx.arc(cx + Math.cos(angle)*dist, cy + Math.sin(angle)*dist, 10*t+2, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    return;
+  }
+
+  const cx = Math.round(boss2.x + boss2.w / 2), cy = Math.round(boss2.y + boss2.h / 2);
+  const hw = boss2.w / 2, hh = boss2.h / 2;
+  const hy = -hh + 4;
+  const t  = Date.now() * 0.002;
+  const p2 = boss2.phase === 2;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(boss2.facing, 1);
+  if (boss2.invFrames > 0 && Math.floor(boss2.invFrames / 4) % 2 === 0) ctx.globalAlpha = 0.35;
+
+  // Estela fantasmal
+  ctx.globalAlpha *= 0.18;
+  ctx.fillStyle = p2 ? '#ff2060' : '#6020c0';
+  for (let i = 1; i <= 3; i++) {
+    ctx.beginPath();
+    ctx.ellipse(-boss2.vx * i * 2.5, -boss2.vy * i * 1.5, hw * 0.75, hh * 0.75, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = boss2.invFrames > 0 && Math.floor(boss2.invFrames/4)%2===0 ? 0.35 : 1;
+
+  // Alas
+  const wf = Math.sin(t * 5) * 0.28;
+  ctx.fillStyle = p2 ? '#280818' : '#140830';
+  ctx.save(); ctx.rotate(wf);
+  ctx.beginPath(); ctx.moveTo(-hw, 5); ctx.lineTo(-hw-55, -18+Math.sin(t*4)*10);
+  ctx.lineTo(-hw-35, 18); ctx.lineTo(-hw-10, 22); ctx.closePath(); ctx.fill();
+  ctx.rotate(-2*wf);
+  ctx.beginPath(); ctx.moveTo(hw, 5); ctx.lineTo(hw+55, -18+Math.sin(t*4)*10);
+  ctx.lineTo(hw+35, 18); ctx.lineTo(hw+10, 22); ctx.closePath(); ctx.fill();
+  ctx.restore();
+
+  // Cuerpo fantasmal (semitransparente)
+  ctx.globalAlpha = boss2.invFrames > 0 && Math.floor(boss2.invFrames/4)%2===0 ? 0.2 : 0.88;
+  ctx.fillStyle = p2 ? '#2e0818' : '#160830';
+  ctx.beginPath(); ctx.ellipse(0, hh*0.1, hw*0.88, hh*0.85, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = p2 ? '#502030' : '#301848';
+  ctx.beginPath(); ctx.ellipse(2, hh*0.28, hw*0.5, hh*0.5, 0, 0, Math.PI*2); ctx.fill();
+
+  // Cola fantasmal flotante
+  ctx.globalAlpha = 0.45;
+  ctx.fillStyle = p2 ? '#3a0820' : '#1e0840';
+  ctx.beginPath();
+  ctx.moveTo(-hw+5, hh);
+  ctx.quadraticCurveTo(-hw-12, hh+22+Math.sin(t*3)*10, -hw+18, hh+38);
+  ctx.quadraticCurveTo(hw+12, hh+22+Math.sin(t*3+1)*10, hw-5, hh);
+  ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = boss2.invFrames > 0 && Math.floor(boss2.invFrames/4)%2===0 ? 0.35 : 1;
+
+  // Cabeza
+  ctx.fillStyle = p2 ? '#280a18' : '#180830';
+  ctx.beginPath(); ctx.arc(0, hy, 22, 0, Math.PI*2); ctx.fill();
+
+  // Corona espectral
+  const cc2 = p2 ? '#cc2040' : '#9030e0';
+  ctx.fillStyle = cc2;
+  for (let i = -1; i <= 1; i++) {
+    ctx.beginPath(); ctx.moveTo(i*11-5, hy-17); ctx.lineTo(i*11, hy-(i===0?40:34)); ctx.lineTo(i*11+5, hy-17); ctx.closePath(); ctx.fill();
+  }
+  ctx.strokeStyle = cc2; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(0, hy-17, 16, Math.PI*1.15, Math.PI*1.85); ctx.stroke();
+
+  // Orejas
+  ctx.fillStyle = p2 ? '#2e0a18' : '#180830';
+  ctx.beginPath(); ctx.arc(-17, hy-18, 10, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc( 17, hy-18, 10, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = p2 ? '#80305a' : '#604090';
+  ctx.beginPath(); ctx.arc(-17, hy-18, 4.5, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc( 17, hy-18, 4.5, 0, Math.PI*2); ctx.fill();
+
+  // Máscara
+  ctx.fillStyle = '#060010';
+  ctx.beginPath(); ctx.ellipse(8, hy-1, 13, 9, 0.2, 0, Math.PI*2); ctx.fill();
+  ctx.fillRect(-2, hy-6, 3, 8);
+
+  // Ojos (grandes, pulsantes)
+  const ec2 = p2 ? '#ff1850' : '#a030ff';
+  const ep2v = 1 + 0.3*Math.sin(t*4.5);
+  const eg2 = ctx.createRadialGradient(8, hy-1, 0, 8, hy-1, 14*ep2v);
+  eg2.addColorStop(0, p2 ? '#ffaac0' : '#d0a0ff'); eg2.addColorStop(1, 'transparent');
+  ctx.fillStyle = eg2;
+  ctx.beginPath(); ctx.arc(8, hy-1, 14*ep2v, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = ec2;
+  ctx.beginPath(); ctx.arc(8, hy-1, 6.5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(6, hy-3, 2.5, 0, Math.PI*2); ctx.fill();
+
+  // Hocico
+  ctx.fillStyle = p2 ? '#40182a' : '#281040';
+  ctx.beginPath(); ctx.ellipse(-2, hy+9, 10, 8, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#050010';
+  ctx.beginPath(); ctx.ellipse(-2, hy+6, 4, 3, 0, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 0.9; ctx.lineCap = 'round';
+  for (const s of [-1,1]) {
+    ctx.beginPath(); ctx.moveTo(s*4, hy+9); ctx.lineTo(s*22, hy+7); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s*4, hy+11); ctx.lineTo(s*22, hy+13); ctx.stroke();
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function drawBoss2UI() {
+  if (currentRoom !== 3) return;
+
+  // Reja bloqueando la bajada mientras el guardián vive
+  if (!boss2Defeated) {
+    ctx.fillStyle = 'rgba(0,0,0,0.72)';
+    ctx.fillRect(370, H - 24, 220, 24);
+    for (let bx = 378; bx < 582; bx += 26) {
+      ctx.fillStyle = '#3a2850';
+      ctx.fillRect(bx, H - 24, 14, 24);
+      ctx.fillStyle = 'rgba(255,255,255,0.05)';
+      ctx.fillRect(bx + 2, H - 24, 4, 24);
+    }
+  } else {
+    // Hueco abierto — brillo indicando salida
+    const pulse = 0.15 + 0.08 * Math.sin(Date.now() * 0.003);
+    ctx.fillStyle = `rgba(180,100,255,${pulse})`;
+    ctx.fillRect(370, H - 18, 220, 18);
+  }
+
+  // Barra de vida
+  if (!boss2.dead) {
+    const barW = 420, barH = 18, bx = (W - barW) / 2, by = H - 44;
+    ctx.fillStyle = 'rgba(0,0,0,0.72)';
+    ctx.fillRect(bx - 6, by - 26, barW + 12, barH + 36);
+    ctx.fillStyle = boss2.phase === 2 ? '#dd2255' : '#8822ee';
+    ctx.font = 'bold 14px serif'; ctx.textAlign = 'center';
+    ctx.fillText('✦  EL GUARDIÁN DE LA CIMA  ✦', W / 2, by - 8);
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(bx, by, barW, barH);
+    const fill = (boss2.hp / boss2.maxHp) * barW;
+    ctx.fillStyle = boss2.phase === 2 ? '#dd2255' : '#8822ee';
+    ctx.fillRect(bx, by, fill, barH);
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillRect(bx, by, fill, barH / 2);
+    ctx.strokeStyle = boss2.phase === 2 ? '#ff5577' : '#bb66ff';
+    ctx.lineWidth = 1.5; ctx.strokeRect(bx, by, barW, barH);
+  }
+
+  // Victoria
+  if (boss2Defeated && boss2.deathTimer === 0) {
+    ctx.save();
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = '#e0c0ff'; ctx.font = 'bold 34px serif'; ctx.textAlign = 'center';
+    ctx.fillText('¡El Guardián ha caído!', W / 2, 110);
+    ctx.font = '18px serif'; ctx.fillStyle = '#ffffff';
+    ctx.fillText('¡Has conquistado la Cima!  Puedes bajar.', W / 2, 145);
+    const pulse = 0.3 + 0.2 * Math.sin(Date.now() * 0.004);
+    const g = ctx.createLinearGradient(0, H - 70, 0, H);
+    g.addColorStop(0, 'rgba(180,100,255,0)'); g.addColorStop(1, `rgba(180,100,255,${pulse})`);
+    ctx.fillStyle = g; ctx.globalAlpha = 1;
+    ctx.fillRect(360, H - 70, 240, 70);
+    ctx.restore();
+  }
+}
+
+// ─── DIBUJAR ──────────────────────────────────────────────────────────────────
+function drawBackground(room) {
+  const [c1, c2] = room.bg;
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, c1);
+  g.addColorStop(1, c2);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawDecorations(room) {
+  for (const d of (room.decorations || [])) {
+    if (d.type === 'pillar') {
+      ctx.fillStyle = room.edgeColor;
+      ctx.fillRect(d.x - 12, d.y - d.h, 24, d.h);
+      ctx.fillStyle = room.platColor;
+      ctx.fillRect(d.x - 14, d.y - d.h, 28, 10);
+      ctx.fillRect(d.x - 14, d.y - 10,  28, 10);
+    }
+    if (d.type === 'arch') {
+      ctx.strokeStyle = room.edgeColor;
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(d.x, H - 60);
+      ctx.lineTo(d.x, d.y + 60);
+      ctx.arcTo(d.x + 40, d.y, d.x + 80, d.y + 60, 40);
+      ctx.lineTo(d.x + 80, H - 60);
+      ctx.stroke();
+    }
+    if (d.type === 'crystal') {
+      // columna de cristal semitransparente
+      ctx.fillStyle = hexAlpha(room.particleColor, 0.08);
+      ctx.fillRect(d.x, d.y, 4, d.h);
+      ctx.fillStyle = hexAlpha(room.particleColor, 0.15);
+      ctx.fillRect(d.x + 1, d.y, 2, d.h);
+    }
+    if (d.type === 'mushroom') {
+      // sombrero
+      ctx.fillStyle = '#5a3010';
+      ctx.beginPath();
+      ctx.ellipse(d.x, d.y - 26, 22, 14, 0, Math.PI, 0);
+      ctx.fill();
+      // tallo
+      ctx.fillStyle = '#8a6040';
+      ctx.fillRect(d.x - 6, d.y - 26, 12, 26);
+      // manchas
+      ctx.fillStyle = '#c09060';
+      ctx.beginPath();
+      ctx.ellipse(d.x - 8, d.y - 32, 5, 4, -0.3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(d.x + 6, d.y - 28, 4, 3, 0.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (d.type === 'star') {
+      ctx.fillStyle = '#ffffff';
+      ctx.globalAlpha = 0.6 + 0.4 * Math.sin(Date.now() * 0.002 + d.x);
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    if (d.type === 'throne') {
+      ctx.fillStyle = '#3a1010';
+      // asiento
+      ctx.fillRect(d.x, d.y + 60, 100, 20);
+      // respaldo
+      ctx.fillRect(d.x + 10, d.y, 80, 65);
+      // puntas
+      ctx.fillStyle = '#601818';
+      ctx.fillRect(d.x + 10, d.y - 20, 16, 25);
+      ctx.fillRect(d.x + 42, d.y - 30, 16, 35);
+      ctx.fillRect(d.x + 74, d.y - 20, 16, 25);
+    }
+  }
+}
+
+function hexAlpha(hex, a) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    ctx.globalAlpha = p.alpha;
+    ctx.fillStyle = p.col;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawPlatforms(room) {
+  for (const p of room.platforms) {
+    if (p.trapdoor && boss2Defeated) {
+      // Portal abierto: vacío oscuro con bordes que brillan en púrpura
+      const pulse = 0.45 + 0.25 * Math.sin(Date.now() * 0.004);
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(p.x, p.y, p.w, p.h);
+      // borde superior
+      const gTop = ctx.createLinearGradient(0, p.y, 0, p.y + 18);
+      gTop.addColorStop(0, `rgba(192,100,255,${pulse + 0.15})`);
+      gTop.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = gTop; ctx.fillRect(p.x, p.y, p.w, 18);
+      // borde izquierdo
+      const gL = ctx.createLinearGradient(p.x, 0, p.x + 30, 0);
+      gL.addColorStop(0, `rgba(192,100,255,${pulse})`);
+      gL.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = gL; ctx.fillRect(p.x, p.y, 30, p.h);
+      // borde derecho
+      const gR = ctx.createLinearGradient(p.x + p.w, 0, p.x + p.w - 30, 0);
+      gR.addColorStop(0, `rgba(192,100,255,${pulse})`);
+      gR.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = gR; ctx.fillRect(p.x + p.w - 30, p.y, 30, p.h);
+      // línea superior brillante
+      ctx.fillStyle = `rgba(220,160,255,${pulse + 0.2})`;
+      ctx.fillRect(p.x, p.y, p.w, 2);
+      continue;
+    }
+    // plataforma normal
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.fillRect(p.x + 4, p.y + 4, p.w, p.h);
+    ctx.fillStyle = room.floorColor;
+    ctx.fillRect(p.x, p.y, p.w, p.h);
+    ctx.fillStyle = room.edgeColor;
+    ctx.fillRect(p.x, p.y, p.w, 4);
+    ctx.fillStyle = 'rgba(255,255,255,0.04)';
+    ctx.fillRect(p.x, p.y, p.w, 1);
+  }
+}
+
+function drawExitGlow(room) {
+  const exits = room.exits || {};
+  const pc = room.particleColor;
+  const pulse = 0.2 + 0.1 * Math.sin(Date.now() * 0.003);
+
+  if (exits.right) {
+    const g = ctx.createLinearGradient(W - 60, 0, W, 0);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(1, hexAlpha(pc, pulse));
+    ctx.fillStyle = g;
+    ctx.fillRect(W - 60, 100, 60, H - 200);
+  }
+  if (exits.left) {
+    const g = ctx.createLinearGradient(0, 0, 60, 0);
+    g.addColorStop(0, hexAlpha(pc, pulse));
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 100, 60, H - 200);
+  }
+  if (exits.up) {
+    const g = ctx.createLinearGradient(0, 0, 0, 60);
+    g.addColorStop(0, hexAlpha(pc, pulse));
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(360, 0, 240, 60);
+  }
+  if (exits.down && !(currentRoom === 3 && !boss2Defeated)) {
+    const g = ctx.createLinearGradient(0, H - 60, 0, H);
+    g.addColorStop(0, 'rgba(0,0,0,0)');
+    g.addColorStop(1, hexAlpha(pc, pulse));
+    ctx.fillStyle = g;
+    ctx.fillRect(360, H - 60, 240, 60);
+  }
+}
+
+function bezierPt(t, x0, y0, cx, cy, x1, y1) {
+  const m = 1 - t;
+  return { x: m*m*x0 + 2*m*t*cx + t*t*x1, y: m*m*y0 + 2*m*t*cy + t*t*y1 };
+}
+
+function drawPlayer() {
+  const px = Math.round(player.x);
+  const py = Math.round(player.y);
+  const f  = player.facing;
+  const bob = player.onGround ? Math.sin(player.bobTimer) * 1.5 : 0;
+  const squish = player.vy > 5 ? 1.08 : (player.vy < -4 ? 0.9 : 1);
+
+  ctx.save();
+  ctx.translate(px + player.w / 2, py + player.h / 2 + bob);
+  ctx.scale(f, squish);
+
+  const hw = player.w / 2;   // 13
+  const hh = player.h / 2;   // 19
+
+  // sombra en el suelo
+  ctx.fillStyle = 'rgba(0,0,0,0.28)';
+  ctx.beginPath();
+  ctx.ellipse(0, hh + 4, hw * 0.75, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── COLA estilo Rocket: anillos marrón oscuro / naranja-marrón ───────────
+  const RINGS = 9;
+  const tailColors = ['#3d1e08', '#c8742a'];
+  const tx0 = -hw + 2, ty0 = hh - 6;
+  const tcx  = -hw - 16, tcy  = hh - 22;
+  const tx1  = -hw - 2,  ty1  = hh - 38;
+
+  for (let i = RINGS - 1; i >= 0; i--) {
+    const t  = i / (RINGS - 1);
+    const pt = bezierPt(t, tx0, ty0, tcx, tcy, tx1, ty1);
+    const r  = 7.5 - t * 4;
+    ctx.fillStyle = tailColors[i % 2];
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // ── CUERPO marrón oscuro ──────────────────────────────────────────────────
+  ctx.fillStyle = '#6b3e18';
+  ctx.beginPath();
+  ctx.ellipse(0, hh * 0.25, hw * 0.95, hh * 0.75, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // barriga crema
+  ctx.fillStyle = '#e8d5a8';
+  ctx.beginPath();
+  ctx.ellipse(1, hh * 0.35, hw * 0.52, hh * 0.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── CHALECO TÁCTICO de Rocket ─────────────────────────────────────────────
+  ctx.fillStyle = '#1c2b44';
+  ctx.beginPath();
+  ctx.ellipse(0, hh * 0.1, hw * 0.88, hh * 0.68, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // panel central del chaleco
+  ctx.fillStyle = '#243856';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, hw * 0.38, hh * 0.52, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // hebilla metálica
+  ctx.fillStyle = '#7aaccf';
+  ctx.fillRect(-3, hh * 0.18 - 2, 6, 3);
+  ctx.fillRect(-5, hh * 0.05 - 1, 4, 2);
+  ctx.fillRect( 2, hh * 0.05 - 1, 4, 2);
+
+  // ── IMPLANTES CIBERNÉTICOS en la espalda (sello de Rocket) ───────────────
+  ctx.strokeStyle = 'rgba(80,170,255,0.55)';
+  ctx.lineWidth = 1.3;
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-9, -6); ctx.lineTo(-7, 7);  ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-12, -4); ctx.lineTo(-10, 5); ctx.stroke();
+  ctx.fillStyle = 'rgba(80,200,255,0.7)';
+  ctx.beginPath(); ctx.arc(-8, -6, 1.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-8,  2, 1.2, 0, Math.PI * 2); ctx.fill();
+
+  // patitas traseras
+  ctx.fillStyle = '#4a2810';
+  ctx.beginPath();
+  ctx.ellipse(-5, hh + 1, 6, 4, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse( 5, hh + 1, 6, 4,  0.3, 0, Math.PI * 2);
+  ctx.fill();
+  // garras pequeñas
+  ctx.fillStyle = '#c8a060';
+  for (let ci = -1; ci <= 1; ci++) {
+    ctx.beginPath(); ctx.ellipse(-5 + ci*2.8, hh + 4.5, 1.2, 2.2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse( 5 + ci*2.8, hh + 4.5, 1.2, 2.2, 0, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // ── CABEZA marrón ─────────────────────────────────────────────────────────
+  const hy = -hh + 4;
+
+  ctx.fillStyle = '#8a5228';
+  ctx.beginPath();
+  ctx.arc(0, hy, 13, 0, Math.PI * 2);
+  ctx.fill();
+
+  // orejas redondeadas
+  ctx.fillStyle = '#6b3e18';
+  ctx.beginPath(); ctx.arc(-9, hy - 11, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc( 9, hy - 11, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#c06868';
+  ctx.beginPath(); ctx.arc(-9, hy - 11, 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc( 9, hy - 11, 2.5, 0, Math.PI * 2); ctx.fill();
+
+  // parches crema alrededor de los ojos (inconfundible de Rocket)
+  ctx.fillStyle = '#e0ccaa';
+  ctx.beginPath(); ctx.ellipse(-5, hy - 1, 7.5, 6.5, -0.15, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse( 5, hy - 1, 7.5, 6.5,  0.15, 0, Math.PI * 2); ctx.fill();
+
+  // antifaz oscuro sobre los parches
+  ctx.fillStyle = '#151010';
+  ctx.beginPath(); ctx.ellipse(-5, hy - 1.2, 5.5, 4.5, -0.15, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse( 5, hy - 1.2, 5.5, 4.5,  0.15, 0, Math.PI * 2); ctx.fill();
+  ctx.fillRect(-1, hy - 3.5, 2, 4.5);
+
+  // ojo izquierdo — naranja/rojo brillante (ojos de Rocket)
+  const glowL = ctx.createRadialGradient(-5, hy - 1, 0, -5, hy - 1, 4);
+  glowL.addColorStop(0, '#ff7040');
+  glowL.addColorStop(1, '#991800');
+  ctx.fillStyle = glowL;
+  ctx.beginPath(); ctx.arc(-5, hy - 1, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#0a0808';
+  ctx.beginPath(); ctx.arc(-4.7, hy - 0.8, 1.8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(-5.8, hy - 1.8, 0.9, 0, Math.PI * 2); ctx.fill();
+
+  // ojo derecho
+  const glowR = ctx.createRadialGradient(5, hy - 1, 0, 5, hy - 1, 4);
+  glowR.addColorStop(0, '#ff7040');
+  glowR.addColorStop(1, '#991800');
+  ctx.fillStyle = glowR;
+  ctx.beginPath(); ctx.arc(5, hy - 1, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#0a0808';
+  ctx.beginPath(); ctx.arc(5.3, hy - 0.8, 1.8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.arc(4.2, hy - 1.8, 0.9, 0, Math.PI * 2); ctx.fill();
+
+  // cejas fruncidas con enojo (expresión característica de Rocket)
+  ctx.strokeStyle = '#0e0808';
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-9, hy - 5.5); ctx.lineTo(-2, hy - 4.5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo( 9, hy - 5.5); ctx.lineTo( 2, hy - 4.5); ctx.stroke();
+
+  // hocico
+  ctx.fillStyle = '#ccb898';
+  ctx.beginPath(); ctx.ellipse(0, hy + 6, 6.5, 5, 0, 0, Math.PI * 2); ctx.fill();
+
+  // nariz
+  ctx.fillStyle = '#181010';
+  ctx.beginPath(); ctx.ellipse(0, hy + 3.5, 2.8, 2, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.beginPath(); ctx.arc(-1, hy + 3, 0.8, 0, Math.PI * 2); ctx.fill();
+
+  // bigotes
+  ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+  ctx.lineWidth = 0.9;
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(4,  hy + 6); ctx.lineTo(15, hy + 3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(4,  hy + 7); ctx.lineTo(15, hy + 9); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-4, hy + 6); ctx.lineTo(-15, hy + 3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-4, hy + 7); ctx.lineTo(-15, hy + 9); ctx.stroke();
+
+  // bracito delantero
+  ctx.fillStyle = '#5a3410';
+  ctx.beginPath();
+  ctx.ellipse(hw - 1, -hh + 22, 4, 7, 0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── BLASTER GIGANTE estilo Rocket ─────────────────────────────────────────
+  // cuerpo principal del blaster
+  ctx.fillStyle = '#252530';
+  ctx.beginPath();
+  ctx.moveTo(hw + 2,  -hh + 8);
+  ctx.lineTo(hw + 30, -hh + 10);
+  ctx.lineTo(hw + 30, -hh + 20);
+  ctx.lineTo(hw + 2,  -hh + 22);
+  ctx.closePath(); ctx.fill();
+  // cañón largo
+  ctx.fillStyle = '#1a1a22';
+  ctx.beginPath();
+  ctx.moveTo(hw + 20, -hh + 12);
+  ctx.lineTo(hw + 42, -hh + 13);
+  ctx.lineTo(hw + 42, -hh + 18);
+  ctx.lineTo(hw + 20, -hh + 19);
+  ctx.closePath(); ctx.fill();
+  // detalles metálicos del arma
+  ctx.fillStyle = '#445566';
+  ctx.fillRect(hw + 4,  -hh + 10, 9, 10);
+  ctx.fillStyle = '#334455';
+  ctx.fillRect(hw + 15, -hh + 11, 5,  8);
+  // línea de energía lateral
+  ctx.strokeStyle = '#3090dd';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(hw + 5, -hh + 15); ctx.lineTo(hw + 19, -hh + 15); ctx.stroke();
+  // boca del cañón — brillo de plasma cyan
+  const muzzleGlow = ctx.createRadialGradient(hw + 41, -hh + 15.5, 0, hw + 41, -hh + 15.5, 6);
+  muzzleGlow.addColorStop(0, 'rgba(0,255,255,0.9)');
+  muzzleGlow.addColorStop(1, 'rgba(0,180,255,0)');
+  ctx.fillStyle = muzzleGlow;
+  ctx.beginPath(); ctx.arc(hw + 41, -hh + 15.5, 5.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(200,255,255,0.95)';
+  ctx.beginPath(); ctx.arc(hw + 41, -hh + 15.5, 2, 0, Math.PI * 2); ctx.fill();
+
+  // Arco de ataque — destello de disparo del blaster
+  if (player.attackActive > 0) {
+    const progress = 1 - player.attackActive / 9;
+    const startA   = -0.5;
+    const sweepA   = progress * 1.5;
+    ctx.save();
+    ctx.globalAlpha = player.attackActive / 9;
+    ctx.strokeStyle = '#40e0ff';
+    ctx.lineWidth   = 5;
+    ctx.shadowColor = '#00aaff';
+    ctx.shadowBlur  = 16;
+    ctx.beginPath();
+    ctx.arc(hw + 10, -hh + 15, 34, startA, startA + sweepA);
+    ctx.stroke();
+    const tipX = (hw + 10) + Math.cos(startA + sweepA) * 34;
+    const tipY = (-hh + 15) + Math.sin(startA + sweepA) * 34;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath(); ctx.arc(tipX, tipY, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  // Parpadeo de invencibilidad
+  if (player.invFrames > 0 && Math.floor(player.invFrames / 6) % 2 === 0) {
+    ctx.fillStyle = 'rgba(255,200,200,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, hw + 4, hh + 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+function drawRoomLabel() {
+  if (roomLabelAlpha <= 0) return;
+  const name = ROOMS[currentRoom].name;
+
+  ctx.save();
+  ctx.globalAlpha = roomLabelAlpha;
+
+  // línea decorativa
+  const tw = ctx.measureText(name).width;
+  ctx.strokeStyle = 'rgba(200,180,255,0.5)';
+  ctx.lineWidth = 1;
+  const lx = W / 2;
+  const ly = 90;
+
+  ctx.font = '600 22px Georgia, serif';
+  const fullW = ctx.measureText(name).width + 60;
+
+  ctx.beginPath();
+  ctx.moveTo(lx - fullW / 2, ly - 18);
+  ctx.lineTo(lx + fullW / 2, ly - 18);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(lx - fullW / 2, ly + 8);
+  ctx.lineTo(lx + fullW / 2, ly + 8);
+  ctx.stroke();
+
+  ctx.fillStyle = '#e8d8ff';
+  ctx.textAlign = 'center';
+  ctx.fillText(name, W / 2, ly);
+
+  ctx.restore();
+}
+
+function drawHeart(x, y, filled) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.beginPath();
+  ctx.moveTo(0, 2);
+  ctx.bezierCurveTo(-9, -5, -12, 3, 0, 10);
+  ctx.bezierCurveTo(12, 3, 9, -5, 0, 2);
+  ctx.fillStyle   = filled ? '#ff4466' : '#442233';
+  ctx.fill();
+  ctx.strokeStyle = filled ? '#ff8899' : '#663344';
+  ctx.lineWidth   = 1;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawHUD() {
+  const total = Object.keys(ROOMS).length;
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.font = '13px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Sala ${currentRoom + 1} / ${total}`, 16, 26);
+
+  // Corazones de vida
+  for (let i = 0; i < player.maxHp; i++) {
+    drawHeart(20 + i * 28, 50, i < player.hp);
+  }
+
+  // Barra de regeneración (solo si no está al máximo)
+  if (player.hp < player.maxHp) {
+    const barW = player.maxHp * 28 - 8;
+    const prog = player.healTimer / 720;
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    ctx.fillRect(16, 64, barW, 4);
+    ctx.fillStyle = prog > 0.85 ? '#ff8899' : '#882244';
+    ctx.fillRect(16, 64, barW * prog, 4);
+  }
+
+  // Tecla de ataque (hint)
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  ctx.font = '12px monospace';
+  ctx.textAlign = 'right';
+  ctx.fillText('Z / J: atacar  |  Encima del enemigo: pisotón', W - 16, H - 16);
+}
+
+function drawTransition() {
+  if (transAlpha <= 0) return;
+  const color = (isDeath && transPhase !== 'fade-in')
+    ? `rgba(60,0,0,${transAlpha})`
+    : `rgba(0,0,0,${transAlpha})`;
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, W, H);
+}
+
+// ─── LOOP PRINCIPAL ───────────────────────────────────────────────────────────
+function frame() {
+  if (!transitioning) {
+    updatePlayer();
+    updateEnemies();
+    checkEnemyCollisions();
+    updateBoss();
+    checkBossCollisions();
+    updateBoss2();
+    checkBoss2Collisions();
+    updateKey();
+    checkExits();
+  }
+  updateTransition();
+  updateParticles(currentRoom);
+
+  if (roomLabelTimer > 0) {
+    roomLabelTimer--;
+    if (roomLabelTimer < 60) roomLabelAlpha = roomLabelTimer / 60;
+  }
+
+  const room = ROOMS[currentRoom];
+  drawBackground(room);
+  drawParticles();
+  drawDecorations(room);
+  drawPlatforms(room);
+  drawExitGlow(room);
+  drawEnemies();
+  drawBoss();
+  drawBoss2();
+  drawKey();
+  drawPlayer();
+  drawRoomLabel();
+  drawBossUI();
+  drawBoss2UI();
+  drawKeyGate();
+  drawHUD();
+  drawKeyHUD();
+  drawTransition();
+
+  requestAnimationFrame(frame);
+}
+
+// ─── INICIO ───────────────────────────────────────────────────────────────────
+resetParticles(0);
+initEnemies(0);
+initBoss();
+initBoss2();
+roomLabelAlpha = 1;
+roomLabelTimer = 200;
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

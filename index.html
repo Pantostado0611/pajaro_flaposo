@@ -2,626 +2,387 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>pajaro Flaposo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MINIJUEGOS</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --cyan:   #00f0ff;
+      --pink:   #ff2d78;
+      --yellow: #ffe600;
+      --dark:   #0a0a12;
+      --card:   #12121e;
+      --border: #2a2a44;
+    }
+
     body {
-      background: #111;
-      overflow: hidden;
+      background: var(--dark);
+      font-family: 'Press Start 2P', monospace;
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── STARFIELD ── */
+    #stars {
       position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── SCANLINES overlay ── */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 3px,
+        rgba(0,0,0,.18) 3px,
+        rgba(0,0,0,.18) 4px
+      );
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    /* ── LAYOUT ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 16px 64px;
+      gap: 48px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo {
+      font-size: clamp(22px, 5vw, 40px);
+      letter-spacing: 6px;
+      color: var(--cyan);
+      text-shadow:
+        0 0 8px var(--cyan),
+        0 0 24px var(--cyan),
+        4px 4px 0 #003040;
+      animation: flicker 6s infinite;
+    }
+
+    .tagline {
+      font-size: clamp(7px, 1.6vw, 10px);
+      color: #555;
+      letter-spacing: 3px;
+    }
+
+    .divider {
+      width: min(480px, 90vw);
+      height: 4px;
+      background: linear-gradient(90deg, transparent, var(--pink), var(--cyan), transparent);
+      border-radius: 2px;
+    }
+
+    /* ── GRID ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 320px));
+      gap: 28px;
+      justify-content: center;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    /* ── CARD ── */
+    .card {
+      display: flex;
+      flex-direction: column;
+      background: var(--card);
+      border: 3px solid var(--border);
+      image-rendering: pixelated;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      transition: border-color .15s, transform .15s;
+      /* pixel shadow */
+      box-shadow:
+        4px 4px 0 #000,
+        8px 8px 0 #000;
+    }
+
+    .card:hover {
+      border-color: var(--cyan);
+      transform: translate(-3px, -3px);
+      box-shadow:
+        7px 7px 0 #000,
+        11px 11px 0 rgba(0,240,255,.15);
+    }
+
+    .card:active {
+      transform: translate(1px, 1px);
+      box-shadow: 2px 2px 0 #000;
+    }
+
+    /* corner pixels */
+    .card::before,
+    .card::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: var(--dark);
+    }
+    .card::before { top: -3px; right: -3px; border-bottom-left-radius: 0; }
+    .card::after  { bottom: -3px; left: -3px; }
+
+    .card-preview {
+      width: 100%;
+      aspect-ratio: 16/9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      background: #0d0d1a;
+      border-bottom: 3px solid var(--border);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card:hover .card-preview {
+      border-color: var(--cyan);
+    }
+
+    /* animated pixel bg inside card */
+    .card-preview canvas {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
-    }
-    #game-wrap {
-      position: absolute;
-      transform-origin: top left;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-    }
-    canvas {
-      display: block;
       image-rendering: pixelated;
-      image-rendering: crisp-edges;
+      opacity: .35;
     }
-    #controls {
+
+    .card-emoji {
+      font-size: 56px;
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 0 12px rgba(255,255,255,.4));
+      animation: bob 2.4s ease-in-out infinite;
+    }
+
+    .card-body {
+      padding: 20px 18px 24px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 7px;
+      gap: 12px;
     }
-    #toggleBtn {
-      padding: 8px 18px;
-      background: #000;
-      border: 2px solid #fff;
-      color: #fff;
-      font-family: 'Press Start 2P', 'Courier New', monospace;
-      font-size: 7px;
+
+    .card-title {
+      font-size: clamp(10px, 2.2vw, 13px);
+      color: var(--yellow);
+      text-shadow: 2px 2px 0 #443300;
       letter-spacing: 1px;
-      cursor: pointer;
-      transition: background 0.12s;
-      user-select: none;
     }
-    #toggleBtn:hover { background: #1a1a1a; }
-    #toggleBtn.normal    { border-color: #66BB6A; color: #66BB6A; }
-    #toggleBtn.undertale { border-color: #ff4444; color: #ff4444; }
 
-    #diffRow {
-      display: flex;
-      gap: 6px;
+    .card-desc {
+      font-size: clamp(6px, 1.3vw, 8px);
+      color: #777;
+      line-height: 1.9;
     }
-    .dbtn {
-      padding: 7px 11px;
-      background: #000;
-      border: 2px solid #444;
-      color: #555;
-      font-family: 'Press Start 2P', 'Courier New', monospace;
-      font-size: 7px;
-      cursor: pointer;
-      transition: all 0.12s;
-      user-select: none;
-    }
-    .dbtn:hover { border-color: #888; color: #888; }
-    .dbtn.active { background: #111; }
-    .dbtn[data-d="pasivo"].active  { border-color: #9E9E9E; color: #9E9E9E; }
-    .dbtn[data-d="facil"].active   { border-color: #66BB6A; color: #66BB6A; }
-    .dbtn[data-d="normal"].active  { border-color: #FF9800; color: #FF9800; }
-    .dbtn[data-d="hard"].active    { border-color: #f44336; color: #f44336; }
 
-    #hint {
-      font-family: 'Press Start 2P', 'Courier New', monospace;
+    .card-tag {
+      display: inline-block;
       font-size: 6px;
+      padding: 4px 8px;
+      border: 2px solid;
+      letter-spacing: 1px;
+      margin-right: 6px;
+    }
+
+    .tag-action  { color: var(--pink);   border-color: var(--pink); }
+    .tag-plat    { color: var(--cyan);   border-color: var(--cyan); }
+    .tag-arcade  { color: var(--yellow); border-color: var(--yellow); }
+
+    .card-play {
+      margin-top: 4px;
+      font-family: inherit;
+      font-size: 8px;
+      padding: 10px 0;
+      width: 100%;
+      background: transparent;
+      border: 2px solid var(--border);
       color: #444;
-      letter-spacing: 0.5px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .card:hover .card-play {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      text-shadow: 0 0 8px var(--cyan);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      font-size: 7px;
+      color: #333;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes bob {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-8px); }
+    }
+
+    @keyframes flicker {
+      0%,100%   { opacity: 1; }
+      93%        { opacity: 1; }
+      94%        { opacity: .6; }
+      95%        { opacity: 1; }
+      97%        { opacity: .7; }
+      98%        { opacity: 1; }
     }
   </style>
 </head>
 <body>
-<div id="game-wrap">
-<canvas id="game" width="400" height="600"></canvas>
-<div id="controls">
-  <button id="toggleBtn" class="undertale">CAMBIAR A MODO NORMAL &nbsp;[ T ]</button>
-  <div id="diffRow">
-    <button class="dbtn" data-d="pasivo">PASIVO</button>
-    <button class="dbtn" data-d="facil">FÁCIL</button>
-    <button class="dbtn active" data-d="normal">NORMAL</button>
-    <button class="dbtn" data-d="hard">HARD</button>
+
+<canvas id="stars"></canvas>
+
+<div class="page">
+  <header>
+    <div class="logo">MINIJUEGOS</div>
+    <div class="tagline">INSERT COIN TO CONTINUE</div>
+    <div class="divider"></div>
+  </header>
+
+  <div class="grid">
+
+    <!-- Pajaro Flaposo -->
+    <a class="card" href="pajaro-flaposo.html">
+      <div class="card-preview">
+        <canvas class="card-bg" data-colors="#001a00,#003300,#00ff44"></canvas>
+        <span class="card-emoji">🐦</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">PAJARO FLAPOSO</div>
+        <div class="card-desc">Vuela entre los tubos sin chocar. Cada tap cuenta.</div>
+        <div>
+          <span class="card-tag tag-arcade">ARCADE</span>
+          <span class="card-tag tag-action">1 JUGADOR</span>
+        </div>
+        <button class="card-play">▶ JUGAR</button>
+      </div>
+    </a>
+
+    <!-- Mapachón -->
+    <a class="card" href="mapachon.html">
+      <div class="card-preview">
+        <canvas class="card-bg" data-colors="#050810,#0a1020,#4060b0"></canvas>
+        <span class="card-emoji">🦝</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">MAPACHÓN</div>
+        <div class="card-desc">Explora las ruinas como un mapache aventurero.</div>
+        <div>
+          <span class="card-tag tag-plat">PLATAFORMAS</span>
+          <span class="card-tag tag-action">1 JUGADOR</span>
+        </div>
+        <button class="card-play">▶ JUGAR</button>
+      </div>
+    </a>
+
   </div>
-  <span id="hint">1 · 2 · 3 · 4 para cambiar dificultad</span>
-</div>
+
+  <footer>© 2026 &nbsp;·&nbsp; HECHO CON ❤️ Y PÍXELES</footer>
 </div>
 
 <script>
-const canvas = document.getElementById('game');
-const ctx    = canvas.getContext('2d');
-ctx.imageSmoothingEnabled = false;
+// ── STARFIELD ────────────────────────────────────────────────────────────────
+(function () {
+  const cvs = document.getElementById('stars');
+  const ctx = cvs.getContext('2d');
+  let W, H, stars;
 
-const W = canvas.width, H = canvas.height;
-const UI_H     = 52;
-const GROUND_Y = H - 40;
-const BIRD_R   = 10;
-const PIPE_W   = 55;
+  function init() {
+    W = cvs.width  = window.innerWidth;
+    H = cvs.height = window.innerHeight;
+    stars = Array.from({ length: 120 }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      s: Math.random() * 1.5 + .5,
+      a: Math.random(),
+      sp: Math.random() * .008 + .003,
+    }));
+  }
 
-// ── Difficulty configs ─────────────────────────────────────────────────────────
-const DIFFS = {
-  pasivo: { label:'PASIVO', color:'#9E9E9E', gap:9999, speed:0,   interval:99999, grav:0.45, jumpVel:-9   },
-  facil:  { label:'FÁCIL',  color:'#66BB6A', gap:215,  speed:2.0, interval:112,   grav:0.40, jumpVel:-8.5 },
-  normal: { label:'NORMAL', color:'#FF9800', gap:162,  speed:2.8, interval:95,    grav:0.45, jumpVel:-9   },
-  hard:   { label:'HARD',   color:'#f44336', gap:105,  speed:4.0, interval:70,    grav:0.52, jumpVel:-9.5 },
-};
-const DIFF_KEYS = ['pasivo','facil','normal','hard'];
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (const st of stars) {
+      st.a += st.sp;
+      if (st.a > 1) st.a = 0;
+      const alpha = Math.abs(Math.sin(st.a * Math.PI));
+      ctx.fillStyle = `rgba(200,220,255,${alpha * .8})`;
+      ctx.fillRect(Math.round(st.x), Math.round(st.y), Math.ceil(st.s), Math.ceil(st.s));
+    }
+    requestAnimationFrame(draw);
+  }
 
-// ── Undertale dialogue data ────────────────────────────────────────────────────
-const CHARS = {
-  sans:    { color:'#6BD4FF', name:'sans.'    },
-  papyrus: { color:'#FF9A00', name:'PAPYRUS.' },
-  toriel:  { color:'#D8A8D8', name:'Toriel'   },
-  flowey:  { color:'#FFFF30', name:'Flowey'   },
-  undyne:  { color:'#30DFDF', name:'Undyne'   },
-  alphys:  { color:'#80FF80', name:'Alphys'   },
-};
-const PLAY_LINES = [
-  { char:'sans',    text:'* heh.\n  not bad, kiddo.'          },
-  { char:'sans',    text:'* do you wanna have\n  a bad time?' },
-  { char:'papyrus', text:'* HUMAN! YOU SHALL\n  NOT PASS!'    },
-  { char:'papyrus', text:'* NYEH HEH HEH!'                    },
-  { char:'toriel',  text:'* please, be careful,\n  my child.' },
-  { char:'flowey',  text:'* flap or be flapped.'              },
-  { char:'undyne',  text:'* NGAAHHH!\n  YOU\'RE DOING IT!'   },
-  { char:'alphys',  text:'* O-oh!\n  y-you can do this?!'    },
-  { char:'sans',    text:'* you feel determined.'              },
-];
-const DEATH_LINES = [
-  { char:'sans',    text:'* welp.'                      },
-  { char:'papyrus', text:'* DO NOT GIVE UP,\n  HUMAN!'  },
-  { char:'toriel',  text:'* oh no...'                   },
-  { char:'flowey',  text:'* you IDIOT.'                 },
-  { char:'undyne',  text:'* GET BACK UP\n  AND FIGHT!'  },
-];
-
-// ── State ──────────────────────────────────────────────────────────────────────
-let theme      = 'undertale';
-let difficulty = 'normal';
-let bird, pipes, score, frame, state;
-let bestScores = { pasivo:0, facil:0, normal:0, hard:0 };
-let clouds, stars, dlg, deathLine;
-
-// ── UI helpers ─────────────────────────────────────────────────────────────────
-const toggleBtn = document.getElementById('toggleBtn');
-const diffBtns  = document.querySelectorAll('.dbtn');
-
-function applyThemeBtn() {
-  toggleBtn.className = theme;
-  toggleBtn.textContent = theme === 'undertale'
-    ? 'CAMBIAR A MODO NORMAL   [ T ]'
-    : 'CAMBIAR A MODO UNDERTALE [ T ]';
-}
-
-function applyDiffBtns() {
-  diffBtns.forEach(b => b.classList.toggle('active', b.dataset.d === difficulty));
-}
-
-function setDifficulty(d) {
-  difficulty = d;
-  applyDiffBtns();
+  window.addEventListener('resize', init);
   init();
-}
+  draw();
+})();
 
-function toggleTheme() {
-  theme = theme === 'undertale' ? 'normal' : 'undertale';
-  dlg = null;
-  if (theme === 'undertale' && state === 'waiting')
-    setDlg('* your SOUL trembles...', 'flowey', false);
-  applyThemeBtn();
-}
+// ── CARD PIXEL BG ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.card-bg').forEach(cvs => {
+  const colors = cvs.dataset.colors.split(',');
+  const ctx = cvs.getContext('2d');
+  const PX = 8;
+  let cols, rows, grid, t = 0;
 
-// ── Input ──────────────────────────────────────────────────────────────────────
-toggleBtn.addEventListener('click', e => { e.stopPropagation(); toggleTheme(); });
-diffBtns.forEach(b => b.addEventListener('click', e => { e.stopPropagation(); setDifficulty(b.dataset.d); }));
+  function init() {
+    cvs.width  = cvs.offsetWidth  || 320;
+    cvs.height = cvs.offsetHeight || 180;
+    cols = Math.ceil(cvs.width  / PX);
+    rows = Math.ceil(cvs.height / PX);
+    grid = Array.from({ length: rows }, () =>
+      Array.from({ length: cols }, () => Math.random() < .06 ? 2 : Math.random() < .2 ? 1 : 0)
+    );
+  }
 
-document.addEventListener('keydown', e => {
-  if (e.code === 'KeyT') { toggleTheme(); return; }
-  const numMap = { Digit1:'pasivo', Digit2:'facil', Digit3:'normal', Digit4:'hard' };
-  if (numMap[e.code]) { setDifficulty(numMap[e.code]); return; }
-  if (['Space','ArrowUp','KeyZ','KeyX','Enter'].includes(e.code)) { e.preventDefault(); onInput(); }
+  function draw() {
+    t++;
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const v = grid[r][c];
+        if (v === 0) continue;
+        const flicker = v === 2 && Math.sin(t * .07 + c + r) > .6;
+        ctx.fillStyle = flicker ? '#ffffff' : colors[v] || colors[1];
+        ctx.globalAlpha = v === 2 ? .9 : .6;
+        ctx.fillRect(c * PX, r * PX, PX, PX);
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  new ResizeObserver(init).observe(cvs.parentElement);
+  init();
+  setInterval(draw, 80);
 });
-canvas.addEventListener('click', onInput);
-canvas.addEventListener('touchstart', e => { e.preventDefault(); onInput(); }, { passive:false });
-
-function onInput() {
-  if (state === 'waiting') {
-    state = 'playing';
-    bird.vy = DIFFS[difficulty].jumpVel;
-    if (theme === 'undertale') randDlg(PLAY_LINES);
-  } else if (state === 'playing') {
-    bird.vy = DIFFS[difficulty].jumpVel;
-  } else if (state === 'dead') {
-    init();
-  }
-}
-
-// ── Init ───────────────────────────────────────────────────────────────────────
-function init() {
-  const d = DIFFS[difficulty];
-  bird   = { x:80, y:H/2, vy:0, wingT:0 };
-  pipes  = [];
-  score  = 0;
-  frame  = 0;
-  state  = 'waiting';
-  deathLine = null;
-  dlg    = null;
-
-  clouds = [
-    { x:60,  y:85,  w:90 },
-    { x:230, y:55,  w:72 },
-    { x:340, y:108, w:80 },
-  ];
-  stars = Array.from({ length:38 }, () => ({
-    x: Math.random()*W, y: Math.random()*H,
-    s: Math.ceil(Math.random()*2),
-    ph: Math.random()*Math.PI*2,
-  }));
-
-  if (theme === 'undertale') setDlg('* your SOUL trembles...', 'flowey', false);
-}
-
-function spawnPipe() {
-  const minTop = UI_H + 50;
-  const maxTop = GROUND_Y - DIFFS[difficulty].gap - 50;
-  if (maxTop < minTop) return; // pasivo / gaps too big
-  pipes.push({ x:W+10, top: Math.random()*(maxTop-minTop)+minTop, scored:false });
-}
-
-// ── Dialogue helpers ───────────────────────────────────────────────────────────
-function setDlg(text, charKey, autohide=true) {
-  dlg = { text, char:charKey, shown:0, timer:0, autohide, done:false, doneAt:0, alpha:1 };
-}
-function randDlg(pool) {
-  const d = pool[Math.floor(Math.random()*pool.length)];
-  setDlg(d.text, d.char);
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// MODO NORMAL — drawing
-// ══════════════════════════════════════════════════════════════════════════════
-function nmDrawBG() {
-  const g = ctx.createLinearGradient(0,0,0,H);
-  g.addColorStop(0, '#87CEEB'); g.addColorStop(1, '#d4f0ff');
-  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
-}
-function nmDrawCloud(c) {
-  ctx.fillStyle = 'rgba(255,255,255,0.88)';
-  ctx.beginPath();
-  ctx.ellipse(c.x,    c.y,    c.w/2,  20, 0,0,Math.PI*2);
-  ctx.ellipse(c.x+22, c.y-10, c.w/2.5,14, 0,0,Math.PI*2);
-  ctx.ellipse(c.x-22, c.y-6,  c.w/3,  12, 0,0,Math.PI*2);
-  ctx.fill();
-}
-function nmDrawGround() {
-  ctx.fillStyle='#5D4037'; ctx.fillRect(0,GROUND_Y,W,H-GROUND_Y);
-  ctx.fillStyle='#8BC34A'; ctx.fillRect(0,GROUND_Y,W,14);
-  ctx.fillStyle='#66BB6A';
-  for (let i=0;i<W;i+=14){
-    ctx.beginPath(); ctx.moveTo(i,GROUND_Y); ctx.lineTo(i+5,GROUND_Y-10); ctx.lineTo(i+10,GROUND_Y); ctx.fill();
-  }
-}
-function nmDrawPipe(p) {
-  const x=p.x|0, topH=p.top, botY=p.top+DIFFS[difficulty].gap, botH=GROUND_Y-botY;
-  const PW=PIPE_W, CAP=8, CAPH=22;
-  function body(gx,gy,gw,gh){
-    if(gh<=0)return;
-    const g=ctx.createLinearGradient(gx,0,gx+gw,0);
-    g.addColorStop(0,'#388E3C'); g.addColorStop(0.5,'#66BB6A'); g.addColorStop(1,'#2E7D32');
-    ctx.fillStyle=g; ctx.fillRect(gx,gy,gw,gh);
-  }
-  if(topH-CAPH>UI_H) body(x,UI_H,PW,topH-CAPH-UI_H);
-  ctx.fillStyle='#2E7D32'; ctx.fillRect(x-CAP,topH-CAPH,PW+CAP*2,CAPH);
-  ctx.strokeStyle='#1B5E20'; ctx.lineWidth=2; ctx.strokeRect(x-CAP,topH-CAPH,PW+CAP*2,CAPH);
-  ctx.fillStyle='#2E7D32'; ctx.fillRect(x-CAP,botY,PW+CAP*2,CAPH);
-  ctx.strokeStyle='#1B5E20'; ctx.lineWidth=2; ctx.strokeRect(x-CAP,botY,PW+CAP*2,CAPH);
-  if(botH>CAPH) body(x,botY+CAPH,PW,botH-CAPH);
-}
-function nmDrawBird() {
-  const {x,y,vy,wingT}=bird;
-  const angle=Math.max(-30,Math.min(40,vy*3))*Math.PI/180;
-  ctx.save(); ctx.translate(x|0,y|0); ctx.rotate(angle);
-  ctx.fillStyle='#FFD600'; ctx.beginPath(); ctx.ellipse(0,0,18,14,0,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#FFA000'; ctx.beginPath(); ctx.ellipse(-4,4+Math.sin(wingT)*4,11,6,-0.4,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#FFF9C4'; ctx.beginPath(); ctx.ellipse(4,3,9,7,0.2,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='white';   ctx.beginPath(); ctx.arc(10,-5,6,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#111';    ctx.beginPath(); ctx.arc(12,-5,3,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='white';   ctx.beginPath(); ctx.arc(13,-6.5,1.2,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#FF6F00'; ctx.beginPath(); ctx.moveTo(14,-1); ctx.lineTo(24,2); ctx.lineTo(14,5); ctx.closePath(); ctx.fill();
-  ctx.restore();
-}
-function nmDrawUI() {
-  ctx.fillStyle='rgba(0,0,0,0.32)'; ctx.fillRect(0,0,W,UI_H);
-  ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.fillRect(0,UI_H-1,W,1);
-
-  ctx.textAlign='center';
-  ctx.font='bold 28px Arial';
-  ctx.strokeStyle='#222'; ctx.lineWidth=4;
-  ctx.strokeText(score, W/2, UI_H-10);
-  ctx.fillStyle='white'; ctx.fillText(score, W/2, UI_H-10);
-
-  const best = bestScores[difficulty];
-  if (best > 0) {
-    ctx.font='11px Arial'; ctx.fillStyle='rgba(255,255,255,0.6)';
-    ctx.fillText('best: '+best, W/2, 15);
-  }
-  // difficulty badge
-  const d = DIFFS[difficulty];
-  ctx.font='bold 10px Arial'; ctx.fillStyle=d.color;
-  ctx.textAlign='right'; ctx.fillText(d.label, W-10, UI_H-10);
-  ctx.textAlign='left';
-}
-function nmDrawWaiting() {
-  ctx.fillStyle='rgba(0,0,0,0.42)';
-  ctx.beginPath(); ctx.roundRect(W/2-148,H/2-85,296,148,14); ctx.fill();
-  ctx.strokeStyle='white'; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.roundRect(W/2-148,H/2-85,296,148,14); ctx.stroke();
-  ctx.textAlign='center';
-  ctx.fillStyle='white'; ctx.font='bold 28px Arial';
-  ctx.fillText('FLAPPY BIRD', W/2, H/2-32);
-  // diff badge
-  const d=DIFFS[difficulty];
-  ctx.font='bold 13px Arial'; ctx.fillStyle=d.color;
-  ctx.fillText('◆ '+d.label+' ◆', W/2, H/2+2);
-  if (Math.floor(Date.now()/500)%2===0){
-    ctx.fillStyle='#FFD600'; ctx.font='13px Arial';
-    ctx.fillText('ESPACIO  /  CLICK', W/2, H/2+35);
-  }
-  ctx.textAlign='left';
-}
-function nmDrawGameOver() {
-  ctx.fillStyle='rgba(0,0,0,0.72)';
-  ctx.beginPath(); ctx.roundRect(W/2-152,H/2-118,304,210,14); ctx.fill();
-  ctx.strokeStyle='white'; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.roundRect(W/2-152,H/2-118,304,210,14); ctx.stroke();
-  ctx.textAlign='center';
-  ctx.fillStyle='#FF5252'; ctx.font='bold 30px Arial';
-  ctx.fillText('GAME OVER', W/2, H/2-65);
-  ctx.fillStyle='white'; ctx.font='17px Arial';
-  ctx.fillText('Puntaje: '+score, W/2, H/2-18);
-  ctx.fillStyle='#FFD700';
-  ctx.fillText('Mejor:   '+bestScores[difficulty], W/2, H/2+12);
-  const d=DIFFS[difficulty];
-  ctx.fillStyle=d.color; ctx.font='bold 11px Arial';
-  ctx.fillText('[ '+d.label+' ]', W/2, H/2+42);
-  if (Math.floor(Date.now()/500)%2===0){
-    ctx.fillStyle='white'; ctx.font='13px Arial';
-    ctx.fillText('ESPACIO / CLICK', W/2, H/2+76);
-  }
-  ctx.textAlign='left';
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// MODO UNDERTALE — drawing
-// ══════════════════════════════════════════════════════════════════════════════
-function utDrawBG() {
-  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
-  stars.forEach(s=>{
-    s.ph+=0.04;
-    const a=(0.3+Math.abs(Math.sin(s.ph))*0.55).toFixed(2);
-    ctx.fillStyle=`rgba(255,255,255,${a})`;
-    ctx.fillRect(s.x|0,s.y|0,s.s,s.s);
-  });
-}
-function utDrawGround() {
-  const tile=20;
-  for(let tx=0;tx<W;tx+=tile){
-    ctx.fillStyle=(tx/tile)%2===0?'#1a1a1a':'#141414';
-    ctx.fillRect(tx,GROUND_Y,tile,H-GROUND_Y);
-  }
-  ctx.fillStyle='#fff'; ctx.fillRect(0,GROUND_Y,W,2);
-}
-function utDrawBone(p) {
-  const px=p.x|0, topH=p.top, botY=p.top+DIFFS[difficulty].gap, botH=GROUND_Y-botY;
-  const PW=PIPE_W, CX=10, CH=24, r=7;
-  ctx.fillStyle='#fff';
-  if(topH-CH>UI_H) ctx.fillRect(px,UI_H,PW,topH-CH-UI_H);
-  ctx.fillRect(px-CX,topH-CH,PW+CX*2,CH);
-  ctx.beginPath();
-  ctx.arc(px-CX+r,   topH-CH+r, r,0,Math.PI*2);
-  ctx.arc(px+PW+CX-r,topH-CH+r, r,0,Math.PI*2);
-  ctx.arc(px-CX+r,   topH-r,    r,0,Math.PI*2);
-  ctx.arc(px+PW+CX-r,topH-r,    r,0,Math.PI*2);
-  ctx.fill();
-  ctx.strokeStyle='#444'; ctx.lineWidth=2;
-  if(topH-CH>UI_H) ctx.strokeRect(px+.5,UI_H,PW-1,topH-CH-UI_H);
-  ctx.strokeRect(px-CX+.5,topH-CH+.5,PW+CX*2-1,CH-1);
-
-  ctx.fillStyle='#fff';
-  ctx.fillRect(px-CX,botY,PW+CX*2,CH);
-  ctx.beginPath();
-  ctx.arc(px-CX+r,   botY+r,   r,0,Math.PI*2);
-  ctx.arc(px+PW+CX-r,botY+r,   r,0,Math.PI*2);
-  ctx.arc(px-CX+r,   botY+CH-r,r,0,Math.PI*2);
-  ctx.arc(px+PW+CX-r,botY+CH-r,r,0,Math.PI*2);
-  ctx.fill();
-  if(botH>CH){
-    ctx.fillStyle='#fff'; ctx.fillRect(px,botY+CH,PW,botH-CH);
-    ctx.strokeStyle='#444'; ctx.lineWidth=2; ctx.strokeRect(px+.5,botY+CH,PW-1,botH-CH);
-  }
-  ctx.strokeStyle='#444'; ctx.lineWidth=2;
-  ctx.strokeRect(px-CX+.5,botY+.5,PW+CX*2-1,CH-1);
-}
-function heartPath(cx,cy,w,h) {
-  const tch=h*0.3, lx=cx-w/2, ty=cy-h/2;
-  ctx.moveTo(cx,ty+tch);
-  ctx.bezierCurveTo(cx,ty,lx,ty,lx,ty+tch);
-  ctx.bezierCurveTo(lx,ty+(h+tch)/2,cx,ty+(h+tch)/2,cx,ty+h);
-  ctx.bezierCurveTo(cx,ty+(h+tch)/2,lx+w,ty+(h+tch)/2,lx+w,ty+tch);
-  ctx.bezierCurveTo(lx+w,ty,cx,ty,cx,ty+tch);
-  ctx.closePath();
-}
-function utDrawSOUL() {
-  const {x,y,vy}=bird;
-  const angle=Math.max(-0.5,Math.min(0.8,vy*0.08));
-  const w=22,h=20;
-  ctx.save(); ctx.translate(x|0,y|0); ctx.rotate(angle);
-  ctx.fillStyle='#fff'; ctx.beginPath(); heartPath(0,1,w+4,h+4); ctx.fill();
-  ctx.shadowColor='#ff0000'; ctx.shadowBlur=16;
-  ctx.fillStyle='#ff1111'; ctx.beginPath(); heartPath(0,0,w,h); ctx.fill();
-  ctx.shadowBlur=0; ctx.restore();
-}
-function utDrawUI() {
-  const font='"Press Start 2P","Courier New",monospace';
-  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,UI_H);
-  ctx.fillStyle='#fff'; ctx.fillRect(0,UI_H-2,W,2);
-
-  ctx.font=`8px ${font}`; ctx.fillStyle='#fff'; ctx.textAlign='left';
-  ctx.fillText('SOUL', 14, UI_H-30);
-
-  ctx.fillStyle='#333'; ctx.fillRect(62,UI_H-40,148,12);
-  ctx.fillStyle='#ff2222'; ctx.fillRect(64,UI_H-38,Math.min(score,30)/30*144,8);
-  ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.strokeRect(62,UI_H-40,148,12);
-
-  // score
-  ctx.fillStyle='#fff'; ctx.textAlign='right'; ctx.font=`8px ${font}`;
-  ctx.fillText(score+' PT', W-12, UI_H-30);
-  const best=bestScores[difficulty];
-  if(best>0){ ctx.fillStyle='#555'; ctx.font=`6px ${font}`; ctx.fillText('best '+best, W-12, UI_H-14); }
-
-  // difficulty badge (color coded)
-  const d=DIFFS[difficulty];
-  ctx.fillStyle=d.color; ctx.font=`7px ${font}`; ctx.textAlign='left';
-  ctx.fillText('◆ '+d.label, 14, UI_H-14);
-  ctx.textAlign='left';
-}
-function utDrawDlg() {
-  if(!dlg)return;
-  dlg.timer++;
-  if(dlg.shown<dlg.text.length && dlg.timer%2===0) dlg.shown++;
-  if(dlg.shown>=dlg.text.length && !dlg.done){ dlg.done=true; dlg.doneAt=dlg.timer; }
-  if(dlg.autohide && dlg.done && dlg.timer-dlg.doneAt>180){ dlg.alpha-=0.04; if(dlg.alpha<=0){dlg=null;return;} }
-  const font='"Press Start 2P","Courier New",monospace';
-  const boxH=76, boxY=GROUND_Y-boxH-8;
-  const ch=CHARS[dlg.char];
-  ctx.save(); ctx.globalAlpha=dlg.alpha;
-  ctx.fillStyle='#000'; ctx.fillRect(12,boxY,W-24,boxH);
-  ctx.strokeStyle='#fff'; ctx.lineWidth=3; ctx.strokeRect(12,boxY,W-24,boxH);
-  ctx.fillStyle=ch?ch.color:'#fff'; ctx.font=`8px ${font}`; ctx.textAlign='left';
-  ctx.fillText(ch?ch.name:dlg.char, 24, boxY+16);
-  ctx.fillStyle='#fff'; ctx.font=`8px ${font}`;
-  dlg.text.substring(0,dlg.shown).split('\n').forEach((line,i)=>{
-    ctx.fillText(line, 24, boxY+34+i*17);
-  });
-  if(dlg.done && Math.floor(Date.now()/400)%2===0){
-    ctx.textAlign='right'; ctx.fillText('▼', W-24, boxY+boxH-8);
-  }
-  ctx.textAlign='left'; ctx.restore();
-}
-function utDrawWaiting() {
-  const font='"Press Start 2P","Courier New",monospace';
-  const pw=334,ph=140,px=(W-pw)/2,py=H/2-ph/2;
-  ctx.fillStyle='#000'; ctx.fillRect(px,py,pw,ph);
-  ctx.strokeStyle='#fff'; ctx.lineWidth=3; ctx.strokeRect(px,py,pw,ph);
-  ctx.textAlign='center';
-  ctx.fillStyle='#fff'; ctx.font=`13px ${font}`;
-  ctx.fillText('FLAPPY SOUL', W/2, py+36);
-  ctx.fillStyle='#ff3333'; ctx.font=`7px ${font}`;
-  ctx.fillText('* Undertale edition', W/2, py+58);
-  // diff badge
-  const d=DIFFS[difficulty];
-  ctx.fillStyle=d.color; ctx.font=`8px ${font}`;
-  ctx.fillText('◆ '+d.label+' ◆', W/2, py+82);
-  if(Math.floor(Date.now()/500)%2===0){
-    ctx.fillStyle='#fff'; ctx.font=`7px ${font}`;
-    ctx.fillText('ESPACIO  /  CLICK', W/2, py+110);
-  }
-  ctx.textAlign='left';
-}
-function utDrawGameOver() {
-  const font='"Press Start 2P","Courier New",monospace';
-  const pw=344,ph=230,px=(W-pw)/2,py=H/2-ph/2;
-  ctx.fillStyle='rgba(0,0,0,0.88)'; ctx.fillRect(px,py,pw,ph);
-  ctx.strokeStyle='#fff'; ctx.lineWidth=3; ctx.strokeRect(px,py,pw,ph);
-  ctx.textAlign='center';
-  ctx.fillStyle='#ff2222'; ctx.font=`16px ${font}`;
-  ctx.fillText('GAME OVER', W/2, py+44);
-  ctx.fillStyle='#fff'; ctx.font=`9px ${font}`;
-  ctx.fillText('* you died.', W/2, py+70);
-  if(deathLine){
-    const ch=CHARS[deathLine.char];
-    ctx.fillStyle=ch?ch.color:'#fff';
-    deathLine.text.split('\n').forEach((l,i)=>{ ctx.fillText(l, W/2, py+95+i*18); });
-  }
-  ctx.fillStyle='#fff'; ctx.font=`9px ${font}`;
-  ctx.fillText(`SCORE   ${score}`, W/2, py+144);
-  ctx.fillStyle='#FFD700';
-  ctx.fillText(`BEST    ${bestScores[difficulty]}`, W/2, py+164);
-  const d=DIFFS[difficulty];
-  ctx.fillStyle=d.color; ctx.font=`7px ${font}`;
-  ctx.fillText('[ '+d.label+' ]', W/2, py+188);
-  if(Math.floor(Date.now()/500)%2===0){
-    ctx.fillStyle='#fff'; ctx.font=`7px ${font}`;
-    ctx.fillText('ESPACIO / CLICK', W/2, py+212);
-  }
-  ctx.textAlign='left';
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// COLLISION (unified)
-// ══════════════════════════════════════════════════════════════════════════════
-function checkCollision() {
-  const bL=bird.x-BIRD_R, bR=bird.x+BIRD_R;
-  const bT=bird.y-BIRD_R, bB=bird.y+BIRD_R;
-  if(bB>=GROUND_Y || bT<=UI_H) return true;
-  const gap=DIFFS[difficulty].gap;
-  for(const p of pipes){
-    if(bR>p.x && bL<p.x+PIPE_W){
-      if(bT<p.top || bB>p.top+gap) return true;
-    }
-  }
-  return false;
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// UPDATE
-// ══════════════════════════════════════════════════════════════════════════════
-function update() {
-  const d=DIFFS[difficulty];
-  frame++;
-  if(state!=='playing'){
-    bird.wingT=(bird.wingT||0)+0.15;
-    return;
-  }
-
-  bird.vy   += d.grav;
-  bird.y    += bird.vy;
-  bird.wingT = (bird.wingT||0)+0.25;
-
-  clouds.forEach(c=>{ c.x-=0.4; if(c.x+c.w<0) c.x=W+c.w; });
-
-  if(d.speed>0 && frame%d.interval===0) spawnPipe();
-
-  pipes.forEach(p=>{
-    p.x -= d.speed;
-    if(!p.scored && p.x+PIPE_W<bird.x){
-      p.scored=true; score++;
-      if(score>bestScores[difficulty]) bestScores[difficulty]=score;
-      if(theme==='undertale' && score%4===0) randDlg(PLAY_LINES);
-    }
-  });
-  pipes=pipes.filter(p=>p.x+PIPE_W+15>0);
-
-  if(checkCollision()){
-    state='dead';
-    deathLine=DEATH_LINES[Math.floor(Math.random()*DEATH_LINES.length)];
-    dlg=null;
-  }
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// RENDER
-// ══════════════════════════════════════════════════════════════════════════════
-function render() {
-  if(theme==='normal'){
-    nmDrawBG();
-    clouds.forEach(nmDrawCloud);
-    pipes.forEach(nmDrawPipe);
-    nmDrawGround();
-    nmDrawBird();
-    nmDrawUI();
-    if(state==='waiting') nmDrawWaiting();
-    if(state==='dead')    nmDrawGameOver();
-  } else {
-    utDrawBG();
-    pipes.forEach(utDrawBone);
-    utDrawGround();
-    utDrawSOUL();
-    utDrawUI();
-    if(state==='playing') utDrawDlg();
-    if(state==='waiting'){ utDrawDlg(); utDrawWaiting(); }
-    if(state==='dead')    utDrawGameOver();
-  }
-}
-
-function loop() { update(); render(); requestAnimationFrame(loop); }
-
-applyThemeBtn();
-applyDiffBtns();
-init();
-loop();
-
-const gameWrap = document.getElementById('game-wrap');
-function resizeGame() {
-  const ctrlH = document.getElementById('controls').offsetHeight;
-  const totalH = 600 + 8 + ctrlH;
-  const scale = Math.min(1, window.innerWidth / 400, window.innerHeight / totalH);
-  const scaledW = 400 * scale;
-  const scaledH = totalH * scale;
-  gameWrap.style.transform = `scale(${scale})`;
-  gameWrap.style.left = Math.round((window.innerWidth - scaledW) / 2) + 'px';
-  gameWrap.style.top = Math.round((window.innerHeight - scaledH) / 2) + 'px';
-}
-window.addEventListener('resize', resizeGame);
-document.fonts.ready.then(resizeGame);
-resizeGame();
 </script>
 </body>
 </html>
