@@ -2,17 +2,52 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Mapachón - Explorador de Ruinas</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
-  canvas { display: block; image-rendering: pixelated; }
-  #controls { color: #555; font-size: 12px; margin-top: 8px; letter-spacing: 1px; }
+  body { background: #000; overflow: hidden; position: fixed; width: 100%; height: 100%; }
+  #game-wrap { position: absolute; transform-origin: top left; }
+  canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; touch-action: none; }
+  #controls { color: #555; font-size: 12px; margin-top: 8px; letter-spacing: 1px; text-align: center; white-space: nowrap; }
+  @media (pointer: coarse) { #controls { display: none; } }
+
+  #touch-controls { display: none; position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+  @media (pointer: coarse) { #touch-controls { display: block; } }
+
+  .t-btn {
+    position: absolute;
+    width: 68px; height: 68px;
+    background: rgba(255,255,255,0.10);
+    border: 2px solid rgba(255,255,255,0.22);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.65);
+    font-size: 26px;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: all;
+    user-select: none; -webkit-user-select: none;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .t-btn.pressed { background: rgba(255,255,255,0.26); border-color: rgba(255,255,255,0.55); }
+
+  #btn-left   { bottom: 24px; left: 16px; }
+  #btn-right  { bottom: 24px; left: 100px; }
+  #btn-attack { bottom: 24px; right: 100px; background: rgba(255,80,60,0.14); border-color: rgba(255,100,80,0.32); }
+  #btn-jump   { bottom: 24px; right: 16px;  background: rgba(0,200,255,0.14); border-color: rgba(0,200,255,0.32); }
 </style>
 </head>
 <body>
+<div id="game-wrap">
 <canvas id="c" width="960" height="540"></canvas>
-<div id="controls">WASD / FLECHAS: mover &nbsp;|&nbsp; ESPACIO / W / ↑: saltar &nbsp;|&nbsp; Llega al borde de la pantalla para cambiar de sala</div>
+<div id="controls">WASD / FLECHAS: mover &nbsp;|&nbsp; ESPACIO: saltar &nbsp;|&nbsp; Z / J: atacar &nbsp;|&nbsp; Llega al borde para cambiar sala</div>
+</div>
+<div id="touch-controls">
+  <div class="t-btn" id="btn-left">◀</div>
+  <div class="t-btn" id="btn-right">▶</div>
+  <div class="t-btn" id="btn-attack">⚔</div>
+  <div class="t-btn" id="btn-jump">▲</div>
+</div>
 <script>
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
@@ -244,9 +279,36 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('keyup', e => { keys[e.code] = false; });
 
-function left()  { return keys['ArrowLeft']  || keys['KeyA']; }
-function right() { return keys['ArrowRight'] || keys['KeyD']; }
-function jumpHeld() { return keys['Space'] || keys['ArrowUp'] || keys['KeyW']; }
+function left()     { return keys['ArrowLeft']  || keys['KeyA'] || touch.left; }
+function right()    { return keys['ArrowRight'] || keys['KeyD'] || touch.right; }
+function jumpHeld() { return keys['Space'] || keys['ArrowUp'] || keys['KeyW'] || touch.jump; }
+
+// ─── TÁCTIL ───────────────────────────────────────────────────────────────────
+const touch = { left: false, right: false, jump: false, attack: false };
+
+(function () {
+  function bind(id, key) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    function down(e) {
+      e.preventDefault();
+      touch[key] = true;
+      if (key === 'jump') player.jumpBuffered = true;
+      if (key === 'attack' && player.attackTimer === 0) {
+        player.attackTimer  = 26;
+        player.attackActive = 9;
+      }
+    }
+    function up(e) { e.preventDefault(); touch[key] = false; }
+    el.addEventListener('touchstart',  down, { passive: false });
+    el.addEventListener('touchend',    up,   { passive: false });
+    el.addEventListener('touchcancel', up,   { passive: false });
+  }
+  bind('btn-left',   'left');
+  bind('btn-right',  'right');
+  bind('btn-jump',   'jump');
+  bind('btn-attack', 'attack');
+})();
 
 // ─── ESTADO DE JUEGO ─────────────────────────────────────────────────────────
 let currentRoom = 0;
@@ -1961,6 +2023,17 @@ function frame() {
 
   requestAnimationFrame(frame);
 }
+
+// ─── RESPONSIVE ───────────────────────────────────────────────────────────────
+function resize() {
+  const scale = Math.min(window.innerWidth / W, window.innerHeight / H);
+  const wrap = document.getElementById('game-wrap');
+  wrap.style.transform = `scale(${scale})`;
+  wrap.style.left = Math.round((window.innerWidth  - W * scale) / 2) + 'px';
+  wrap.style.top  = Math.round((window.innerHeight - H * scale) / 2) + 'px';
+}
+window.addEventListener('resize', resize);
+resize();
 
 // ─── INICIO ───────────────────────────────────────────────────────────────────
 resetParticles(0);
