@@ -415,6 +415,7 @@ let showInventory = false;
 let cheatState = 'closed'; // 'closed' | 'input' | 'map'
 let cheatCode  = '';
 let cheatError = 0;
+let godMode    = false;
 let currentEnemies = [];
 
 // ─── JEFE ─────────────────────────────────────────────────────────────────────
@@ -590,8 +591,8 @@ function checkExits() {
 
   // Muerte: caer fuera del mapa
   if (player.y > H + 100) {
-    isDeath = true;
-    startTransition(0, 80, 400);
+    if (godMode) { player.y = 400; player.vy = -5; }
+    else { isDeath = true; startTransition(0, 80, 400); }
   }
 }
 
@@ -686,12 +687,14 @@ function checkEnemyCollisions() {
     // Contacto lateral/desde abajo → daño al jugador
     if (player.invFrames === 0 &&
         collideRect(player.x + 3, player.y + 3, player.w - 6, player.h - 3, e.x, e.y, e.w, e.h)) {
-      player.hp--;
-      if (player.hp <= 0) {
-        player.hp = 0;
-        isDeath = true;
-        startTransition(0, 80, 400);
-        return;
+      if (!godMode) {
+        player.hp--;
+        if (player.hp <= 0) {
+          player.hp = 0;
+          isDeath = true;
+          startTransition(0, 80, 400);
+          return;
+        }
       }
       player.invFrames = 90;
       player.knockbackTimer = 14;
@@ -928,8 +931,10 @@ function checkBossCollisions() {
   // Cuerpo del jefe daña al jugador
   if (player.invFrames === 0 && !fromTop &&
       collideRect(player.x + 3, player.y + 3, player.w - 6, player.h - 3, boss.x, boss.y, boss.w, boss.h)) {
-    player.hp--;
-    if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+    if (!godMode) {
+      player.hp--;
+      if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+    }
     player.invFrames = 90;
     const dir = (player.x + player.w / 2) < (boss.x + boss.w / 2) ? -1 : 1;
     player.vx = dir * 7; player.vy = -8;
@@ -938,16 +943,17 @@ function checkBossCollisions() {
   // Proyectiles dañan al jugador
   for (let i = boss.projectiles.length - 1; i >= 0; i--) {
     const p = boss.projectiles[i];
-    // Ataque destruye proyectil
     if (player.attackActive > 0 &&
         collideRect(atkX, atkY, atkW, atkH, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2)) {
       boss.projectiles.splice(i, 1); continue;
     }
     const dist = Math.hypot((player.x + player.w / 2) - p.x, (player.y + player.h / 2) - p.y);
     if (dist < p.r + 12 && player.invFrames === 0) {
-      player.hp--;
+      if (!godMode) {
+        player.hp--;
+        if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+      }
       boss.projectiles.splice(i, 1);
-      if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
       player.invFrames = 70;
       const dir = player.x < p.x ? -1 : 1;
       player.vx = dir * 5; player.vy = -6;
@@ -1364,8 +1370,10 @@ function checkBoss2Collisions() {
 
   if (player.invFrames === 0 && !fromTop2 &&
       collideRect(player.x + 3, player.y + 3, player.w - 6, player.h - 3, boss2.x, boss2.y, boss2.w, boss2.h)) {
-    player.hp--;
-    if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+    if (!godMode) {
+      player.hp--;
+      if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+    }
     player.invFrames = 90;
     const dir = (player.x + player.w / 2) < (boss2.x + boss2.w / 2) ? -1 : 1;
     player.vx = dir * 7; player.vy = -8;
@@ -1379,9 +1387,11 @@ function checkBoss2Collisions() {
     }
     const dist = Math.hypot((player.x + player.w / 2) - p.x, (player.y + player.h / 2) - p.y);
     if (dist < p.r + 12 && player.invFrames === 0) {
-      player.hp--;
+      if (!godMode) {
+        player.hp--;
+        if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+      }
       boss2.projectiles.splice(i, 1);
-      if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
       player.invFrames = 70;
       const dir = player.x < p.x ? -1 : 1;
       player.vx = dir * 5; player.vy = -6;
@@ -1764,6 +1774,16 @@ function drawPlayer() {
   ctx.translate(px + player.w / 2, py + player.h / 2 + bob);
   ctx.scale(f, squish);
 
+  // Aura de invencibilidad
+  if (godMode) {
+    const gp = 0.35 + 0.2 * Math.sin(Date.now() * 0.007);
+    const ag = ctx.createRadialGradient(0, 0, 6, 0, 0, 32);
+    ag.addColorStop(0, `rgba(255,210,0,${gp + 0.15})`);
+    ag.addColorStop(1, 'rgba(255,180,0,0)');
+    ctx.fillStyle = ag;
+    ctx.beginPath(); ctx.arc(0, 0, 32, 0, Math.PI * 2); ctx.fill();
+  }
+
   const hw = player.w / 2;   // 13
   const hh = player.h / 2;   // 19
 
@@ -2061,6 +2081,20 @@ function drawHUD() {
     ctx.fillRect(16, 64, barW * prog, 4);
   }
 
+  // God mode indicator
+  if (godMode) {
+    const p = 0.7 + 0.3 * Math.sin(Date.now() * 0.006);
+    ctx.save();
+    ctx.globalAlpha = p;
+    ctx.fillStyle = '#ffd060';
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = '#ffd060'; ctx.shadowBlur = 14;
+    ctx.fillText('★  INVENCIBLE  ★', W / 2, 26);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
   // Arma actual
   ctx.font = '11px monospace'; ctx.textAlign = 'right';
   ctx.fillStyle = weaponColor;
@@ -2144,7 +2178,8 @@ function cheatAppend(digit) {
   if (cheatState !== 'input' || cheatCode.length >= 4) return;
   cheatCode += digit;
   if (cheatCode.length === 4) {
-    if (cheatCode === '0611') { cheatState = 'map'; cheatCode = ''; updateCheatUI(); }
+    if      (cheatCode === '0611') { cheatState = 'map'; cheatCode = ''; updateCheatUI(); }
+    else if (cheatCode === '9748') { godMode = !godMode; cheatState = 'closed'; cheatCode = ''; updateCheatUI(); }
     else { cheatError = 50; cheatCode = ''; }
   }
 }
