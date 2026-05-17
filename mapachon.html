@@ -35,6 +35,7 @@
   #btn-right  { bottom: 24px; left: 100px; }
   #btn-attack { bottom: 24px; right: 100px; background: rgba(255,80,60,0.14); border-color: rgba(255,100,80,0.32); }
   #btn-jump   { bottom: 24px; right: 16px;  background: rgba(0,200,255,0.14); border-color: rgba(0,200,255,0.32); }
+  #btn-inv    { top: 8px; right: 8px; width: 48px; height: 48px; font-size: 18px; background: rgba(180,120,255,0.14); border-color: rgba(180,120,255,0.32); }
 </style>
 </head>
 <body>
@@ -47,6 +48,7 @@
   <div class="t-btn" id="btn-right">▶</div>
   <div class="t-btn" id="btn-attack">⚔</div>
   <div class="t-btn" id="btn-jump">▲</div>
+  <div class="t-btn" id="btn-inv">📦</div>
 </div>
 <script>
 const canvas = document.getElementById('c');
@@ -263,10 +265,12 @@ const JUMP_V     = -13.5;
 const MAX_FALL   = 18;
 const COYOTE_MAX = 8;
 const FRICTION   = 0.82;
+const PLAYER_DMG = 1;
 
 // ─── TECLADO ─────────────────────────────────────────────────────────────────
 const keys = {};
 document.addEventListener('keydown', e => {
+  if (e.code === 'Tab' || e.code === 'KeyI') { showInventory = !showInventory; e.preventDefault(); return; }
   if (!keys[e.code]) {
     if (['Space','ArrowUp','KeyW'].includes(e.code)) player.jumpBuffered = true;
     if (['KeyZ','KeyJ','KeyX'].includes(e.code) && player.attackTimer === 0) {
@@ -308,6 +312,10 @@ const touch = { left: false, right: false, jump: false, attack: false };
   bind('btn-right',  'right');
   bind('btn-jump',   'jump');
   bind('btn-attack', 'attack');
+  const invBtn = document.getElementById('btn-inv');
+  if (invBtn) {
+    invBtn.addEventListener('touchstart', e => { e.preventDefault(); showInventory = !showInventory; }, { passive: false });
+  }
 })();
 
 // ─── ESTADO DE JUEGO ─────────────────────────────────────────────────────────
@@ -321,6 +329,7 @@ let pendingPos  = null;
 let roomLabelAlpha = 0;
 let roomLabelTimer = 0;
 let isDeath = false;
+let showInventory = false;
 let currentEnemies = [];
 
 // ─── JEFE ─────────────────────────────────────────────────────────────────────
@@ -814,7 +823,7 @@ function checkBossCollisions() {
   // Ataque del jugador golpea al jefe
   if (player.attackActive > 0 && boss.invFrames === 0 &&
       collideRect(atkX, atkY, atkW, atkH, boss.x, boss.y, boss.w, boss.h)) {
-    boss.hp--;
+    boss.hp -= PLAYER_DMG;
     boss.invFrames = 28;
     if (boss.hp <= 0) { boss.hp = 0; boss.dead = true; boss.deathTimer = 130; boss.projectiles = []; return; }
   }
@@ -823,7 +832,7 @@ function checkBossCollisions() {
   const onBoss   = collideRect(player.x, player.y, player.w, player.h, boss.x, boss.y, boss.w, boss.h);
   const fromTop  = player.vy > 1 && (player.y + player.h) < (boss.y + boss.h * 0.5);
   if (onBoss && fromTop && boss.invFrames === 0) {
-    boss.hp--;
+    boss.hp -= PLAYER_DMG;
     boss.invFrames = 28;
     player.vy = -12;
     if (boss.hp <= 0) { boss.hp = 0; boss.dead = true; boss.deathTimer = 130; boss.projectiles = []; return; }
@@ -1252,7 +1261,7 @@ function checkBoss2Collisions() {
 
   if (player.attackActive > 0 && boss2.invFrames === 0 &&
       collideRect(atkX, atkY, atkW, atkH, boss2.x, boss2.y, boss2.w, boss2.h)) {
-    boss2.hp--;
+    boss2.hp -= PLAYER_DMG;
     boss2.invFrames = 26;
     if (boss2.hp <= 0) { boss2.hp = 0; boss2.dead = true; boss2.deathTimer = 150; boss2.projectiles = []; return; }
   }
@@ -1260,7 +1269,7 @@ function checkBoss2Collisions() {
   const onBoss2  = collideRect(player.x, player.y, player.w, player.h, boss2.x, boss2.y, boss2.w, boss2.h);
   const fromTop2 = player.vy > 1 && (player.y + player.h) < (boss2.y + boss2.h * 0.5);
   if (onBoss2 && fromTop2 && boss2.invFrames === 0) {
-    boss2.hp--;
+    boss2.hp -= PLAYER_DMG;
     boss2.invFrames = 26;
     player.vy = -13;
     if (boss2.hp <= 0) { boss2.hp = 0; boss2.dead = true; boss2.deathTimer = 150; boss2.projectiles = []; return; }
@@ -1972,6 +1981,59 @@ function drawHUD() {
   ctx.fillText('Z / J: atacar  |  Encima del enemigo: pisotón', W - 16, H - 16);
 }
 
+function drawInventory() {
+  if (!showInventory) return;
+
+  const pw = 280, ph = 180;
+  const px = (W - pw) / 2, py = (H - ph) / 2;
+
+  // Fondo
+  ctx.fillStyle = 'rgba(4, 4, 16, 0.94)';
+  ctx.fillRect(px, py, pw, ph);
+  ctx.strokeStyle = '#5a3a8a';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(px, py, pw, ph);
+  ctx.strokeStyle = '#2a1a4a';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(px + 5, py + 5, pw - 10, ph - 10);
+
+  // Título
+  ctx.fillStyle = '#d0a8ff';
+  ctx.font = 'bold 15px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('⚙  ESTADÍSTICAS', W / 2, py + 33);
+
+  // Separador
+  ctx.strokeStyle = '#3a2a5a';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(px + 18, py + 44); ctx.lineTo(px + pw - 18, py + 44);
+  ctx.stroke();
+
+  // Fila: Vida máxima
+  ctx.textAlign = 'left';
+  ctx.font = '13px monospace';
+  ctx.fillStyle = '#ff6688';
+  ctx.fillText('❤  Vida máxima', px + 26, py + 78);
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'right';
+  ctx.fillText(player.maxHp, px + pw - 26, py + 78);
+
+  // Fila: Daño
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#40c8ff';
+  ctx.fillText('⚔  Daño de ataque', px + 26, py + 114);
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'right';
+  ctx.fillText(PLAYER_DMG, px + pw - 26, py + 114);
+
+  // Hint cierre
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  ctx.font = '10px monospace';
+  ctx.fillText('TAB / I  ·  📦  para cerrar', W / 2, py + ph - 14);
+}
+
 function drawTransition() {
   if (transAlpha <= 0) return;
   const color = (isDeath && transPhase !== 'fade-in')
@@ -2019,6 +2081,7 @@ function frame() {
   drawKeyGate();
   drawHUD();
   drawKeyHUD();
+  drawInventory();
   drawTransition();
 
   requestAnimationFrame(frame);
