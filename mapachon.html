@@ -35,7 +35,28 @@
   #btn-right  { bottom: 24px; left: 100px; }
   #btn-attack { bottom: 24px; right: 100px; background: rgba(255,80,60,0.14); border-color: rgba(255,100,80,0.32); }
   #btn-jump   { bottom: 24px; right: 16px;  background: rgba(0,200,255,0.14); border-color: rgba(0,200,255,0.32); }
-  #btn-inv    { top: 8px; right: 8px; width: 48px; height: 48px; font-size: 18px; background: rgba(180,120,255,0.14); border-color: rgba(180,120,255,0.32); }
+  #btn-inv    { top: 8px;  right: 8px;  width: 48px; height: 48px; font-size: 18px; background: rgba(180,120,255,0.14); border-color: rgba(180,120,255,0.32); }
+  #btn-cheat  { top: 64px; right: 8px;  width: 48px; height: 48px; font-size: 18px; background: rgba(255,200,0,0.12);   border-color: rgba(255,200,0,0.28); }
+
+  /* Cheat numpad */
+  #cheat-numpad {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    display: none; grid-template-columns: repeat(3, 54px); gap: 7px;
+    z-index: 30; pointer-events: all;
+  }
+  #cheat-numpad.visible { display: grid; }
+  .np-btn {
+    width: 54px; height: 54px;
+    background: rgba(10,6,30,0.92); border: 2px solid rgba(154,106,255,0.4);
+    border-radius: 8px; color: rgba(255,255,255,0.85);
+    font-size: 20px; font-family: monospace;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; user-select: none; -webkit-user-select: none;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
+  .np-btn:active { background: rgba(154,106,255,0.25); border-color: #c8a0ff; }
+  #np-del { border-color: rgba(255,100,80,0.4); color: rgba(255,120,100,0.9); }
+  #np-esc { border-color: rgba(255,100,80,0.4); color: rgba(255,120,100,0.9); }
 </style>
 </head>
 <body>
@@ -49,6 +70,22 @@
   <div class="t-btn" id="btn-attack">⚔</div>
   <div class="t-btn" id="btn-jump">▲</div>
   <div class="t-btn" id="btn-inv">📦</div>
+  <div class="t-btn" id="btn-cheat">🔑</div>
+</div>
+
+<div id="cheat-numpad">
+  <div class="np-btn" data-d="1">1</div>
+  <div class="np-btn" data-d="2">2</div>
+  <div class="np-btn" data-d="3">3</div>
+  <div class="np-btn" data-d="4">4</div>
+  <div class="np-btn" data-d="5">5</div>
+  <div class="np-btn" data-d="6">6</div>
+  <div class="np-btn" data-d="7">7</div>
+  <div class="np-btn" data-d="8">8</div>
+  <div class="np-btn" data-d="9">9</div>
+  <div class="np-btn" id="np-del">⌫</div>
+  <div class="np-btn" data-d="0">0</div>
+  <div class="np-btn" id="np-esc">✕</div>
 </div>
 <script>
 const canvas = document.getElementById('c');
@@ -271,6 +308,19 @@ const PLAYER_DMG = 1;
 const keys = {};
 document.addEventListener('keydown', e => {
   if (e.code === 'Tab' || e.code === 'KeyI') { showInventory = !showInventory; e.preventDefault(); return; }
+  if (e.code === 'KeyL') {
+    cheatState = cheatState === 'closed' ? 'input' : 'closed';
+    cheatCode = ''; cheatError = 0; updateCheatUI();
+    e.preventDefault(); return;
+  }
+  if (cheatState !== 'closed') {
+    if (e.code === 'Escape') { cheatState = 'closed'; cheatCode = ''; updateCheatUI(); }
+    else if (cheatState === 'input') {
+      if (e.key >= '0' && e.key <= '9') cheatAppend(e.key);
+      else if (e.code === 'Backspace')  cheatCode = cheatCode.slice(0, -1);
+    }
+    e.preventDefault(); return;
+  }
   if (!keys[e.code]) {
     if (['Space','ArrowUp','KeyW'].includes(e.code)) player.jumpBuffered = true;
     if (['KeyZ','KeyJ','KeyX'].includes(e.code) && player.attackTimer === 0) {
@@ -330,6 +380,9 @@ let roomLabelAlpha = 0;
 let roomLabelTimer = 0;
 let isDeath = false;
 let showInventory = false;
+let cheatState = 'closed'; // 'closed' | 'input' | 'map'
+let cheatCode  = '';
+let cheatError = 0;
 let currentEnemies = [];
 
 // ─── JEFE ─────────────────────────────────────────────────────────────────────
@@ -2034,6 +2087,181 @@ function drawInventory() {
   ctx.fillText('TAB / I  ·  📦  para cerrar', W / 2, py + ph - 14);
 }
 
+// ─── CHEAT MENU ───────────────────────────────────────────────────────────────
+const CHEAT_NODES = [
+  { id:0, x:130, y:310, name:'Entrada',  boss:false },
+  { id:1, x:330, y:310, name:'Cristales',boss:false },
+  { id:2, x:530, y:310, name:'Jardín',   boss:false },
+  { id:3, x:330, y:180, name:'La Cima',  boss:true  },
+  { id:4, x:730, y:310, name:'Rey Final',boss:true  },
+];
+const CHEAT_EDGES = [[0,1],[1,2],[2,4],[1,3]];
+
+function updateCheatUI() {
+  const np = document.getElementById('cheat-numpad');
+  if (cheatState === 'input') np.classList.add('visible');
+  else np.classList.remove('visible');
+}
+
+function cheatAppend(digit) {
+  if (cheatState !== 'input' || cheatCode.length >= 4) return;
+  cheatCode += digit;
+  if (cheatCode.length === 4) {
+    if (cheatCode === '0611') { cheatState = 'map'; cheatCode = ''; updateCheatUI(); }
+    else { cheatError = 50; cheatCode = ''; }
+  }
+}
+
+function cheatTeleport(roomId) {
+  cheatState = 'closed'; updateCheatUI();
+  if (roomId === 4) bossDefeated  = false;
+  if (roomId === 3) boss2Defeated = false;
+  startTransition(roomId, 80, 400);
+}
+
+function drawCheat() {
+  if (cheatState === 'closed') return;
+  if (cheatState === 'input') drawCheatInput();
+  else drawCheatMap();
+}
+
+function drawCheatInput() {
+  if (cheatError > 0) cheatError--;
+  const pw = 340, ph = 196;
+  const px = (W - pw) / 2, py = (H - ph) / 2 - 30;
+  const shake = cheatError > 0 ? Math.sin(cheatError * 1.1) * 7 : 0;
+
+  ctx.save(); ctx.translate(shake, 0);
+  ctx.fillStyle = 'rgba(4,4,18,0.96)';
+  ctx.fillRect(px, py, pw, ph);
+  const bc = cheatError > 0 ? '#ff3344' : '#9a6aff';
+  ctx.strokeStyle = bc; ctx.lineWidth = 3; ctx.strokeRect(px, py, pw, ph);
+  ctx.strokeStyle = cheatError > 0 ? '#661122' : '#3a1a6a';
+  ctx.lineWidth = 1; ctx.strokeRect(px+5, py+5, pw-10, ph-10);
+
+  ctx.fillStyle = cheatError > 0 ? '#ff5566' : '#c8a0ff';
+  ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center';
+  ctx.fillText(cheatError > 0 ? '✕  CÓDIGO INCORRECTO' : '🔒  CÓDIGO DE ACCESO', W/2, py+30);
+  ctx.strokeStyle = bc; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(px+18, py+42); ctx.lineTo(px+pw-18, py+42); ctx.stroke();
+
+  const slotW=54, slotH=68, gap=12, total=4*slotW+3*gap;
+  const sx0 = (W-total)/2, sy = py+58;
+  for (let i=0; i<4; i++) {
+    const sx = sx0+i*(slotW+gap), filled = i < cheatCode.length;
+    ctx.fillStyle = filled ? 'rgba(154,106,255,0.18)' : 'rgba(255,255,255,0.04)';
+    ctx.fillRect(sx, sy, slotW, slotH);
+    ctx.strokeStyle = i===cheatCode.length ? '#c8a0ff' : (filled ? '#9a6aff' : '#2a2240');
+    ctx.lineWidth = 2; ctx.strokeRect(sx, sy, slotW, slotH);
+    if (filled) {
+      ctx.fillStyle='#fff'; ctx.font='bold 34px monospace'; ctx.textAlign='center';
+      ctx.fillText('●', sx+slotW/2, sy+slotH-12);
+    }
+    if (i===cheatCode.length && Math.floor(Date.now()/500)%2===0) {
+      ctx.fillStyle='#c8a0ff';
+      ctx.fillRect(sx+slotW/2-1, sy+14, 2, slotH-28);
+    }
+  }
+
+  ctx.fillStyle='rgba(255,255,255,0.28)'; ctx.font='10px monospace'; ctx.textAlign='center';
+  ctx.fillText('L / ESC  ·  ✕  para cerrar', W/2, py+ph-12);
+  ctx.restore();
+}
+
+function drawCheatMap() {
+  const px=40, py=40, pw=W-80, ph=H-80;
+  ctx.fillStyle='rgba(4,4,18,0.97)';
+  ctx.fillRect(px,py,pw,ph);
+  ctx.strokeStyle='#9a6aff'; ctx.lineWidth=3; ctx.strokeRect(px,py,pw,ph);
+  ctx.strokeStyle='#3a1a6a'; ctx.lineWidth=1; ctx.strokeRect(px+5,py+5,pw-10,ph-10);
+
+  ctx.fillStyle='#c8a0ff'; ctx.font='bold 14px monospace'; ctx.textAlign='center';
+  ctx.fillText('🗺  MAPA SECRETO  —  Toca una sala', W/2, py+30);
+  ctx.strokeStyle='#3a1a6a'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(px+18,py+42); ctx.lineTo(px+pw-18,py+42); ctx.stroke();
+
+  // Conexiones
+  ctx.strokeStyle='rgba(154,106,255,0.35)'; ctx.lineWidth=2;
+  for (const [a,b] of CHEAT_EDGES) {
+    const na=CHEAT_NODES[a], nb=CHEAT_NODES[b];
+    ctx.setLineDash([8,6]);
+    ctx.beginPath(); ctx.moveTo(na.x,na.y); ctx.lineTo(nb.x,nb.y); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Nodos
+  for (const n of CHEAT_NODES) {
+    const pulse = 0.65+0.35*Math.sin(Date.now()*0.003+n.id*1.2);
+    const gc = n.boss ? `255,60,60` : `154,106,255`;
+    const glow = ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,50);
+    glow.addColorStop(0,`rgba(${gc},${(pulse*0.3).toFixed(2)})`);
+    glow.addColorStop(1,'transparent');
+    ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(n.x,n.y,50,0,Math.PI*2); ctx.fill();
+
+    ctx.fillStyle=n.boss?'#3a0808':'#160828';
+    ctx.beginPath(); ctx.arc(n.x,n.y,34,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle=n.boss?`rgba(255,60,60,${pulse.toFixed(2)})`:`rgba(154,106,255,${pulse.toFixed(2)})`;
+    ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(n.x,n.y,34,0,Math.PI*2); ctx.stroke();
+
+    ctx.fillStyle='#fff'; ctx.font='bold 16px monospace'; ctx.textAlign='center';
+    ctx.fillText(n.id+1, n.x, n.y+6);
+
+    ctx.fillStyle=n.boss?'#ff8888':'#d0b0ff';
+    ctx.font='10px monospace';
+    ctx.fillText(n.name, n.x, n.y+54);
+    if (n.boss) {
+      ctx.fillStyle='rgba(255,80,80,0.7)'; ctx.font='8px monospace';
+      ctx.fillText('[ JEFE ]', n.x, n.y+67);
+    }
+  }
+
+  ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.font='10px monospace'; ctx.textAlign='center';
+  ctx.fillText('L / ESC para cerrar', W/2, py+ph-14);
+}
+
+// Canvas click/touch para el mapa
+canvas.addEventListener('click', e => {
+  if (cheatState !== 'map') return;
+  const r=canvas.getBoundingClientRect(), sc=W/r.width;
+  const mx=(e.clientX-r.left)*sc, my=(e.clientY-r.top)*sc;
+  for (const n of CHEAT_NODES) { if ((mx-n.x)**2+(my-n.y)**2<44**2) { cheatTeleport(n.id); return; } }
+});
+canvas.addEventListener('touchend', e => {
+  if (cheatState !== 'map') return;
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect(), sc=W/r.width;
+  const t=e.changedTouches[0], mx=(t.clientX-r.left)*sc, my=(t.clientY-r.top)*sc;
+  for (const n of CHEAT_NODES) { if ((mx-n.x)**2+(my-n.y)**2<44**2) { cheatTeleport(n.id); return; } }
+}, { passive:false });
+
+// Numpad bindings
+document.querySelectorAll('#cheat-numpad .np-btn[data-d]').forEach(btn => {
+  function act(e) { e.preventDefault(); cheatAppend(btn.dataset.d); }
+  btn.addEventListener('click', act);
+  btn.addEventListener('touchend', act, { passive:false });
+});
+(function() {
+  function bindNp(id, fn) {
+    const el=document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('click', fn);
+    el.addEventListener('touchend', e => { e.preventDefault(); fn(e); }, { passive:false });
+  }
+  bindNp('np-del', () => { cheatCode=cheatCode.slice(0,-1); });
+  bindNp('np-esc', () => { cheatState='closed'; cheatCode=''; updateCheatUI(); });
+})();
+
+// Botón táctil 🔑
+(function() {
+  const el=document.getElementById('btn-cheat');
+  if (!el) return;
+  el.addEventListener('touchstart', e => {
+    e.preventDefault();
+    cheatState = cheatState==='closed' ? 'input' : 'closed';
+    cheatCode=''; cheatError=0; updateCheatUI();
+  }, { passive:false });
+})();
+
 function drawTransition() {
   if (transAlpha <= 0) return;
   const color = (isDeath && transPhase !== 'fade-in')
@@ -2045,7 +2273,7 @@ function drawTransition() {
 
 // ─── LOOP PRINCIPAL ───────────────────────────────────────────────────────────
 function frame() {
-  if (!transitioning) {
+  if (!transitioning && cheatState === 'closed') {
     updatePlayer();
     updateEnemies();
     checkEnemyCollisions();
@@ -2082,6 +2310,7 @@ function frame() {
   drawHUD();
   drawKeyHUD();
   drawInventory();
+  drawCheat();
   drawTransition();
 
   requestAnimationFrame(frame);
