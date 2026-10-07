@@ -873,19 +873,20 @@ async function sendChatMsg(){
       body:JSON.stringify({messages:chatHistory,system:BUILDER_SYSTEM}),
     });
     typing.remove();
-    if(res.ok){
-      const{reply}=await res.json();
-      const cfg=parseConfig(reply);
-      const clean=stripConfig(reply);
-      chatHistory.push({role:'assistant',content:reply});
+    const rawText = await res.text();
+    let data;
+    try { data = JSON.parse(rawText); } catch { data = {}; }
+    if(res.ok && data.reply){
+      const cfg=parseConfig(data.reply);
+      const clean=stripConfig(data.reply);
+      chatHistory.push({role:'assistant',content:data.reply});
       appendChatMsg('ai',clean,cfg);
     } else {
-      const err = await res.json().catch(() => ({}));
-      appendChatMsg('ai', `⚠️ Error ${res.status}: ${err.error || 'respuesta inesperada del servidor'}`);
+      appendChatMsg('ai', `⚠️ Error ${res.status}: ${data.error || rawText.slice(0,120)}`);
     }
-  }catch{
+  }catch(e){
     typing.remove();
-    appendChatMsg('ai','⚠️ No se pudo conectar con la IA.');
+    appendChatMsg('ai',`⚠️ Error de red: ${e.message}`);
   }
 
   chatLoading=false;
