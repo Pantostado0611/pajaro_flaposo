@@ -18,13 +18,7 @@
     padding: 20px;
   }
 
-  h1 {
-    font-size: 2rem;
-    margin-bottom: 4px;
-    color: #7bc67e;
-    text-shadow: 0 0 20px #3d8b40;
-  }
-
+  h1 { font-size: 2rem; margin-bottom: 4px; color: #7bc67e; text-shadow: 0 0 20px #3d8b40; }
   .subtitle { color: #888; margin-bottom: 24px; font-size: 0.9rem; }
 
   .layout {
@@ -59,176 +53,145 @@
   .mode-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
 
   .tab {
-    background: #0f3460;
-    border: 1px solid #2a4070;
-    color: #aaa;
-    padding: 6px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: all 0.2s;
+    background: #0f3460; border: 1px solid #2a4070; color: #aaa;
+    padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; transition: all 0.2s;
   }
-  .tab.active { background: #3d8b40; border-color: #7bc67e; color: white; }
+  .tab.active  { background: #3d8b40; border-color: #7bc67e; color: white; }
   .tab:hover:not(.active) { border-color: #5588cc; color: #ccc; }
 
   .field { margin-bottom: 14px; }
-
-  label { display: block; font-size: 0.8rem; color: #aaa; margin-bottom: 4px; }
-
+  label  { display: block; font-size: 0.8rem; color: #aaa; margin-bottom: 4px; }
   input[type=range] { width: 100%; accent-color: #7bc67e; }
-
   .range-row { display: flex; align-items: center; gap: 8px; }
-
   .range-val {
-    background: #0f3460;
-    border: 1px solid #2a4070;
-    color: #7bc67e;
-    padding: 3px 8px;
-    border-radius: 5px;
-    font-size: 0.9rem;
-    width: 42px;
-    text-align: center;
-    font-weight: bold;
+    background: #0f3460; border: 1px solid #2a4070; color: #7bc67e;
+    padding: 3px 8px; border-radius: 5px; font-size: 0.9rem; width: 42px; text-align: center; font-weight: bold;
   }
 
   .checkbox-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-
   input[type=checkbox] { accent-color: #7bc67e; width: 16px; height: 16px; }
 
-  .btn {
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: bold;
-    margin-top: 6px;
-    transition: all 0.2s;
-  }
+  .btn { width: 100%; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: bold; margin-top: 6px; transition: all 0.2s; }
   .btn-primary { background: #3d8b40; color: white; }
   .btn-primary:hover { background: #4caf50; }
 
-  .stats {
-    margin-top: 16px;
-    background: #0f3460;
-    border-radius: 8px;
-    padding: 12px;
-    font-size: 0.82rem;
-    line-height: 1.7;
-  }
+  .stats { margin-top: 16px; background: #0f3460; border-radius: 8px; padding: 12px; font-size: 0.82rem; line-height: 1.7; }
   .stats .stat-label { color: #888; }
-  .stats .stat-val { color: #7bc67e; font-weight: bold; float: right; }
+  .stats .stat-val   { color: #7bc67e; font-weight: bold; float: right; }
 
   .legend { margin-top: 14px; }
   .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 0.8rem; }
-  .legend-box { width: 18px; height: 18px; border-radius: 3px; flex-shrink: 0; }
+  .legend-box  { width: 18px; height: 18px; border-radius: 3px; flex-shrink: 0; }
 
   /* ── VISOR ── */
   .viewer {
-    background: #16213e;
-    border: 1px solid #2a4070;
-    border-radius: 12px;
-    padding: 20px;
-    flex: 1;
-    min-width: 340px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    background: #16213e; border: 1px solid #2a4070; border-radius: 12px;
+    padding: 20px; flex: 1; min-width: 340px; display: flex; flex-direction: column; align-items: center;
   }
 
-  /* tabs de vista */
-  .view-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 14px;
-    align-self: flex-start;
-  }
+  .view-tabs { display: flex; gap: 8px; margin-bottom: 14px; align-self: flex-start; }
   .vtab {
-    background: #0f3460;
-    border: 1px solid #2a4070;
-    color: #aaa;
-    padding: 6px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.82rem;
-    transition: all 0.15s;
+    background: #0f3460; border: 1px solid #2a4070; color: #aaa;
+    padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; transition: all 0.15s;
   }
   .vtab.active { background: #1a4a80; border-color: #5588cc; color: #7bc8ff; }
   .vtab:hover:not(.active) { border-color: #5588cc; color: #ccc; }
 
-  /* vista 2D */
   .layer-nav { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
   .nav-btn {
-    background: #0f3460;
-    border: 1px solid #2a4070;
-    color: #7bc67e;
-    width: 36px; height: 36px;
-    border-radius: 8px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: all 0.15s;
+    background: #0f3460; border: 1px solid #2a4070; color: #7bc67e;
+    width: 36px; height: 36px; border-radius: 8px; font-size: 1.2rem; cursor: pointer; transition: all 0.15s;
   }
   .nav-btn:hover { background: #1a4a80; }
   .nav-btn:disabled { opacity: 0.3; cursor: default; }
 
   .layer-info { text-align: center; min-width: 120px; }
   .layer-label { font-size: 1.1rem; font-weight: bold; color: #7bc67e; }
-  .layer-sub { font-size: 0.75rem; color: #888; }
+  .layer-sub   { font-size: 0.75rem; color: #888; }
 
-  #gridCanvas {
-    border: 2px solid #2a4070;
-    border-radius: 8px;
-    image-rendering: pixelated;
-    max-width: 100%;
-  }
+  #gridCanvas { border: 2px solid #2a4070; border-radius: 8px; image-rendering: pixelated; max-width: 100%; }
 
-  .layer-slider-row {
-    margin-top: 12px;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .layer-slider-row { margin-top: 12px; width: 100%; display: flex; align-items: center; gap: 10px; }
   .layer-slider-row input { flex: 1; accent-color: #7bc67e; }
-  .layer-slider-row span { font-size: 0.8rem; color: #888; white-space: nowrap; }
+  .layer-slider-row span  { font-size: 0.8rem; color: #888; white-space: nowrap; }
 
-  /* vista 3D */
-  #canvas3d {
-    border: 2px solid #2a4070;
-    border-radius: 8px;
-    cursor: grab;
-    max-width: 100%;
-    display: block;
-    touch-action: none;
-  }
+  #canvas3d { border: 2px solid #2a4070; border-radius: 8px; cursor: grab; max-width: 100%; display: block; touch-action: none; }
   #canvas3d:active { cursor: grabbing; }
-
-  .hint3d {
-    margin-top: 8px;
-    font-size: 0.75rem;
-    color: #556;
-    text-align: center;
-  }
-
-  /* ── VISTA LATERAL ── */
-  .full-view {
-    background: #16213e;
-    border: 1px solid #2a4070;
-    border-radius: 12px;
-    padding: 20px;
-    width: 200px;
-    flex-shrink: 0;
-    transition: opacity 0.2s;
-  }
-  .full-view.hidden { display: none; }
-
-  #fullCanvas { border: 1px solid #2a4070; border-radius: 6px; max-width: 100%; }
 
   .hint { margin-top: 10px; font-size: 0.75rem; color: #666; text-align: center; }
 
+  /* ── PANEL LATERAL ── */
+  .side-panel {
+    background: #16213e; border: 1px solid #2a4070; border-radius: 12px;
+    padding: 16px; width: 260px; flex-shrink: 0; display: flex; flex-direction: column;
+  }
+
+  .side-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .stab {
+    flex: 1; background: #0f3460; border: 1px solid #2a4070; color: #aaa;
+    padding: 6px 8px; border-radius: 6px; cursor: pointer; font-size: 0.78rem; transition: all 0.15s; text-align: center;
+  }
+  .stab.active { background: #1a3060; border-color: #4488cc; color: #7bc8ff; }
+  .stab:hover:not(.active) { border-color: #5588cc; color: #ccc; }
+
+  #fullCanvas { border: 1px solid #2a4070; border-radius: 6px; max-width: 100%; }
+
+  /* ── CHAT LATERAL ── */
+  #sideChat {
+    flex: 1; display: none; flex-direction: column; gap: 8px; min-height: 0;
+  }
+
+  .chat-msgs {
+    flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+    min-height: 200px; max-height: 420px; padding-right: 2px;
+  }
+  .chat-msgs::-webkit-scrollbar { width: 4px; }
+  .chat-msgs::-webkit-scrollbar-thumb { background: #2a3a60; border-radius: 2px; }
+
+  .chat-welcome {
+    color: #445; font-size: 0.78rem; text-align: center; padding: 16px 6px; line-height: 1.6;
+  }
+
+  .cmsg { display: flex; flex-direction: column; gap: 4px; animation: fadeUp 0.2s ease; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+  .cmsg.user  { align-items: flex-end; }
+  .cmsg.ai    { align-items: flex-start; }
+
+  .cbubble {
+    padding: 7px 10px; border-radius: 10px; font-size: 0.8rem; line-height: 1.55; word-break: break-word; max-width: 100%;
+  }
+  .cmsg.user .cbubble { background: #1a3a28; border: 1px solid #2a5a3a; color: #b8e8c8; border-top-right-radius: 3px; }
+  .cmsg.ai   .cbubble { background: #131e38; border: 1px solid #1e2e55; color: #c8d8f0; border-top-left-radius: 3px; }
+
+  /* chip de configuración */
+  .config-chip {
+    background: #1a2e50; border: 1px solid #3a6aaa; color: #7bc8ff;
+    padding: 5px 9px; border-radius: 7px; font-size: 0.75rem; cursor: pointer;
+    transition: all 0.15s; text-align: left; width: 100%;
+  }
+  .config-chip:hover { background: #2a3e70; border-color: #5a9aee; }
+
+  /* input de chat */
+  .chat-input-row { display: flex; gap: 6px; align-items: flex-end; }
+  #chatInput {
+    flex: 1; background: #0f1a30; border: 1px solid #2a3a60; color: #e0e0e0;
+    padding: 7px 10px; border-radius: 8px; font-size: 0.8rem; font-family: inherit;
+    resize: none; max-height: 80px; min-height: 34px; line-height: 1.4; outline: none;
+  }
+  #chatInput:focus { border-color: #3a5a90; }
+  #chatInput::placeholder { color: #445; }
+
+  #chatSendBtn {
+    background: #1a3a60; border: 1px solid #2a5a90; color: #7bc8ff;
+    width: 34px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 0.95rem;
+    display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0;
+  }
+  #chatSendBtn:hover:not(:disabled) { background: #2a4a80; }
+  #chatSendBtn:disabled { opacity: 0.3; cursor: default; }
+
   @media (max-width: 700px) {
-    .controls, .full-view { width: 100%; }
+    .controls, .side-panel { width: 100%; }
     .layout { flex-direction: column; align-items: center; }
   }
 </style>
@@ -240,16 +203,16 @@
 
 <div class="layout">
 
-  <!-- CONTROLES -->
+  <!-- ── CONTROLES ── -->
   <div class="controls">
     <div class="section-title">Forma</div>
     <div class="mode-tabs">
-      <button class="tab active" onclick="setMode('cylinder')">Cilindro</button>
-      <button class="tab" onclick="setMode('cone')">Cono</button>
-      <button class="tab" onclick="setMode('sphere')">Esfera</button>
-      <button class="tab" onclick="setMode('rocket')">🚀 Cohete</button>
-      <button class="tab" onclick="setMode('pyramid')">Pirámide</button>
-      <button class="tab" onclick="setMode('dome')">Domo</button>
+      <button class="tab active" onclick="setMode('cylinder',this)">Cilindro</button>
+      <button class="tab" onclick="setMode('cone',this)">Cono</button>
+      <button class="tab" onclick="setMode('sphere',this)">Esfera</button>
+      <button class="tab" onclick="setMode('rocket',this)">🚀 Cohete</button>
+      <button class="tab" onclick="setMode('pyramid',this)">Pirámide</button>
+      <button class="tab" onclick="setMode('dome',this)">Domo</button>
     </div>
 
     <div id="paramFields"></div>
@@ -281,14 +244,13 @@
     </div>
   </div>
 
-  <!-- VISOR -->
+  <!-- ── VISOR ── -->
   <div class="viewer">
     <div class="view-tabs">
       <button class="vtab active" id="vtab2d" onclick="setView('2d')">📋 Por capas</button>
-      <button class="vtab"         id="vtab3d" onclick="setView('3d')">🧊 Vista 3D</button>
+      <button class="vtab"        id="vtab3d" onclick="setView('3d')">🧊 Vista 3D</button>
     </div>
 
-    <!-- ── 2D ── -->
     <div id="view2d" style="display:flex;flex-direction:column;align-items:center;width:100%">
       <div class="layer-nav">
         <button class="nav-btn" id="btnDown" onclick="changeLayer(-1)">▼</button>
@@ -307,18 +269,40 @@
       <p class="hint">Cada celda = 1 bloque.</p>
     </div>
 
-    <!-- ── 3D ── -->
     <div id="view3d" style="display:none;flex-direction:column;align-items:center;width:100%">
       <canvas id="canvas3d" width="500" height="500"></canvas>
-      <p class="hint3d">Arrastra para rotar &nbsp;·&nbsp; Rueda para zoom &nbsp;·&nbsp; Doble clic para centrar</p>
+      <p class="hint">Arrastra para rotar &nbsp;·&nbsp; Rueda para zoom &nbsp;·&nbsp; Doble clic para centrar</p>
     </div>
   </div>
 
-  <!-- VISTA LATERAL -->
-  <div class="full-view" id="sidePanel">
-    <div class="section-title">Vista lateral</div>
-    <canvas id="fullCanvas" width="160" height="400"></canvas>
-    <p class="hint">Corte transversal</p>
+  <!-- ── PANEL LATERAL ── -->
+  <div class="side-panel">
+    <div class="side-tabs">
+      <button class="stab active" id="stab-lateral" onclick="setSideTab('lateral')">📐 Lateral</button>
+      <button class="stab"        id="stab-chat"    onclick="setSideTab('chat')">🤖 IA</button>
+    </div>
+
+    <!-- vista lateral -->
+    <div id="sideLateral">
+      <canvas id="fullCanvas" width="228" height="400"></canvas>
+      <p class="hint">Corte transversal</p>
+    </div>
+
+    <!-- chat con IA -->
+    <div id="sideChat" style="display:none;flex-direction:column;flex:1;gap:8px">
+      <div class="chat-msgs" id="chatMsgs">
+        <div class="chat-welcome">
+          🤖 Dime qué quieres construir y ajusto los parámetros.<br><br>
+          <em>Ej: "un cohete alto y delgado"<br>"una esfera grande hueca"</em>
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <textarea id="chatInput" rows="2" placeholder="Describe la construcción..."
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMsg()}"
+          oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'"></textarea>
+        <button id="chatSendBtn" onclick="sendChatMsg()">➤</button>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -328,18 +312,14 @@
 //  ESTADO
 // ══════════════════════════════════════════════════════
 let mode         = 'cylinder';
-let layers       = [];    // layers[y][x][z] → 0|1|2|3
+let layers       = [];
 let currentLayer = 0;
 let gridSize     = 0;
 let viewMode     = '2d';
 
-// ── 3D ──
-let angleX   = 0.45;   // tilt vertical
-let angleY   = 0.55;   // rotación horizontal
-let zoom3D   = 18;
+let angleX = 0.45, angleY = 0.55, zoom3D = 18;
 let facesCache = [];
-let isDragging = false;
-let dragSX = 0, dragSY = 0, dragAX = 0, dragAY = 0;
+let isDragging = false, dragSX = 0, dragSY = 0, dragAX = 0, dragAY = 0;
 
 // ══════════════════════════════════════════════════════
 //  PARÁMETROS
@@ -376,12 +356,12 @@ const params = {};
 Object.values(MODES).flat().forEach(p => { if (!(p.id in params)) params[p.id] = p.val; });
 
 // ══════════════════════════════════════════════════════
-//  UI
+//  UI — MODO / VISTA
 // ══════════════════════════════════════════════════════
-function setMode(m) {
+function setMode(m, btn) {
   mode = m;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
+  if (btn) btn.classList.add('active');
   renderFields();
   rebuild();
 }
@@ -410,11 +390,15 @@ function setView(v) {
   document.getElementById('vtab3d').classList.toggle('active', v === '3d');
   document.getElementById('view2d').style.display = v === '2d' ? 'flex' : 'none';
   document.getElementById('view3d').style.display = v === '3d' ? 'flex' : 'none';
-  document.getElementById('sidePanel').classList.toggle('hidden', v === '3d');
-  if (v === '3d') {
-    fitCanvas3D();
-    render3D();
-  }
+  if (v === '3d') { fitCanvas3D(); render3D(); }
+}
+
+function setSideTab(tab) {
+  const isChat = tab === 'chat';
+  document.getElementById('sideLateral').style.display = isChat ? 'none' : '';
+  document.getElementById('sideChat').style.display    = isChat ? 'flex' : 'none';
+  document.getElementById('stab-lateral').classList.toggle('active', !isChat);
+  document.getElementById('stab-chat').classList.toggle('active',  isChat);
 }
 
 // ══════════════════════════════════════════════════════
@@ -422,253 +406,220 @@ function setView(v) {
 // ══════════════════════════════════════════════════════
 function dist2D(x, z) { return Math.sqrt(x*x + z*z); }
 
-function makeCircleLayer(r, thickness, filled) {
-  const size = r * 2 + 1;
-  const g = Array.from({length: size}, () => new Array(size).fill(0));
-  const c = r;
+function makeCircleLayer(r, t, filled) {
+  const size = r*2+1, c = r;
+  const g = Array.from({length:size}, () => new Array(size).fill(0));
   for (let x = 0; x < size; x++)
     for (let z = 0; z < size; z++) {
-      const d = dist2D(x - c, z - c);
-      if (filled) { if (d <= r + 0.5) g[x][z] = 1; }
-      else { if (d <= r + 0.5 && d > r - thickness + 0.5) g[x][z] = 1; }
+      const d = dist2D(x-c, z-c);
+      if (filled) { if (d <= r+0.5) g[x][z] = 1; }
+      else { if (d <= r+0.5 && d > r-t+0.5) g[x][z] = 1; }
     }
   return g;
 }
 
 function buildCylinder() {
-  const r = params.radius, h = params.height, t = params.thickness;
-  const hollow = document.getElementById('hollowCheck').checked;
-  const fillFloor = document.getElementById('fillFloorCheck').checked;
-  layers = [];
-  for (let y = 0; y < h; y++) {
-    const floor = fillFloor && (y === 0 || y === h - 1);
-    layers.push(makeCircleLayer(r, t, !hollow || floor));
+  const r=params.radius, h=params.height, t=params.thickness;
+  const hollow=document.getElementById('hollowCheck').checked;
+  const fillFloor=document.getElementById('fillFloorCheck').checked;
+  layers=[];
+  for (let y=0;y<h;y++) {
+    const floor=fillFloor&&(y===0||y===h-1);
+    layers.push(makeCircleLayer(r,t,!hollow||floor));
   }
-  gridSize = r * 2 + 1;
+  gridSize=r*2+1;
 }
 
 function buildCone() {
-  const R = params.radius, h = params.height;
-  layers = [];
-  for (let y = 0; y < h; y++) {
-    const r = Math.max(0, Math.round(R * (1 - y / h)));
-    if (r === 0) { layers.push([[1]]); continue; }
-    const size = R * 2 + 1;
-    const g = Array.from({length: size}, () => new Array(size).fill(0));
-    const c = R;
-    for (let x = 0; x < size; x++)
-      for (let z = 0; z < size; z++)
-        if (dist2D(x - c, z - c) <= r + 0.5) g[x][z] = 1;
+  const R=params.radius,h=params.height; layers=[];
+  for (let y=0;y<h;y++) {
+    const r=Math.max(0,Math.round(R*(1-y/h)));
+    if (r===0){layers.push([[1]]);continue;}
+    const size=R*2+1,c=R;
+    const g=Array.from({length:size},()=>new Array(size).fill(0));
+    for (let x=0;x<size;x++)
+      for (let z=0;z<size;z++)
+        if (dist2D(x-c,z-c)<=r+0.5) g[x][z]=1;
     layers.push(g);
   }
-  gridSize = R * 2 + 1;
+  gridSize=R*2+1;
 }
 
 function buildSphere() {
-  const R = params.radius;
-  const hollow = document.getElementById('hollowCheck').checked;
-  layers = [];
-  for (let y = -R; y <= R; y++) {
-    const rY = Math.sqrt(Math.max(0, R*R - y*y));
-    const size = R * 2 + 1, c = R;
-    const g = Array.from({length: size}, () => new Array(size).fill(0));
-    for (let x = 0; x < size; x++)
-      for (let z = 0; z < size; z++) {
-        const d = dist2D(x - c, z - c);
+  const R=params.radius;
+  const hollow=document.getElementById('hollowCheck').checked;
+  layers=[];
+  for (let y=-R;y<=R;y++) {
+    const rY=Math.sqrt(Math.max(0,R*R-y*y)),size=R*2+1,c=R;
+    const g=Array.from({length:size},()=>new Array(size).fill(0));
+    for (let x=0;x<size;x++)
+      for (let z=0;z<size;z++) {
+        const d=dist2D(x-c,z-c);
         if (hollow) {
-          const rP = y < R  ? Math.sqrt(Math.max(0, R*R - (y+1)*(y+1))) : 0;
-          const rN = y > -R ? Math.sqrt(Math.max(0, R*R - (y-1)*(y-1))) : 0;
-          if (d <= rY + 0.5 && d > Math.min(rP, rN) - 0.5) g[x][z] = 1;
-        } else {
-          if (d <= rY + 0.5) g[x][z] = 2;
-        }
+          const rP=y<R?Math.sqrt(Math.max(0,R*R-(y+1)*(y+1))):0;
+          const rN=y>-R?Math.sqrt(Math.max(0,R*R-(y-1)*(y-1))):0;
+          if (d<=rY+0.5&&d>Math.min(rP,rN)-0.5) g[x][z]=1;
+        } else { if (d<=rY+0.5) g[x][z]=2; }
       }
     layers.push(g);
   }
-  gridSize = R * 2 + 1;
+  gridSize=R*2+1;
 }
 
 function buildRocket() {
-  const R = params.radius, bH = params.bodyHeight, nH = params.noseHeight, fin = params.finSize;
-  const hollow = document.getElementById('hollowCheck').checked;
-  const size = (R + fin) * 2 + 1;
-  layers = [];
+  const R=params.radius,bH=params.bodyHeight,nH=params.noseHeight,fin=params.finSize;
+  const hollow=document.getElementById('hollowCheck').checked;
+  const size=(R+fin)*2+1; layers=[];
+  const finLayers=Math.min(Math.round(bH*0.35),bH);
 
-  const finLayers = Math.min(Math.round(bH * 0.35), bH);
-
-  function bodyLayer(y) {
-    const g = Array.from({length: size}, () => new Array(size).fill(0));
-    const c = R + fin;
-    for (let x = 0; x < size; x++)
-      for (let z = 0; z < size; z++) {
-        const d = dist2D(x - c, z - c);
-        if (hollow ? (d <= R + 0.5 && d > R - 0.5) : d <= R + 0.5) g[x][z] = 1;
+  function bodyLayer() {
+    const g=Array.from({length:size},()=>new Array(size).fill(0));
+    const c=R+fin;
+    for (let x=0;x<size;x++)
+      for (let z=0;z<size;z++) {
+        const d=dist2D(x-c,z-c);
+        if (hollow?(d<=R+0.5&&d>R-0.5):d<=R+0.5) g[x][z]=1;
       }
     return g;
   }
 
-  for (let y = 0; y < finLayers; y++) {
-    const g = bodyLayer(y);
-    const c = R + fin;
-    if (fin > 0) {
-      const curFin = Math.round(fin * (1 - y / finLayers));
-      for (let i = 1; i <= curFin; i++) {
-        const th = curFin - i + 1;
-        for (let k = -th; k <= th; k++) {
-          const pts = [[c+k, c-R-i],[c+k, c+R+i],[c+R+i, c+k],[c-R-i, c+k]];
-          pts.forEach(([px,pz]) => {
-            if (px >= 0 && px < size && pz >= 0 && pz < size) g[px][pz] = 3;
+  for (let y=0;y<finLayers;y++) {
+    const g=bodyLayer(); const c=R+fin;
+    if (fin>0) {
+      const curFin=Math.round(fin*(1-y/finLayers));
+      for (let i=1;i<=curFin;i++) {
+        const th=curFin-i+1;
+        for (let k=-th;k<=th;k++) {
+          [[c+k,c-R-i],[c+k,c+R+i],[c+R+i,c+k],[c-R-i,c+k]].forEach(([px,pz])=>{
+            if (px>=0&&px<size&&pz>=0&&pz<size) g[px][pz]=3;
           });
         }
       }
     }
     layers.push(g);
   }
-
-  for (let y = finLayers; y < bH; y++) layers.push(bodyLayer(y));
-
-  for (let y = 0; y < nH; y++) {
-    const r = Math.max(0, Math.round(R * (1 - y / nH)));
-    const g = Array.from({length: size}, () => new Array(size).fill(0));
-    const c = R + fin;
-    if (r === 0) { g[c][c] = 1; layers.push(g); break; }
-    for (let x = 0; x < size; x++)
-      for (let z = 0; z < size; z++)
-        if (dist2D(x - c, z - c) <= r + 0.5) g[x][z] = 1;
+  for (let y=finLayers;y<bH;y++) layers.push(bodyLayer());
+  for (let y=0;y<nH;y++) {
+    const r=Math.max(0,Math.round(R*(1-y/nH)));
+    const g=Array.from({length:size},()=>new Array(size).fill(0));
+    const c=R+fin;
+    if (r===0){g[c][c]=1;layers.push(g);break;}
+    for (let x=0;x<size;x++)
+      for (let z=0;z<size;z++)
+        if (dist2D(x-c,z-c)<=r+0.5) g[x][z]=1;
     layers.push(g);
   }
-
-  gridSize = size;
+  gridSize=size;
 }
 
 function buildPyramid() {
-  const B = params.base, H = params.height;
-  const hollow = document.getElementById('hollowCheck').checked;
-  layers = [];
-  for (let y = 0; y < H; y++) {
-    const side = Math.max(1, Math.round(B - (B / H) * y));
-    const g = Array.from({length: B}, () => new Array(B).fill(0));
-    const off = Math.floor((B - side) / 2);
-    for (let x = off; x < off + side; x++)
-      for (let z = off; z < off + side; z++) {
-        const edge = x === off || x === off+side-1 || z === off || z === off+side-1;
-        if (!hollow || edge) g[x][z] = 1;
+  const B=params.base,H=params.height;
+  const hollow=document.getElementById('hollowCheck').checked;
+  layers=[];
+  for (let y=0;y<H;y++) {
+    const side=Math.max(1,Math.round(B-(B/H)*y));
+    const g=Array.from({length:B},()=>new Array(B).fill(0));
+    const off=Math.floor((B-side)/2);
+    for (let x=off;x<off+side;x++)
+      for (let z=off;z<off+side;z++) {
+        const edge=x===off||x===off+side-1||z===off||z===off+side-1;
+        if (!hollow||edge) g[x][z]=1;
       }
     layers.push(g);
   }
-  gridSize = B;
+  gridSize=B;
 }
 
 function buildDome() {
-  const R = params.radius;
-  const hollow = document.getElementById('hollowCheck').checked;
-  layers = [];
-  for (let y = 0; y <= R; y++) {
-    const rY = Math.sqrt(Math.max(0, R*R - y*y));
-    const size = R * 2 + 1, c = R;
-    const g = Array.from({length: size}, () => new Array(size).fill(0));
-    for (let x = 0; x < size; x++)
-      for (let z = 0; z < size; z++) {
-        const d = dist2D(x - c, z - c);
+  const R=params.radius;
+  const hollow=document.getElementById('hollowCheck').checked;
+  layers=[];
+  for (let y=0;y<=R;y++) {
+    const rY=Math.sqrt(Math.max(0,R*R-y*y)),size=R*2+1,c=R;
+    const g=Array.from({length:size},()=>new Array(size).fill(0));
+    for (let x=0;x<size;x++)
+      for (let z=0;z<size;z++) {
+        const d=dist2D(x-c,z-c);
         if (hollow) {
-          const rP = y > 0 ? Math.sqrt(Math.max(0, R*R - (y-1)*(y-1))) : R;
-          if (d <= rY + 0.5 && d > rP - 0.5) g[x][z] = 1;
-        } else {
-          if (d <= rY + 0.5) g[x][z] = y === 0 ? 2 : 1;
-        }
+          const rP=y>0?Math.sqrt(Math.max(0,R*R-(y-1)*(y-1))):R;
+          if (d<=rY+0.5&&d>rP-0.5) g[x][z]=1;
+        } else { if (d<=rY+0.5) g[x][z]=y===0?2:1; }
       }
     layers.push(g);
   }
-  gridSize = R * 2 + 1;
+  gridSize=R*2+1;
 }
 
 // ══════════════════════════════════════════════════════
 //  REBUILD
 // ══════════════════════════════════════════════════════
 function rebuild() {
-  ({ cylinder:buildCylinder, cone:buildCone, sphere:buildSphere,
-     rocket:buildRocket, pyramid:buildPyramid, dome:buildDome })[mode]();
-
-  currentLayer = Math.max(0, Math.min(layers.length - 1, currentLayer));
-
-  updateLayerSlider();
-  drawLayer();
-  drawFull();
-  updateStats();
+  ({cylinder:buildCylinder,cone:buildCone,sphere:buildSphere,
+    rocket:buildRocket,pyramid:buildPyramid,dome:buildDome})[mode]();
+  currentLayer=Math.max(0,Math.min(layers.length-1,currentLayer));
+  updateLayerSlider(); drawLayer(); drawFull(); updateStats();
   buildFaceCache();
-  if (viewMode === '3d') render3D();
+  if (viewMode==='3d') render3D();
 }
 
 // ══════════════════════════════════════════════════════
 //  STATS
 // ══════════════════════════════════════════════════════
 function updateStats() {
-  const totals = layers.map(g => g.flat().filter(v => v > 0).length);
-  document.getElementById('s-layers').textContent = layers.length;
-  document.getElementById('s-bpl').textContent    = `max ${Math.max(...totals)}`;
-  document.getElementById('s-total').textContent  = totals.reduce((a,b) => a+b, 0);
-  document.getElementById('s-diam').textContent   = `${gridSize}×${gridSize}`;
+  const totals=layers.map(g=>g.flat().filter(v=>v>0).length);
+  document.getElementById('s-layers').textContent=layers.length;
+  document.getElementById('s-bpl').textContent=`max ${Math.max(...totals)}`;
+  document.getElementById('s-total').textContent=totals.reduce((a,b)=>a+b,0);
+  document.getElementById('s-diam').textContent=`${gridSize}×${gridSize}`;
 }
 
 // ══════════════════════════════════════════════════════
 //  2D CANVAS
 // ══════════════════════════════════════════════════════
-const FLAT_COLORS = ['#222a3a','#7bc67e','#3a6a8a','#c67b7b'];
+const FLAT_COLORS=['#222a3a','#7bc67e','#3a6a8a','#c67b7b'];
 
 function drawLayer() {
-  const canvas = document.getElementById('gridCanvas');
+  const canvas=document.getElementById('gridCanvas');
   if (!layers.length) return;
-  const g   = layers[currentLayer];
-  const sz  = g.length;
-  const max = Math.min(window.innerWidth - 380, 460);
-  const cell = Math.max(4, Math.floor(max / sz));
-  const cs   = cell * sz;
-  canvas.width = canvas.height = cs;
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, cs, cs);
-  for (let x = 0; x < sz; x++)
-    for (let z = 0; z < sz; z++) {
-      ctx.fillStyle = FLAT_COLORS[g[x][z]] || '#000';
-      ctx.fillRect(x*cell, z*cell, cell, cell);
-      if (cell >= 6) {
-        ctx.strokeStyle = '#2a3a5a';
-        ctx.lineWidth = 0.5;
-        ctx.strokeRect(x*cell, z*cell, cell, cell);
-      }
+  const g=layers[currentLayer],sz=g.length;
+  const max=Math.min(window.innerWidth-380,460);
+  const cell=Math.max(4,Math.floor(max/sz));
+  const cs=cell*sz;
+  canvas.width=canvas.height=cs;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,cs,cs);
+  for (let x=0;x<sz;x++)
+    for (let z=0;z<sz;z++) {
+      ctx.fillStyle=FLAT_COLORS[g[x][z]]||'#000';
+      ctx.fillRect(x*cell,z*cell,cell,cell);
+      if (cell>=6){ctx.strokeStyle='#2a3a5a';ctx.lineWidth=0.5;ctx.strokeRect(x*cell,z*cell,cell,cell);}
     }
-  if (cell >= 6) {
-    const c = Math.floor(sz / 2);
-    ctx.strokeStyle = 'rgba(255,255,100,0.35)';
-    ctx.lineWidth = 1; ctx.setLineDash([3,3]);
-    ctx.beginPath(); ctx.moveTo(c*cell,0); ctx.lineTo(c*cell,cs); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0,c*cell); ctx.lineTo(cs,c*cell); ctx.stroke();
+  if (cell>=6) {
+    const c=Math.floor(sz/2);
+    ctx.strokeStyle='rgba(255,255,100,0.35)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(c*cell,0);ctx.lineTo(c*cell,cs);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,c*cell);ctx.lineTo(cs,c*cell);ctx.stroke();
     ctx.setLineDash([]);
   }
 }
 
 function drawFull() {
-  const canvas = document.getElementById('fullCanvas');
+  const canvas=document.getElementById('fullCanvas');
   if (!layers.length) return;
-  const H = layers.length, W = gridSize;
-  const cH = Math.max(2, Math.floor(380/H));
-  const cW = Math.max(2, Math.floor(160/W));
-  canvas.width = cW*W; canvas.height = cH*H;
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const mid = Math.floor(W/2);
-  for (let y = 0; y < H; y++) {
-    const g = layers[y];
-    const dy = (H-1-y)*cH;
-    for (let x = 0; x < W; x++) {
-      const v = g[x] ? (g[x][mid] || 0) : 0;
-      ctx.fillStyle = FLAT_COLORS[v] || '#000';
-      ctx.fillRect(x*cW, dy, cW, cH);
+  const H=layers.length,W=gridSize;
+  const cH=Math.max(2,Math.floor(380/H)),cW=Math.max(2,Math.floor(228/W));
+  canvas.width=cW*W;canvas.height=cH*H;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const mid=Math.floor(W/2);
+  for (let y=0;y<H;y++) {
+    const g=layers[y],dy=(H-1-y)*cH;
+    for (let x=0;x<W;x++) {
+      const v=g[x]?(g[x][mid]||0):0;
+      ctx.fillStyle=FLAT_COLORS[v]||'#000';
+      ctx.fillRect(x*cW,dy,cW,cH);
     }
-    if (y === currentLayer) {
-      ctx.strokeStyle = 'rgba(255,220,50,0.9)';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(0, dy, canvas.width, cH);
-    }
+    if (y===currentLayer){ctx.strokeStyle='rgba(255,220,50,0.9)';ctx.lineWidth=1.5;ctx.strokeRect(0,dy,canvas.width,cH);}
   }
 }
 
@@ -676,281 +627,283 @@ function drawFull() {
 //  NAVEGACIÓN CAPAS
 // ══════════════════════════════════════════════════════
 function updateLayerSlider() {
-  const s = document.getElementById('layerSlider');
-  s.max   = layers.length - 1;
-  s.value = currentLayer;
-  document.getElementById('sliderMax').textContent  = `Y${layers.length-1}`;
-  document.getElementById('layerLabel').textContent = `Capa ${currentLayer+1}`;
-  document.getElementById('layerSub').textContent   = `Y = ${currentLayer}`;
-  document.getElementById('btnDown').disabled = currentLayer <= 0;
-  document.getElementById('btnUp').disabled   = currentLayer >= layers.length-1;
+  const s=document.getElementById('layerSlider');
+  s.max=layers.length-1; s.value=currentLayer;
+  document.getElementById('sliderMax').textContent=`Y${layers.length-1}`;
+  document.getElementById('layerLabel').textContent=`Capa ${currentLayer+1}`;
+  document.getElementById('layerSub').textContent=`Y = ${currentLayer}`;
+  document.getElementById('btnDown').disabled=currentLayer<=0;
+  document.getElementById('btnUp').disabled=currentLayer>=layers.length-1;
 }
-
-function changeLayer(d) {
-  currentLayer = Math.max(0, Math.min(layers.length-1, currentLayer+d));
-  updateLayerSlider(); drawLayer(); drawFull();
-}
-function setLayer(v) {
-  currentLayer = v;
-  updateLayerSlider(); drawLayer(); drawFull();
-}
+function changeLayer(d){currentLayer=Math.max(0,Math.min(layers.length-1,currentLayer+d));updateLayerSlider();drawLayer();drawFull();}
+function setLayer(v){currentLayer=v;updateLayerSlider();drawLayer();drawFull();}
 
 // ══════════════════════════════════════════════════════
-//  3D — COLORES POR CARA
+//  3D — COLORES
 // ══════════════════════════════════════════════════════
-const BASE_RGB = {
-  1: [80, 170, 80],    // verde — pared
-  2: [60, 110, 185],   // azul  — relleno
-  3: [185, 75, 70],    // rojo  — aletas
-};
-
-// brightness fijo por normal del mundo (no cambia al rotar)
-function faceBrightness(n) {
-  const [nx, ny, nz] = n;
-  if (ny >  0.5) return 1.00;   // top
-  if (ny < -0.5) return 0.40;   // bottom
-  if (nx >  0.5) return 0.78;   // +X
-  if (nx < -0.5) return 0.62;   // -X
-  if (nz >  0.5) return 0.85;   // +Z front
-  return 0.52;                   // -Z back
+const BASE_RGB={1:[80,170,80],2:[60,110,185],3:[185,75,70]};
+function faceBrightness(n){
+  const[nx,ny,nz]=n;
+  if(ny> 0.5)return 1.00; if(ny<-0.5)return 0.40;
+  if(nx> 0.5)return 0.78; if(nx<-0.5)return 0.62;
+  if(nz> 0.5)return 0.85; return 0.52;
 }
-
-function makeFaceColor(type, n) {
-  const [r,g,b] = BASE_RGB[type] || BASE_RGB[1];
-  const br = faceBrightness(n);
+function makeFaceColor(type,n){
+  const[r,g,b]=BASE_RGB[type]||BASE_RGB[1],br=faceBrightness(n);
   return `rgb(${Math.round(r*br)},${Math.round(g*br)},${Math.round(b*br)})`;
 }
 
 // ══════════════════════════════════════════════════════
-//  3D — CACHÉ DE CARAS EXPUESTAS
+//  3D — CACHÉ DE CARAS
 // ══════════════════════════════════════════════════════
 function buildFaceCache() {
-  facesCache = [];
-  if (!layers.length || !gridSize) return;
+  facesCache=[];
+  if (!layers.length||!gridSize) return;
+  const GS=gridSize,H=layers.length;
+  const ocx=(GS-1)/2,ocy=(H-1)/2,ocz=(GS-1)/2;
 
-  const GS = gridSize, H = layers.length;
-  const ocx = (GS-1)/2, ocy = (H-1)/2, ocz = (GS-1)/2;
-
-  // Acceso seguro con centrado para capas de distinto tamaño (ej. ápex del cono)
-  function getV(ix, iy, iz) {
-    if (ix < 0 || ix >= GS || iy < 0 || iy >= H || iz < 0 || iz >= GS) return 0;
-    const layer = layers[iy];
-    if (!layer) return 0;
-    const ls = layer.length;
-    const offx = Math.floor((GS - ls) / 2);
-    const lx = ix - offx;
-    if (lx < 0 || lx >= ls || !layer[lx]) return 0;
-    const lzs = layer[lx].length;
-    const offz = Math.floor((GS - lzs) / 2);
-    const lz = iz - offz;
-    if (lz < 0 || lz >= lzs) return 0;
-    return layer[lx][lz] || 0;
+  function getV(ix,iy,iz){
+    if(ix<0||ix>=GS||iy<0||iy>=H||iz<0||iz>=GS) return 0;
+    const layer=layers[iy]; if(!layer) return 0;
+    const ls=layer.length,offx=Math.floor((GS-ls)/2),lx=ix-offx;
+    if(lx<0||lx>=ls||!layer[lx]) return 0;
+    const lzs=layer[lx].length,offz=Math.floor((GS-lzs)/2),lz=iz-offz;
+    if(lz<0||lz>=lzs) return 0;
+    return layer[lx][lz]||0;
   }
 
-  // Definición de las 6 caras: [dirección vecino], normal, vértices relativos al bloque (x0,y0,z0)
-  const FACE_DEFS = [
-    { d:[1,0,0],  n:[1,0,0],  vs:(x0,y0,z0)=>[[x0+1,y0,z0],[x0+1,y0,z0+1],[x0+1,y0+1,z0+1],[x0+1,y0+1,z0]] },
-    { d:[-1,0,0], n:[-1,0,0], vs:(x0,y0,z0)=>[[x0,y0,z0+1],[x0,y0,z0],[x0,y0+1,z0],[x0,y0+1,z0+1]] },
-    { d:[0,1,0],  n:[0,1,0],  vs:(x0,y0,z0)=>[[x0,y0+1,z0],[x0+1,y0+1,z0],[x0+1,y0+1,z0+1],[x0,y0+1,z0+1]] },
-    { d:[0,-1,0], n:[0,-1,0], vs:(x0,y0,z0)=>[[x0,y0,z0+1],[x0+1,y0,z0+1],[x0+1,y0,z0],[x0,y0,z0]] },
-    { d:[0,0,1],  n:[0,0,1],  vs:(x0,y0,z0)=>[[x0,y0,z0+1],[x0+1,y0,z0+1],[x0+1,y0+1,z0+1],[x0,y0+1,z0+1]] },
-    { d:[0,0,-1], n:[0,0,-1], vs:(x0,y0,z0)=>[[x0+1,y0,z0],[x0,y0,z0],[x0,y0+1,z0],[x0+1,y0+1,z0]] },
+  const FD=[
+    {d:[1,0,0], n:[1,0,0],  vs:(x,y,z)=>[[x+1,y,z],[x+1,y,z+1],[x+1,y+1,z+1],[x+1,y+1,z]]},
+    {d:[-1,0,0],n:[-1,0,0], vs:(x,y,z)=>[[x,y,z+1],[x,y,z],[x,y+1,z],[x,y+1,z+1]]},
+    {d:[0,1,0], n:[0,1,0],  vs:(x,y,z)=>[[x,y+1,z],[x+1,y+1,z],[x+1,y+1,z+1],[x,y+1,z+1]]},
+    {d:[0,-1,0],n:[0,-1,0], vs:(x,y,z)=>[[x,y,z+1],[x+1,y,z+1],[x+1,y,z],[x,y,z]]},
+    {d:[0,0,1], n:[0,0,1],  vs:(x,y,z)=>[[x,y,z+1],[x+1,y,z+1],[x+1,y+1,z+1],[x,y+1,z+1]]},
+    {d:[0,0,-1],n:[0,0,-1], vs:(x,y,z)=>[[x+1,y,z],[x,y,z],[x,y+1,z],[x+1,y+1,z]]},
   ];
 
-  for (let iy = 0; iy < H; iy++) {
-    for (let ix = 0; ix < GS; ix++) {
-      for (let iz = 0; iz < GS; iz++) {
-        const type = getV(ix, iy, iz);
-        if (!type) continue;
-
-        // coordenadas mundo centradas
-        const wx = ix - ocx, wy = iy - ocy, wz = iz - ocz;
-
-        for (const fd of FACE_DEFS) {
-          if (getV(ix+fd.d[0], iy+fd.d[1], iz+fd.d[2])) continue; // cara tapada
-
-          const verts = fd.vs(wx, wy, wz);
-          // centro de la cara (para ordenar por profundidad)
-          const cx = verts.reduce((s,v)=>s+v[0],0)/4;
-          const cy = verts.reduce((s,v)=>s+v[1],0)/4;
-          const cz = verts.reduce((s,v)=>s+v[2],0)/4;
-
+  for (let iy=0;iy<H;iy++)
+    for (let ix=0;ix<GS;ix++)
+      for (let iz=0;iz<GS;iz++) {
+        const type=getV(ix,iy,iz); if(!type) continue;
+        const wx=ix-ocx,wy=iy-ocy,wz=iz-ocz;
+        for (const fd of FD) {
+          if(getV(ix+fd.d[0],iy+fd.d[1],iz+fd.d[2])) continue;
+          const v=fd.vs(wx,wy,wz);
           facesCache.push({
-            type, n: fd.n, verts,
-            cx, cy, cz,
-            color: makeFaceColor(type, fd.n),
+            type, n:fd.n, verts:v, color:makeFaceColor(type,fd.n),
+            cx:v.reduce((s,p)=>s+p[0],0)/4,
+            cy:v.reduce((s,p)=>s+p[1],0)/4,
+            cz:v.reduce((s,p)=>s+p[2],0)/4,
           });
         }
       }
+  zoom3D=Math.max(5,Math.min(26,Math.floor(240/Math.max(GS,H))));
+}
+
+// ══════════════════════════════════════════════════════
+//  3D — ROTACIÓN Y RENDER
+// ══════════════════════════════════════════════════════
+function rotPt(x,y,z){
+  const cay=Math.cos(angleY),say=Math.sin(angleY);
+  const rx=x*cay+z*say,rz0=-x*say+z*cay;
+  const cax=Math.cos(angleX),sax=Math.sin(angleX);
+  return[rx,y*cax-rz0*sax,y*sax+rz0*cax];
+}
+
+function render3D(){
+  const canvas=document.getElementById('canvas3d');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,scx=W/2,scy=H/2;
+  ctx.fillStyle='#111828'; ctx.fillRect(0,0,W,H);
+  drawFloor(ctx,scx,scy);
+  if(!facesCache.length) return;
+  const vis=[];
+  for(const f of facesCache){
+    const rn=rotPt(...f.n); if(rn[2]<=0) continue;
+    const rc=rotPt(f.cx,f.cy,f.cz);
+    vis.push({f,d:rc[2]});
+  }
+  vis.sort((a,b)=>a.d-b.d);
+  for(const{f}of vis){
+    ctx.beginPath();
+    for(let i=0;i<4;i++){
+      const[rx,ry]=rotPt(...f.verts[i]);
+      i===0?ctx.moveTo(rx*zoom3D+scx,-ry*zoom3D+scy):ctx.lineTo(rx*zoom3D+scx,-ry*zoom3D+scy);
     }
+    ctx.closePath(); ctx.fillStyle=f.color; ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.28)'; ctx.lineWidth=0.5; ctx.stroke();
   }
+}
 
-  // Zoom inicial que encaja la construcción
-  const maxDim = Math.max(GS, H);
-  zoom3D = Math.max(5, Math.min(26, Math.floor(240 / maxDim)));
+function drawFloor(ctx,scx,scy){
+  if(!layers.length) return;
+  const hy=-layers.length/2-0.1,hg=gridSize/2+1;
+  const step=Math.max(1,Math.round(gridSize/8));
+  ctx.strokeStyle='rgba(80,110,160,0.18)'; ctx.lineWidth=0.8;
+  for(let i=-Math.ceil(hg);i<=Math.ceil(hg);i+=step){
+    const[ax,ay]=rotPt(i,hy,-hg),[bx,by]=rotPt(i,hy,hg);
+    ctx.beginPath();ctx.moveTo(ax*zoom3D+scx,-ay*zoom3D+scy);ctx.lineTo(bx*zoom3D+scx,-by*zoom3D+scy);ctx.stroke();
+    const[cx,cy2]=rotPt(-hg,hy,i),[dx,dy]=rotPt(hg,hy,i);
+    ctx.beginPath();ctx.moveTo(cx*zoom3D+scx,-cy2*zoom3D+scy);ctx.lineTo(dx*zoom3D+scx,-dy*zoom3D+scy);ctx.stroke();
+  }
 }
 
 // ══════════════════════════════════════════════════════
-//  3D — ROTACIÓN Y PROYECCIÓN
+//  3D — CONTROLES
 // ══════════════════════════════════════════════════════
-function rotPt(x, y, z) {
-  // Y rotation
-  const cay = Math.cos(angleY), say = Math.sin(angleY);
-  const rx  =  x * cay + z * say;
-  const rz0 = -x * say + z * cay;
-  // X rotation
-  const cax = Math.cos(angleX), sax = Math.sin(angleX);
-  const ry  = y * cax - rz0 * sax;
-  const rz  = y * sax + rz0 * cax;
-  return [rx, ry, rz];
+function fitCanvas3D(){
+  const canvas=document.getElementById('canvas3d');
+  const viewer=canvas.closest('.viewer');
+  const size=Math.min(viewer.clientWidth-40,520);
+  canvas.width=canvas.height=Math.max(300,size);
 }
 
-// ══════════════════════════════════════════════════════
-//  3D — RENDER
-// ══════════════════════════════════════════════════════
-function render3D() {
-  const canvas = document.getElementById('canvas3d');
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const scx = W / 2, scy = H / 2;
+function init3DControls(){
+  const canvas=document.getElementById('canvas3d');
+  canvas.addEventListener('dblclick',()=>{angleX=0.45;angleY=0.55;render3D();});
+  canvas.addEventListener('mousedown',e=>{isDragging=true;dragSX=e.clientX;dragSY=e.clientY;dragAX=angleX;dragAY=angleY;e.preventDefault();});
+  window.addEventListener('mousemove',e=>{
+    if(!isDragging) return;
+    angleY=dragAY+(e.clientX-dragSX)/220*Math.PI;
+    angleX=Math.max(-1.4,Math.min(1.4,dragAX+(e.clientY-dragSY)/220*Math.PI));
+    render3D();
+  });
+  window.addEventListener('mouseup',()=>{isDragging=false;});
+  canvas.addEventListener('wheel',e=>{zoom3D=Math.max(3,Math.min(55,zoom3D*(1-e.deltaY*0.0012)));render3D();e.preventDefault();},{passive:false});
 
-  ctx.clearRect(0, 0, W, H);
-
-  // fondo sutil
-  ctx.fillStyle = '#111828';
-  ctx.fillRect(0, 0, W, H);
-
-  // plano de suelo como referencia
-  drawFloor(ctx, W, H, scx, scy);
-
-  if (!facesCache.length) return;
-
-  // filtrar caras visibles y calcular profundidad
-  const visible = [];
-  for (const face of facesCache) {
-    const rn = rotPt(...face.n);
-    if (rn[2] <= 0) continue;              // back face
-    const rc = rotPt(face.cx, face.cy, face.cz);
-    visible.push({ face, depth: rc[2] });
-  }
-
-  // ordenar de atrás hacia adelante (painter's algorithm)
-  visible.sort((a, b) => a.depth - b.depth);
-
-  for (const { face } of visible) {
-    ctx.beginPath();
-    for (let i = 0; i < 4; i++) {
-      const [rx, ry, rz] = rotPt(...face.verts[i]);
-      const sx = rx * zoom3D + scx;
-      const sy = -ry * zoom3D + scy;
-      i === 0 ? ctx.moveTo(sx, sy) : ctx.lineTo(sx, sy);
+  let t1x=0,t1y=0,tAX=0,tAY=0,tDist=0;
+  canvas.addEventListener('touchstart',e=>{
+    if(e.touches.length===1){t1x=e.touches[0].clientX;t1y=e.touches[0].clientY;tAX=angleX;tAY=angleY;}
+    else tDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    e.preventDefault();
+  },{passive:false});
+  canvas.addEventListener('touchmove',e=>{
+    if(e.touches.length===1){
+      angleY=tAY+(e.touches[0].clientX-t1x)/180*Math.PI;
+      angleX=Math.max(-1.4,Math.min(1.4,tAX+(e.touches[0].clientY-t1y)/180*Math.PI));
+      render3D();
+    } else if(e.touches.length===2){
+      const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      zoom3D=Math.max(3,Math.min(55,zoom3D*d/tDist));tDist=d;render3D();
     }
-    ctx.closePath();
-    ctx.fillStyle = face.color;
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-    ctx.lineWidth = 0.5;
-    ctx.stroke();
-  }
-}
-
-function drawFloor(ctx, W, H, scx, scy) {
-  if (!layers.length) return;
-  const hy  = -(layers.length) / 2 - 0.1;
-  const hg  = gridSize / 2 + 1;
-  const step = Math.max(1, Math.round(gridSize / 8));
-
-  ctx.strokeStyle = 'rgba(80,110,160,0.18)';
-  ctx.lineWidth = 0.8;
-
-  for (let i = -Math.ceil(hg); i <= Math.ceil(hg); i += step) {
-    // líneas en X
-    const [ax,ay] = rotPt(i,  hy, -hg);
-    const [bx,by] = rotPt(i,  hy,  hg);
-    ctx.beginPath();
-    ctx.moveTo(ax*zoom3D+scx, -ay*zoom3D+scy);
-    ctx.lineTo(bx*zoom3D+scx, -by*zoom3D+scy);
-    ctx.stroke();
-    // líneas en Z
-    const [cx2,cy2] = rotPt(-hg, hy, i);
-    const [dx,dy]   = rotPt( hg, hy, i);
-    ctx.beginPath();
-    ctx.moveTo(cx2*zoom3D+scx, -cy2*zoom3D+scy);
-    ctx.lineTo(dx*zoom3D+scx,  -dy*zoom3D+scy);
-    ctx.stroke();
-  }
+    e.preventDefault();
+  },{passive:false});
 }
 
 // ══════════════════════════════════════════════════════
-//  3D — CONTROLES RATÓN / TOUCH
+//  CHAT CON IA
 // ══════════════════════════════════════════════════════
-function fitCanvas3D() {
-  const canvas = document.getElementById('canvas3d');
-  const viewer = canvas.closest('.viewer');
-  const size = Math.min(viewer.clientWidth - 40, 520);
-  canvas.width = canvas.height = Math.max(300, size);
+let chatHistory=[], chatLoading=false;
+
+const BUILDER_SYSTEM=`Eres un asistente de construcción de Minecraft integrado en un generador de formas 3D. Ayudas al usuario a diseñar construcciones ajustando los parámetros de las formas.
+
+Formas disponibles y sus parámetros (con rangos):
+- cylinder: radius(2-30), height(1-60), thickness(1-5)
+- cone: radius(2-30), height(2-40)
+- sphere: radius(2-25)
+- rocket: radius(2-20), bodyHeight(3-60), noseHeight(2-20), finSize(0-8)
+- pyramid: base(3-40), height(1-40)
+- dome: radius(2-25)
+
+Cuando el usuario pida construir algo, incluye AL FINAL de tu respuesta un bloque de configuración exactamente así (sin espacios extra dentro):
+<config>{"mode":"rocket","params":{"radius":7,"bodyHeight":20,"noseHeight":8,"finSize":3}}</config>
+
+Solo incluye los params relevantes para la forma. Responde en español de forma concisa (2-3 oraciones máximo antes del bloque).`;
+
+function appendChatMsg(role, text, cfg) {
+  const msgs=document.getElementById('chatMsgs');
+  // quitar welcome si existe
+  const w=msgs.querySelector('.chat-welcome'); if(w) w.remove();
+
+  const div=document.createElement('div');
+  div.className=`cmsg ${role}`;
+  const safe=text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  div.innerHTML=`<span class="cbubble">${safe}</span>`;
+
+  if(cfg){
+    const label=modeLabel(cfg.mode)+(cfg.params?' · '+Object.entries(cfg.params).map(([k,v])=>`${k}=${v}`).join(', '):'');
+    const btn=document.createElement('button');
+    btn.className='config-chip';
+    btn.textContent=`⚙️ Aplicar: ${label}`;
+    btn.onclick=()=>{ applyConfig(cfg); btn.textContent='✓ Aplicado'; btn.style.borderColor='#4caf50'; btn.style.color='#7bc67e'; };
+    div.appendChild(btn);
+  }
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
 }
 
-function init3DControls() {
-  const canvas = document.getElementById('canvas3d');
+function modeLabel(m){
+  return{cylinder:'Cilindro',cone:'Cono',sphere:'Esfera',rocket:'Cohete',pyramid:'Pirámide',dome:'Domo'}[m]||m;
+}
 
-  // doble clic → reset ángulos
-  canvas.addEventListener('dblclick', () => {
-    angleX = 0.45; angleY = 0.55;
-    render3D();
-  });
+function parseConfig(text){
+  const m=text.match(/<config>([\s\S]*?)<\/config>/);
+  if(!m) return null;
+  try{return JSON.parse(m[1]);}catch{return null;}
+}
 
-  // mouse
-  canvas.addEventListener('mousedown', e => {
-    isDragging = true;
-    dragSX = e.clientX; dragSY = e.clientY;
-    dragAX = angleX;    dragAY = angleY;
-    e.preventDefault();
-  });
-  window.addEventListener('mousemove', e => {
-    if (!isDragging) return;
-    angleY = dragAY + (e.clientX - dragSX) / 220 * Math.PI;
-    angleX = Math.max(-1.4, Math.min(1.4, dragAX + (e.clientY - dragSY) / 220 * Math.PI));
-    render3D();
-  });
-  window.addEventListener('mouseup', () => { isDragging = false; });
+function stripConfig(text){
+  return text.replace(/<config>[\s\S]*?<\/config>/g,'').trim();
+}
 
-  canvas.addEventListener('wheel', e => {
-    zoom3D = Math.max(3, Math.min(55, zoom3D * (1 - e.deltaY * 0.0012)));
-    render3D();
-    e.preventDefault();
-  }, { passive: false });
+async function sendChatMsg(){
+  if(chatLoading) return;
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim();
+  if(!text) return;
 
-  // touch — un dedo rota, dos dedos hacen zoom
-  let t1x = 0, t1y = 0, tAX = 0, tAY = 0, tDist = 0;
+  input.value=''; input.style.height='auto';
+  chatLoading=true;
+  document.getElementById('chatSendBtn').disabled=true;
 
-  canvas.addEventListener('touchstart', e => {
-    if (e.touches.length === 1) {
-      t1x = e.touches[0].clientX; t1y = e.touches[0].clientY;
-      tAX = angleX; tAY = angleY;
+  chatHistory.push({role:'user',content:text});
+  appendChatMsg('user',text);
+
+  // typing
+  const msgs=document.getElementById('chatMsgs');
+  const typing=document.createElement('div');
+  typing.className='cmsg ai'; typing.id='chatTyping';
+  typing.innerHTML='<span class="cbubble" style="color:#556;letter-spacing:2px">•••</span>';
+  msgs.appendChild(typing); msgs.scrollTop=msgs.scrollHeight;
+
+  try{
+    const res=await fetch('/api/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:chatHistory,system:BUILDER_SYSTEM}),
+    });
+    typing.remove();
+    if(res.ok){
+      const{reply}=await res.json();
+      const cfg=parseConfig(reply);
+      const clean=stripConfig(reply);
+      chatHistory.push({role:'assistant',content:reply});
+      appendChatMsg('ai',clean,cfg);
     } else {
-      tDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY);
+      appendChatMsg('ai','⚠️ Error al conectar. ¿Está configurada la API key en Vercel?');
     }
-    e.preventDefault();
-  }, { passive: false });
+  }catch{
+    typing.remove();
+    appendChatMsg('ai','⚠️ No se pudo conectar con la IA.');
+  }
 
-  canvas.addEventListener('touchmove', e => {
-    if (e.touches.length === 1) {
-      angleY = tAY + (e.touches[0].clientX - t1x) / 180 * Math.PI;
-      angleX = Math.max(-1.4, Math.min(1.4, tAX + (e.touches[0].clientY - t1y) / 180 * Math.PI));
-      render3D();
-    } else if (e.touches.length === 2) {
-      const d = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY);
-      zoom3D = Math.max(3, Math.min(55, zoom3D * d / tDist));
-      tDist = d;
-      render3D();
-    }
-    e.preventDefault();
-  }, { passive: false });
+  chatLoading=false;
+  document.getElementById('chatSendBtn').disabled=false;
+}
+
+function applyConfig(cfg){
+  if(cfg.mode){
+    mode=cfg.mode;
+    document.querySelectorAll('.tab').forEach(t=>{
+      const on=t.getAttribute('onclick')||'';
+      t.classList.toggle('active',on.includes(`'${cfg.mode}'`));
+    });
+  }
+  if(cfg.params) Object.assign(params,cfg.params);
+  renderFields();
+  rebuild();
+  // si está en 3D, genial; si no, mostrar vista 3D automáticamente
+  if(viewMode!=='3d'){setView('3d');}
 }
 
 // ══════════════════════════════════════════════════════

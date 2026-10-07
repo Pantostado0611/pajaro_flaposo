@@ -1,9 +1,11 @@
+const DEFAULT_SYSTEM = 'Eres "Mini Claude", un asistente integrado en un hub de minijuegos. Puedes ayudar con Minecraft, desarrollo de videojuegos, programación y cualquier otra pregunta. Responde en español cuando el usuario escriba en español.';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { messages } = req.body;
+  const { messages, system } = req.body;
 
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'messages array required' });
@@ -19,10 +21,7 @@ export default async function handler(req, res) {
       model: 'llama-3.3-70b-versatile',
       max_tokens: 1024,
       messages: [
-        {
-          role: 'system',
-          content: 'Eres "Mini Claude", un asistente integrado en un hub de minijuegos. Puedes ayudar con Minecraft (construcciones, geometría, redstone, farms), desarrollo de videojuegos, programación, y cualquier otra pregunta. Sé conciso y útil. Responde en español cuando el usuario escriba en español.',
-        },
+        { role: 'system', content: system || DEFAULT_SYSTEM },
         ...messages,
       ],
     }),
