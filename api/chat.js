@@ -13,41 +13,44 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'messages array required' });
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'GROQ_API_KEY no configurada en Vercel' });
+    return res.status(500).json({ error: 'GEMINI_API_KEY no configurada en Vercel' });
   }
 
+  // Convertir formato OpenAI → Gemini (user/assistant → user/model)
+  const contents = messages.map(m => ({
+    role: m.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: m.content }],
+  }));
+
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-oss-20b',
-        max_tokens: 1024,
-        messages: [
-          { role: 'system', content: system || DEFAULT_SYSTEM },
-          ...messages,
-        ],
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: system || DEFAULT_SYSTEM }] },
+          contents,
+          generationConfig: { maxOutputTokens: 1024 },
+        }),
+      }
+    );
 
     const text = await response.text();
 
     if (!response.ok) {
-      console.error('Groq error:', response.status, text);
-      return res.status(response.status).json({ error: `Groq ${response.status}: ${text}` });
+      console.error('Gemini error:', response.status, text);
+      return res.status(response.status).json({ error: `Gemini ${response.status}: ${text}` });
     }
 
     const data = JSON.parse(text);
-    const reply = data.choices?.[0]?.message?.content ?? '';
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
     res.json({ reply });
 
   } catch (err) {
     console.error('Handler error:', err);
-    res.status(500).json({ error: err.message || 'Error interno del servidor' });
+    res.status(500).json({ error: err.message || 'Error interno' });
   }
 };
