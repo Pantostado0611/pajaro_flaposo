@@ -880,7 +880,8 @@ async function sendChatMsg(){
       chatHistory.push({role:'assistant',content:reply});
       appendChatMsg('ai',clean,cfg);
     } else {
-      appendChatMsg('ai','⚠️ Error al conectar. ¿Está configurada la API key en Vercel?');
+      const err = await res.json().catch(() => ({}));
+      appendChatMsg('ai', `⚠️ Error ${res.status}: ${err.error || 'respuesta inesperada del servidor'}`);
     }
   }catch{
     typing.remove();
