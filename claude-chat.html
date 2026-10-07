@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Claude</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0d0d1a;
+    color: #e0e0e0;
+    font-family: 'Segoe UI', sans-serif;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: #12121f;
+    border-bottom: 1px solid #1e2a44;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+
+  .back-btn {
+    background: #1a2a44;
+    border: 1px solid #2a3a60;
+    color: #7bc8ff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+  .back-btn:hover { background: #223460; }
+
+  .header-info { flex: 1; }
+
+  .header-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #a8d8ff;
+    letter-spacing: 0.5px;
+  }
+
+  .header-sub {
+    font-size: 0.75rem;
+    color: #556;
+    margin-top: 1px;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #4caf50;
+    box-shadow: 0 0 6px #4caf50;
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .clear-btn {
+    background: none;
+    border: 1px solid #2a3a60;
+    color: #556;
+    padding: 5px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    transition: all 0.15s;
+  }
+  .clear-btn:hover { border-color: #c05050; color: #e07070; }
+
+  /* ── MENSAJES ── */
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    scroll-behavior: smooth;
+  }
+
+  #messages::-webkit-scrollbar { width: 5px; }
+  #messages::-webkit-scrollbar-track { background: transparent; }
+  #messages::-webkit-scrollbar-thumb { background: #2a3a60; border-radius: 3px; }
+
+  .msg {
+    display: flex;
+    gap: 10px;
+    max-width: 80%;
+    animation: fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+  .msg.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+  }
+
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .msg.user .avatar    { background: #1a4a30; }
+  .msg.claude .avatar  { background: #1a2a4a; }
+
+  .bubble {
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    word-break: break-word;
+  }
+
+  .msg.user   .bubble {
+    background: #1e4030;
+    border: 1px solid #2a5a40;
+    color: #c8f0d8;
+    border-top-right-radius: 4px;
+  }
+  .msg.claude .bubble {
+    background: #141e38;
+    border: 1px solid #1e2e58;
+    color: #d0e4ff;
+    border-top-left-radius: 4px;
+  }
+
+  /* markdown básico */
+  .bubble code {
+    background: #0d1525;
+    border: 1px solid #1e2a44;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.85em;
+    color: #88ccff;
+  }
+  .bubble pre {
+    background: #0d1525;
+    border: 1px solid #1e2a44;
+    padding: 10px 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 6px 0;
+  }
+  .bubble pre code { background: none; border: none; padding: 0; font-size: 0.83rem; }
+  .bubble strong { color: #a8d8ff; }
+  .bubble em     { color: #88c8aa; }
+
+  /* typing indicator */
+  .typing-bubble {
+    background: #141e38;
+    border: 1px solid #1e2e58;
+    padding: 12px 16px;
+    border-radius: 14px;
+    border-top-left-radius: 4px;
+    display: flex; gap: 5px; align-items: center;
+  }
+  .typing-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #4a7bc6;
+    animation: blink 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink {
+    0%,80%,100% { opacity: 0.2; transform: scale(0.85); }
+    40%          { opacity: 1;   transform: scale(1.1); }
+  }
+
+  /* mensaje de bienvenida */
+  .welcome {
+    align-self: center;
+    text-align: center;
+    color: #445;
+    font-size: 0.85rem;
+    padding: 30px 20px;
+    max-width: 400px;
+  }
+  .welcome .icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .welcome p { margin-top: 6px; line-height: 1.6; }
+
+  /* ── INPUT ── */
+  .input-area {
+    background: #12121f;
+    border-top: 1px solid #1e2a44;
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+
+  #userInput {
+    flex: 1;
+    background: #1a1a2e;
+    border: 1px solid #2a3a60;
+    color: #e0e0e0;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    resize: none;
+    max-height: 130px;
+    min-height: 42px;
+    line-height: 1.5;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+  #userInput:focus { border-color: #3a5a90; }
+  #userInput::placeholder { color: #445; }
+
+  #sendBtn {
+    background: #1e4a80;
+    border: 1px solid #2a6ab0;
+    color: #7bc8ff;
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  #sendBtn:hover:not(:disabled) { background: #2a5a9a; }
+  #sendBtn:disabled { opacity: 0.35; cursor: default; }
+
+  .input-hint {
+    font-size: 0.7rem;
+    color: #334;
+    text-align: center;
+    padding: 4px 0 0;
+    flex-basis: 100%;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="back-btn" href="index.html">← Inicio</a>
+  <div class="header-info">
+    <div class="header-title">✦ Mini Claude</div>
+    <div class="header-sub">Llama 3.3 70B · Groq (gratis)</div>
+  </div>
+  <div class="status-dot" id="statusDot"></div>
+  <button class="clear-btn" onclick="clearChat()">Limpiar</button>
+</header>
+
+<div id="messages">
+  <div class="welcome" id="welcomeMsg">
+    <div class="icon">🤖</div>
+    <p><strong style="color:#7bc8ff">Hola, soy Mini Claude.</strong></p>
+    <p>Puedo ayudarte con Minecraft, construcciones, programación, o lo que necesites. ¿En qué puedo ayudarte?</p>
+  </div>
+</div>
+
+<div class="input-area" style="flex-wrap:wrap">
+  <textarea id="userInput" placeholder="Escribe tu mensaje..." rows="1"
+    oninput="autoResize(this)"
+    onkeydown="handleKey(event)"></textarea>
+  <button id="sendBtn" onclick="sendMessage()" title="Enviar">➤</button>
+</div>
+
+<script>
+let history = [];
+let loading = false;
+
+// ── auto resize textarea ──
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 130) + 'px';
+}
+
+// ── Enter para enviar (Shift+Enter = nueva línea) ──
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+// ── renderizado básico de markdown ──
+function renderMarkdown(text) {
+  return text
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+}
+
+function appendMessage(role, text) {
+  const welcome = document.getElementById('welcomeMsg');
+  if (welcome) welcome.remove();
+
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  const emoji = role === 'user' ? '🧑' : '🤖';
+  div.innerHTML = `
+    <div class="avatar">${emoji}</div>
+    <div class="bubble">${role === 'claude' ? renderMarkdown(text) : escapeHtml(text)}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function showTyping() {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg claude';
+  div.id = 'typingIndicator';
+  div.innerHTML = `
+    <div class="avatar">🤖</div>
+    <div class="typing-bubble">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping() {
+  document.getElementById('typingIndicator')?.remove();
+}
+
+async function sendMessage() {
+  if (loading) return;
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  loading = true;
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('statusDot').style.background = '#f0a020';
+  document.getElementById('statusDot').style.boxShadow = '0 0 6px #f0a020';
+
+  history.push({ role: 'user', content: text });
+  appendMessage('user', text);
+  showTyping();
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: history }),
+    });
+
+    removeTyping();
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      appendMessage('claude', `⚠️ Error: ${err.error || 'No se pudo conectar con la API.'}`);
+    } else {
+      const { reply } = await res.json();
+      history.push({ role: 'assistant', content: reply });
+      appendMessage('claude', reply);
+    }
+  } catch (e) {
+    removeTyping();
+    appendMessage('claude', '⚠️ No se pudo conectar. Verifica que el servidor esté activo.');
+  }
+
+  loading = false;
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('statusDot').style.background = '#4caf50';
+  document.getElementById('statusDot').style.boxShadow = '0 0 6px #4caf50';
+  input.focus();
+}
+
+function clearChat() {
+  history = [];
+  const msgs = document.getElementById('messages');
+  msgs.innerHTML = `
+    <div class="welcome" id="welcomeMsg">
+      <div class="icon">🤖</div>
+      <p><strong style="color:#7bc8ff">Chat reiniciado.</strong></p>
+      <p>¿En qué puedo ayudarte?</p>
+    </div>`;
+}
+
+document.getElementById('userInput').focus();
+</script>
+</body>
+</html>
