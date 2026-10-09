@@ -809,9 +809,79 @@ let customShapes=JSON.parse(localStorage.getItem('mc_custom_shapes')||'[]');
 
 function saveCustomShapes(){localStorage.setItem('mc_custom_shapes',JSON.stringify(customShapes));}
 
+// ── PIXEL FONT 5×5 ──────────────────────────────────────
+const PIXEL_FONT={
+  ' ':['00000','00000','00000','00000','00000'],
+  'A':['01110','10001','11111','10001','10001'],
+  'B':['11110','10001','11110','10001','11110'],
+  'C':['01111','10000','10000','10000','01111'],
+  'D':['11110','10001','10001','10001','11110'],
+  'E':['11111','10000','11110','10000','11111'],
+  'F':['11111','10000','11110','10000','10000'],
+  'G':['01111','10000','10011','10001','01111'],
+  'H':['10001','10001','11111','10001','10001'],
+  'I':['11111','00100','00100','00100','11111'],
+  'J':['00111','00010','00010','10010','01100'],
+  'K':['10001','10010','11100','10010','10001'],
+  'L':['10000','10000','10000','10000','11111'],
+  'M':['10001','11011','10101','10001','10001'],
+  'N':['10001','11001','10101','10011','10001'],
+  'O':['01110','10001','10001','10001','01110'],
+  'P':['11110','10001','11110','10000','10000'],
+  'Q':['01110','10001','10101','10010','01101'],
+  'R':['11110','10001','11110','10010','10001'],
+  'S':['01111','10000','01110','00001','11110'],
+  'T':['11111','00100','00100','00100','00100'],
+  'U':['10001','10001','10001','10001','01110'],
+  'V':['10001','10001','10001','01010','00100'],
+  'W':['10001','10001','10101','11011','10001'],
+  'X':['10001','01010','00100','01010','10001'],
+  'Y':['10001','01010','00100','00100','00100'],
+  'Z':['11111','00010','00100','01000','11111'],
+  '0':['01110','10011','10101','11001','01110'],
+  '1':['00100','01100','00100','00100','01110'],
+  '2':['01110','00001','00110','01000','11111'],
+  '3':['11110','00001','01110','00001','11110'],
+  '4':['00110','01010','11111','00010','00010'],
+  '5':['11111','10000','11110','00001','11110'],
+  '6':['01110','10000','11110','10001','01110'],
+  '7':['11111','00010','00100','01000','01000'],
+  '8':['01110','10001','01110','10001','01110'],
+  '9':['01110','10001','01111','00001','01110'],
+  '!':['00100','00100','00100','00000','00100'],
+  '?':['01110','00001','00110','00000','00100'],
+  '.':['00000','00000','00000','00000','00100'],
+  ',':['00000','00000','00000','00100','01000'],
+  '-':['00000','00000','11111','00000','00000'],
+  ':':['00000','00100','00000','00100','00000'],
+  '#':['01010','11111','01010','11111','01010'],
+  '*':['00000','10101','01110','10101','00000'],
+  '+':['00100','00100','11111','00100','00100'],
+  '/':['00001','00010','00100','01000','10000'],
+};
+
+function textToBlocks(text,blocks,depth){
+  depth=depth||1;
+  const str=String(text).toUpperCase();
+  let xOff=0;
+  for(const ch of str){
+    const rows=PIXEL_FONT[ch]||PIXEL_FONT[' '];
+    const w=(rows[0]||'00000').length;
+    for(let r=0;r<rows.length;r++){
+      const y=rows.length-1-r;
+      for(let c=0;c<rows[r].length;c++){
+        if(rows[r][c]==='1'){
+          for(let z=0;z<depth;z++) blocks.push({x:xOff+c,y,z});
+        }
+      }
+    }
+    xOff+=w+1;
+  }
+}
+
 function executeShapeCode(code){
   const blocks=[];
-  try{new Function('blocks',code)(blocks);}catch(e){console.error('Shape code error:',e);}
+  try{new Function('blocks','textToBlocks',code)(blocks,textToBlocks);}catch(e){console.error('Shape code error:',e);}
   return blocks;
 }
 
@@ -885,6 +955,14 @@ El código JS recibe un array \`blocks\` y debe hacer push de objetos {x,y,z,typ
 Ejes: x=izquierda/derecha, y=abajo/arriba, z=frente/atrás. type: 1=normal(verde), 2=relleno(azul), 3=especial(rojo).
 Ejemplo arco romano: const R=6;for(let a=0;a<=Math.PI;a+=0.08){const bx=Math.round(R*Math.cos(a)),by=Math.round(R*Math.sin(a));for(let z=0;z<3;z++)blocks.push({x:bx,y:by,z});}
 El código puede usar Math, bucles for, cualquier lógica. Genera bloques eficientemente con fórmulas matemáticas.
+
+Para LETREROS o TEXTO en bloques pixelados, tienes disponible el helper:
+textToBlocks(texto, blocks, profundidad)
+- texto: cualquier texto (se convierte a mayúsculas automáticamente, sin acentos)
+- profundidad: grosor en bloques (1=plano, 2-3=voluminoso)
+Ejemplo: textToBlocks("HOLA MUNDO", blocks, 2);
+Puedes combinar texto con otras formas en el mismo código.
+
 Usa SOLO <shape> para formas nuevas, SOLO <config> para ajustar formas del catálogo. No uses ambas.
 Responde en español de forma concisa (2-3 oraciones máximo antes del bloque).`;
 
