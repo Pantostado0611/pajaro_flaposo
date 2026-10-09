@@ -118,6 +118,9 @@
   #canvas3d { border: 2px solid #2a4070; border-radius: 8px; cursor: grab; max-width: 100%; display: block; touch-action: none; }
   #canvas3d:active { cursor: grabbing; }
 
+  #brushBtn.active { background: #1a4a28; border-color: #7bc67e; color: #c8f0c8; }
+  #gridCanvas.paint-mode { cursor: crosshair; }
+
   .hint { margin-top: 10px; font-size: 0.75rem; color: #666; text-align: center; }
 
   /* ── PANEL LATERAL ── */
@@ -265,6 +268,7 @@
           <div class="layer-sub"  id="layerSub">Y = 0</div>
         </div>
         <button class="nav-btn" id="btnUp" onclick="changeLayer(1)">▲</button>
+        <button class="nav-btn" id="brushBtn" onclick="togglePaint()" title="Modo brocha (Shift+clic = borrar)" style="font-size:0.9rem;margin-left:4px">🖌️</button>
       </div>
       <canvas id="gridCanvas" width="400" height="400"></canvas>
       <div class="layer-slider-row">
@@ -326,6 +330,8 @@ let viewMode     = '2d';
 let angleX = 0.45, angleY = 0.55, zoom3D = 18;
 let facesCache = [];
 let isDragging = false, dragSX = 0, dragSY = 0, dragAX = 0, dragAY = 0;
+
+let paintMode = false, isPainting = false, paintBtn = 0, cellSizeCache = 1;
 
 let primaryType = 6, accentType = 15;
 
@@ -438,6 +444,7 @@ function renderFields() {
 }
 
 function setView(v) {
+  if(v==='3d'&&paintMode) togglePaint();
   viewMode = v;
   document.getElementById('vtab2d').classList.toggle('active', v === '2d');
   document.getElementById('vtab3d').classList.toggle('active', v === '3d');
@@ -642,6 +649,7 @@ function drawLayer() {
   const max=Math.min(window.innerWidth-380,460);
   const cell=Math.max(4,Math.floor(max/sz));
   const cs=cell*sz;
+  cellSizeCache=cell;
   canvas.width=canvas.height=cs;
   const ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,cs,cs);
@@ -1181,8 +1189,63 @@ function updatePaletteUI(){
   }
 }
 
-function setPrimaryType(t){primaryType=t;updatePaletteUI();rebuild();}
-function setAccentType(t){accentType=t;updatePaletteUI();rebuild();}
+function setPrimaryType(t){primaryType=t;updatePaletteUI();if(!paintMode)rebuild();}
+function setAccentType(t){accentType=t;updatePaletteUI();if(!paintMode)rebuild();}
+
+// ══════════════════════════════════════════════════════
+//  MODO BROCHA
+// ══════════════════════════════════════════════════════
+function togglePaint(){
+  paintMode=!paintMode;
+  const btn=document.getElementById('brushBtn');
+  const cvs=document.getElementById('gridCanvas');
+  btn.classList.toggle('active',paintMode);
+  cvs.classList.toggle('paint-mode',paintMode);
+}
+
+function paintAt(canvasX,canvasY,btn,shift){
+  const g=layers[currentLayer]; if(!g) return;
+  const sz=g.length;
+  const x=Math.floor(canvasX/cellSizeCache);
+  const z=Math.floor(canvasY/cellSizeCache);
+  if(x<0||x>=sz||z<0||z>=sz) return;
+  g[x][z]=shift?0:(btn===2?accentType:primaryType);
+  drawLayer(); drawFull(); updateStats();
+  buildFaceCache();
+  if(viewMode==='3d') render3D();
+}
+
+function initPaintControls(){
+  const cvs=document.getElementById('gridCanvas');
+  cvs.addEventListener('mousedown',e=>{
+    if(!paintMode) return;
+    isPainting=true; paintBtn=e.button;
+    const r=cvs.getBoundingClientRect();
+    paintAt((e.clientX-r.left)*(cvs.width/r.width),(e.clientY-r.top)*(cvs.height/r.height),e.button,e.shiftKey);
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove',e=>{
+    if(!paintMode||!isPainting) return;
+    const r=cvs.getBoundingClientRect();
+    paintAt((e.clientX-r.left)*(cvs.width/r.width),(e.clientY-r.top)*(cvs.height/r.height),paintBtn,e.shiftKey);
+  });
+  window.addEventListener('mouseup',()=>{isPainting=false;});
+  cvs.addEventListener('contextmenu',e=>{if(paintMode)e.preventDefault();});
+  cvs.addEventListener('touchstart',e=>{
+    if(!paintMode) return;
+    isPainting=true; paintBtn=0;
+    const r=cvs.getBoundingClientRect(),t=e.touches[0];
+    paintAt((t.clientX-r.left)*(cvs.width/r.width),(t.clientY-r.top)*(cvs.height/r.height),0,false);
+    e.preventDefault();
+  },{passive:false});
+  cvs.addEventListener('touchmove',e=>{
+    if(!paintMode||!isPainting) return;
+    const r=cvs.getBoundingClientRect(),t=e.touches[0];
+    paintAt((t.clientX-r.left)*(cvs.width/r.width),(t.clientY-r.top)*(cvs.height/r.height),0,false);
+    e.preventDefault();
+  },{passive:false});
+  cvs.addEventListener('touchend',()=>{isPainting=false;});
+}
 
 // ══════════════════════════════════════════════════════
 //  INIT
@@ -1192,6 +1255,7 @@ buildPalette();
 renderFields();
 rebuild();
 init3DControls();
+initPaintControls();
 </script>
 </body>
 </html>
