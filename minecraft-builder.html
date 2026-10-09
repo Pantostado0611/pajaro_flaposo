@@ -235,12 +235,18 @@
       <span class="stat-label">Diámetro:</span><span class="stat-val" id="s-diam">—</span>
     </div>
 
-    <div class="legend">
-      <div class="section-title" style="margin-top:10px">Leyenda</div>
-      <div class="legend-item"><div class="legend-box" style="background:#7bc67e"></div>Pared</div>
-      <div class="legend-item"><div class="legend-box" style="background:#4a7bc6"></div>Relleno</div>
-      <div class="legend-item"><div class="legend-box" style="background:#c67b7b"></div>Especial (aletas)</div>
-      <div class="legend-item"><div class="legend-box" style="background:#222a3a;border:1px solid #2a4070"></div>Aire</div>
+    <div class="section-title" style="margin-top:14px">Material</div>
+    <div id="colorPalette"></div>
+    <div style="font-size:0.63rem;color:#446;margin-top:3px">Clic = primario &nbsp;·&nbsp; Clic derecho = acento</div>
+    <div style="display:flex;gap:10px;margin-top:7px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:5px">
+        <div id="primarySwatch" style="width:14px;height:14px;border-radius:3px;border:2px solid #7bc67e"></div>
+        <span id="primaryLabel" style="font-size:0.7rem;color:#7bc67e"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px">
+        <div id="accentSwatch" style="width:14px;height:14px;border-radius:3px;border:2px solid #c67b7b"></div>
+        <span id="accentLabel" style="font-size:0.7rem;color:#c67b7b"></span>
+      </div>
     </div>
   </div>
 
@@ -320,6 +326,48 @@ let viewMode     = '2d';
 let angleX = 0.45, angleY = 0.55, zoom3D = 18;
 let facesCache = [];
 let isDragging = false, dragSX = 0, dragSY = 0, dragAX = 0, dragAY = 0;
+
+let primaryType = 6, accentType = 15;
+
+const BLOCK_DATA = [
+  null,
+  {name:'Blanco',     rgb:[207,213,214]}, // 1  Concrete
+  {name:'Naranja',    rgb:[224, 97,  1]}, // 2
+  {name:'Magenta',    rgb:[169, 48,159]}, // 3
+  {name:'Azul Claro', rgb:[ 36,137,199]}, // 4
+  {name:'Amarillo',   rgb:[241,175, 21]}, // 5
+  {name:'Lima',       rgb:[ 94,168, 24]}, // 6
+  {name:'Rosa',       rgb:[213, 97,146]}, // 7
+  {name:'Gris',       rgb:[ 55, 55, 55]}, // 8
+  {name:'Gris Claro', rgb:[125,125,115]}, // 9
+  {name:'Cian',       rgb:[ 21,119,136]}, // 10
+  {name:'Morado',     rgb:[100, 30,140]}, // 11
+  {name:'Azul',       rgb:[ 45, 47,143]}, // 12
+  {name:'Marrón',     rgb:[ 92, 58, 30]}, // 13
+  {name:'Verde',      rgb:[ 73, 91, 36]}, // 14
+  {name:'Rojo',       rgb:[142, 32, 32]}, // 15
+  {name:'Negro',      rgb:[  8, 10, 15]}, // 16
+  {name:'Blanco',     rgb:[209,178,161]}, // 17 Terracota
+  {name:'Naranja',    rgb:[161, 83, 37]}, // 18
+  {name:'Magenta',    rgb:[149, 88,108]}, // 19
+  {name:'Azul Claro', rgb:[113,108,137]}, // 20
+  {name:'Amarillo',   rgb:[186,133, 35]}, // 21
+  {name:'Lima',       rgb:[103,117, 52]}, // 22
+  {name:'Rosa',       rgb:[162, 78, 79]}, // 23
+  {name:'Gris',       rgb:[ 58, 42, 36]}, // 24
+  {name:'Gris Claro', rgb:[135,106, 97]}, // 25
+  {name:'Cian',       rgb:[ 87, 91, 91]}, // 26
+  {name:'Morado',     rgb:[118, 70, 86]}, // 27
+  {name:'Azul',       rgb:[ 74, 60, 91]}, // 28
+  {name:'Marrón',     rgb:[ 77, 51, 36]}, // 29
+  {name:'Verde',      rgb:[ 76, 83, 42]}, // 30
+  {name:'Rojo',       rgb:[143, 61, 47]}, // 31
+  {name:'Negro',      rgb:[ 37, 22, 16]}, // 32
+];
+
+function rgbToHex(r,g,b){return '#'+[r,g,b].map(v=>Math.max(0,Math.min(255,v)).toString(16).padStart(2,'0')).join('');}
+function typeToRgb(t){return(BLOCK_DATA[t]||BLOCK_DATA[6]).rgb;}
+function typeToHex(t){return t?rgbToHex(...typeToRgb(t)):'#222a3a';}
 
 // ══════════════════════════════════════════════════════
 //  PARÁMETROS
@@ -417,8 +465,8 @@ function makeCircleLayer(r, t, filled) {
   for (let x = 0; x < size; x++)
     for (let z = 0; z < size; z++) {
       const d = dist2D(x-c, z-c);
-      if (filled) { if (d <= r+0.5) g[x][z] = 1; }
-      else { if (d <= r+0.5 && d > r-t+0.5) g[x][z] = 1; }
+      if (filled) { if (d <= r+0.5) g[x][z] = primaryType; }
+      else { if (d <= r+0.5 && d > r-t+0.5) g[x][z] = primaryType; }
     }
   return g;
 }
@@ -439,12 +487,12 @@ function buildCone() {
   const R=params.radius,h=params.height; layers=[];
   for (let y=0;y<h;y++) {
     const r=Math.max(0,Math.round(R*(1-y/h)));
-    if (r===0){layers.push([[1]]);continue;}
+    if (r===0){layers.push([[primaryType]]);continue;}
     const size=R*2+1,c=R;
     const g=Array.from({length:size},()=>new Array(size).fill(0));
     for (let x=0;x<size;x++)
       for (let z=0;z<size;z++)
-        if (dist2D(x-c,z-c)<=r+0.5) g[x][z]=1;
+        if (dist2D(x-c,z-c)<=r+0.5) g[x][z]=primaryType;
     layers.push(g);
   }
   gridSize=R*2+1;
@@ -463,8 +511,8 @@ function buildSphere() {
         if (hollow) {
           const rP=y<R?Math.sqrt(Math.max(0,R*R-(y+1)*(y+1))):0;
           const rN=y>-R?Math.sqrt(Math.max(0,R*R-(y-1)*(y-1))):0;
-          if (d<=rY+0.5&&d>Math.min(rP,rN)-0.5) g[x][z]=1;
-        } else { if (d<=rY+0.5) g[x][z]=2; }
+          if (d<=rY+0.5&&d>Math.min(rP,rN)-0.5) g[x][z]=primaryType;
+        } else { if (d<=rY+0.5) g[x][z]=primaryType; }
       }
     layers.push(g);
   }
@@ -483,7 +531,7 @@ function buildRocket() {
     for (let x=0;x<size;x++)
       for (let z=0;z<size;z++) {
         const d=dist2D(x-c,z-c);
-        if (hollow?(d<=R+0.5&&d>R-0.5):d<=R+0.5) g[x][z]=1;
+        if (hollow?(d<=R+0.5&&d>R-0.5):d<=R+0.5) g[x][z]=primaryType;
       }
     return g;
   }
@@ -496,7 +544,7 @@ function buildRocket() {
         const th=curFin-i+1;
         for (let k=-th;k<=th;k++) {
           [[c+k,c-R-i],[c+k,c+R+i],[c+R+i,c+k],[c-R-i,c+k]].forEach(([px,pz])=>{
-            if (px>=0&&px<size&&pz>=0&&pz<size) g[px][pz]=3;
+            if (px>=0&&px<size&&pz>=0&&pz<size) g[px][pz]=accentType;
           });
         }
       }
@@ -508,10 +556,10 @@ function buildRocket() {
     const r=Math.max(0,Math.round(R*(1-y/nH)));
     const g=Array.from({length:size},()=>new Array(size).fill(0));
     const c=R+fin;
-    if (r===0){g[c][c]=1;layers.push(g);break;}
+    if (r===0){g[c][c]=primaryType;layers.push(g);break;}
     for (let x=0;x<size;x++)
       for (let z=0;z<size;z++)
-        if (dist2D(x-c,z-c)<=r+0.5) g[x][z]=1;
+        if (dist2D(x-c,z-c)<=r+0.5) g[x][z]=primaryType;
     layers.push(g);
   }
   gridSize=size;
@@ -528,7 +576,7 @@ function buildPyramid() {
     for (let x=off;x<off+side;x++)
       for (let z=off;z<off+side;z++) {
         const edge=x===off||x===off+side-1||z===off||z===off+side-1;
-        if (!hollow||edge) g[x][z]=1;
+        if (!hollow||edge) g[x][z]=primaryType;
       }
     layers.push(g);
   }
@@ -547,8 +595,8 @@ function buildDome() {
         const d=dist2D(x-c,z-c);
         if (hollow) {
           const rP=y>0?Math.sqrt(Math.max(0,R*R-(y-1)*(y-1))):R;
-          if (d<=rY+0.5&&d>rP-0.5) g[x][z]=1;
-        } else { if (d<=rY+0.5) g[x][z]=y===0?2:1; }
+          if (d<=rY+0.5&&d>rP-0.5) g[x][z]=primaryType;
+        } else { if (d<=rY+0.5) g[x][z]=primaryType; }
       }
     layers.push(g);
   }
@@ -587,8 +635,6 @@ function updateStats() {
 // ══════════════════════════════════════════════════════
 //  2D CANVAS
 // ══════════════════════════════════════════════════════
-const FLAT_COLORS=['#222a3a','#7bc67e','#3a6a8a','#c67b7b'];
-
 function drawLayer() {
   const canvas=document.getElementById('gridCanvas');
   if (!layers.length) return;
@@ -601,7 +647,7 @@ function drawLayer() {
   ctx.clearRect(0,0,cs,cs);
   for (let x=0;x<sz;x++)
     for (let z=0;z<sz;z++) {
-      ctx.fillStyle=FLAT_COLORS[g[x][z]]||'#000';
+      ctx.fillStyle=typeToHex(g[x][z]);
       ctx.fillRect(x*cell,z*cell,cell,cell);
       if (cell>=6){ctx.strokeStyle='#2a3a5a';ctx.lineWidth=0.5;ctx.strokeRect(x*cell,z*cell,cell,cell);}
     }
@@ -627,7 +673,7 @@ function drawFull() {
     const g=layers[y],dy=(H-1-y)*cH;
     for (let x=0;x<W;x++) {
       const v=g[x]?(g[x][mid]||0):0;
-      ctx.fillStyle=FLAT_COLORS[v]||'#000';
+      ctx.fillStyle=typeToHex(v);
       ctx.fillRect(x*cW,dy,cW,cH);
     }
     if (y===currentLayer){ctx.strokeStyle='rgba(255,220,50,0.9)';ctx.lineWidth=1.5;ctx.strokeRect(0,dy,canvas.width,cH);}
@@ -652,7 +698,6 @@ function setLayer(v){currentLayer=v;updateLayerSlider();drawLayer();drawFull();}
 // ══════════════════════════════════════════════════════
 //  3D — COLORES
 // ══════════════════════════════════════════════════════
-const BASE_RGB={1:[80,170,80],2:[60,110,185],3:[185,75,70]};
 function faceBrightness(n){
   const[nx,ny,nz]=n;
   if(ny> 0.5)return 1.00; if(ny<-0.5)return 0.40;
@@ -660,7 +705,7 @@ function faceBrightness(n){
   if(nz> 0.5)return 0.85; return 0.52;
 }
 function makeFaceColor(type,n){
-  const[r,g,b]=BASE_RGB[type]||BASE_RGB[1],br=faceBrightness(n);
+  const[r,g,b]=typeToRgb(type),br=faceBrightness(n);
   return `rgb(${Math.round(r*br)},${Math.round(g*br)},${Math.round(b*br)})`;
 }
 
@@ -952,7 +997,10 @@ Para formas NUEVAS que no están en el catálogo (arcos, espirales, estrellas, c
 <shape>{"name":"Nombre corto","code":"CÓDIGO JS"}</shape>
 
 El código JS recibe un array \`blocks\` y debe hacer push de objetos {x,y,z,type?}.
-Ejes: x=izquierda/derecha, y=abajo/arriba, z=frente/atrás. type: 1=normal(verde), 2=relleno(azul), 3=especial(rojo).
+Ejes: x=izquierda/derecha, y=abajo/arriba, z=frente/atrás.
+Tipos de bloque disponibles (Concreto 1-16, Terracota 17-32):
+1=Blanco, 2=Naranja, 3=Magenta, 4=Azul Claro, 5=Amarillo, 6=Lima, 7=Rosa, 8=Gris, 9=Gris Claro, 10=Cian, 11=Morado, 12=Azul, 13=Marrón, 14=Verde, 15=Rojo, 16=Negro
+17-32=mismos colores en Terracota. Default type=6 (Lima Concreto).
 Ejemplo arco romano: const R=6;for(let a=0;a<=Math.PI;a+=0.08){const bx=Math.round(R*Math.cos(a)),by=Math.round(R*Math.sin(a));for(let z=0;z<3;z++)blocks.push({x:bx,y:by,z});}
 El código puede usar Math, bucles for, cualquier lógica. Genera bloques eficientemente con fórmulas matemáticas.
 
@@ -1086,9 +1134,61 @@ function applyConfig(cfg){
 }
 
 // ══════════════════════════════════════════════════════
+//  PALETA DE MATERIALES
+// ══════════════════════════════════════════════════════
+function buildPalette(){
+  const pal=document.getElementById('colorPalette');
+  if(!pal) return;
+  pal.innerHTML='';
+  ['Concreto','Terracota'].forEach((label,group)=>{
+    const lbl=document.createElement('div');
+    lbl.style.cssText='font-size:0.6rem;color:#446;margin:'+(group?'3px':'0')+'px 0 2px';
+    lbl.textContent=label;
+    pal.appendChild(lbl);
+    const row=document.createElement('div');
+    row.style.cssText='display:flex;gap:2px;flex-wrap:nowrap';
+    for(let i=1;i<=16;i++){
+      const t=group*16+i;
+      const sw=document.createElement('div');
+      sw.dataset.type=t;
+      sw.title=BLOCK_DATA[t].name+' '+label;
+      sw.style.cssText=`width:13px;height:13px;border-radius:2px;background:${rgbToHex(...BLOCK_DATA[t].rgb)};cursor:pointer;border:1px solid rgba(255,255,255,0.12);flex-shrink:0;transition:transform 0.08s`;
+      sw.onmouseenter=()=>{sw.style.transform='scale(1.35)';sw.style.zIndex=1;sw.style.position='relative';};
+      sw.onmouseleave=()=>{sw.style.transform='';sw.style.zIndex='';sw.style.position='';};
+      sw.onclick=()=>setPrimaryType(t);
+      sw.oncontextmenu=e=>{e.preventDefault();setAccentType(t);};
+      row.appendChild(sw);
+    }
+    pal.appendChild(row);
+  });
+  updatePaletteUI();
+}
+
+function updatePaletteUI(){
+  document.querySelectorAll('#colorPalette [data-type]').forEach(sw=>{
+    const t=+sw.dataset.type;
+    sw.style.outline=t===primaryType?'2px solid #7bc67e':t===accentType?'2px solid #c67b7b':'none';
+    sw.style.outlineOffset='1px';
+  });
+  const b1=BLOCK_DATA[primaryType],b2=BLOCK_DATA[accentType];
+  if(b1){
+    document.getElementById('primarySwatch').style.background=rgbToHex(...b1.rgb);
+    document.getElementById('primaryLabel').textContent=b1.name+' '+(primaryType<=16?'Concreto':'Terracota');
+  }
+  if(b2){
+    document.getElementById('accentSwatch').style.background=rgbToHex(...b2.rgb);
+    document.getElementById('accentLabel').textContent=b2.name+' '+(accentType<=16?'Concreto':'Terracota');
+  }
+}
+
+function setPrimaryType(t){primaryType=t;updatePaletteUI();rebuild();}
+function setAccentType(t){accentType=t;updatePaletteUI();rebuild();}
+
+// ══════════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════════
 customShapes.forEach(shape => addCustomTab(shape));
+buildPalette();
 renderFields();
 rebuild();
 init3DControls();
