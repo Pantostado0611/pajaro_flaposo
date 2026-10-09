@@ -368,6 +368,11 @@ function setMode(m, btn) {
 
 function renderFields() {
   const container = document.getElementById('paramFields');
+  if(mode.startsWith('custom_')){
+    const shape=customShapes.find(s=>s.id===mode);
+    container.innerHTML=shape?`<div style="font-size:0.78rem;color:#c0a0ff;padding:6px 0 10px">✨ Forma personalizada</div>`:'';
+    return;
+  }
   const defs = MODES[mode] || [];
   container.innerHTML = '';
   defs.forEach(p => {
@@ -554,8 +559,14 @@ function buildDome() {
 //  REBUILD
 // ══════════════════════════════════════════════════════
 function rebuild() {
-  ({cylinder:buildCylinder,cone:buildCone,sphere:buildSphere,
-    rocket:buildRocket,pyramid:buildPyramid,dome:buildDome})[mode]();
+  const builtins={cylinder:buildCylinder,cone:buildCone,sphere:buildSphere,
+    rocket:buildRocket,pyramid:buildPyramid,dome:buildDome};
+  if(builtins[mode]){
+    builtins[mode]();
+  } else if(mode.startsWith('custom_')){
+    const shape=customShapes.find(s=>s.id===mode);
+    if(shape){const r=blocksToLayers(executeShapeCode(shape.code));layers=r.layers;gridSize=r.gridSize;}
+  }
   currentLayer=Math.max(0,Math.min(layers.length-1,currentLayer));
   updateLayerSlider(); drawLayer(); drawFull(); updateStats();
   buildFaceCache();
@@ -794,10 +805,69 @@ function init3DControls(){
 //  CHAT CON IA
 // ══════════════════════════════════════════════════════
 let chatHistory=[], chatLoading=false;
+let customShapes=JSON.parse(localStorage.getItem('mc_custom_shapes')||'[]');
 
-const BUILDER_SYSTEM=`Eres un asistente de construcción de Minecraft integrado en un generador de formas 3D. Ayudas al usuario a diseñar construcciones ajustando los parámetros de las formas.
+function saveCustomShapes(){localStorage.setItem('mc_custom_shapes',JSON.stringify(customShapes));}
 
-Formas disponibles y sus parámetros (con rangos):
+function executeShapeCode(code){
+  const blocks=[];
+  try{new Function('blocks',code)(blocks);}catch(e){console.error('Shape code error:',e);}
+  return blocks;
+}
+
+function blocksToLayers(blocks){
+  if(!blocks.length) return{layers:[],gridSize:1};
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,minZ=Infinity,maxZ=-Infinity;
+  for(const b of blocks){
+    minX=Math.min(minX,b.x);maxX=Math.max(maxX,b.x);
+    minY=Math.min(minY,b.y);maxY=Math.max(maxY,b.y);
+    minZ=Math.min(minZ,b.z);maxZ=Math.max(maxZ,b.z);
+  }
+  const W=maxX-minX+1,H=maxY-minY+1,D=maxZ-minZ+1,gs=Math.max(W,D);
+  const ox=Math.floor((gs-W)/2),oz=Math.floor((gs-D)/2);
+  const lys=Array.from({length:H},()=>Array.from({length:gs},()=>new Array(gs).fill(0)));
+  for(const b of blocks){
+    const lx=(b.x-minX)+ox,ly=b.y-minY,lz=(b.z-minZ)+oz;
+    if(lx>=0&&lx<gs&&ly>=0&&ly<H&&lz>=0&&lz<gs) lys[ly][lx][lz]=b.type||1;
+  }
+  return{layers:lys,gridSize:gs};
+}
+
+function addCustomShape(name,code){
+  const id='custom_'+Date.now();
+  const shape={id,name,code};
+  customShapes.push(shape);
+  saveCustomShapes();
+  addCustomTab(shape);
+  return shape;
+}
+
+function addCustomTab(shape){
+  const tabs=document.querySelector('.mode-tabs');
+  const btn=document.createElement('button');
+  btn.className='tab custom-tab';
+  btn.dataset.shapeId=shape.id;
+  btn.onclick=()=>setMode(shape.id,btn);
+  const label=document.createTextNode('✨ '+shape.name);
+  btn.appendChild(label);
+  const x=document.createElement('span');
+  x.textContent=' ×';
+  x.style.cssText='opacity:0.5;margin-left:3px;font-size:0.85em;';
+  x.onclick=e=>{e.stopPropagation();removeCustomShape(shape.id,btn);};
+  btn.appendChild(x);
+  tabs.appendChild(btn);
+}
+
+function removeCustomShape(id,btn){
+  customShapes=customShapes.filter(s=>s.id!==id);
+  saveCustomShapes();
+  btn.remove();
+  if(mode===id) setMode('cylinder',document.querySelector('.tab'));
+}
+
+const BUILDER_SYSTEM=`Eres un asistente de construcción de Minecraft integrado en un generador de formas 3D. Ayudas al usuario a diseñar construcciones.
+
+Formas del CATÁLOGO y sus parámetros (con rangos):
 - cylinder: radius(2-30), height(1-60), thickness(1-5)
 - cone: radius(2-30), height(2-40)
 - sphere: radius(2-25)
@@ -805,14 +875,21 @@ Formas disponibles y sus parámetros (con rangos):
 - pyramid: base(3-40), height(1-40)
 - dome: radius(2-25)
 
-Cuando el usuario pida construir algo, incluye AL FINAL de tu respuesta un bloque de configuración exactamente así (sin espacios extra dentro):
+Para formas del catálogo, incluye AL FINAL:
 <config>{"mode":"rocket","params":{"radius":7,"bodyHeight":20,"noseHeight":8,"finSize":3}}</config>
 
-Solo incluye los params relevantes para la forma. Responde en español de forma concisa (2-3 oraciones máximo antes del bloque).`;
+Para formas NUEVAS que no están en el catálogo (arcos, espirales, estrellas, cruces, torres, etc.), usa en su lugar:
+<shape>{"name":"Nombre corto","code":"CÓDIGO JS"}</shape>
 
-function appendChatMsg(role, text, cfg) {
+El código JS recibe un array \`blocks\` y debe hacer push de objetos {x,y,z,type?}.
+Ejes: x=izquierda/derecha, y=abajo/arriba, z=frente/atrás. type: 1=normal(verde), 2=relleno(azul), 3=especial(rojo).
+Ejemplo arco romano: const R=6;for(let a=0;a<=Math.PI;a+=0.08){const bx=Math.round(R*Math.cos(a)),by=Math.round(R*Math.sin(a));for(let z=0;z<3;z++)blocks.push({x:bx,y:by,z});}
+El código puede usar Math, bucles for, cualquier lógica. Genera bloques eficientemente con fórmulas matemáticas.
+Usa SOLO <shape> para formas nuevas, SOLO <config> para ajustar formas del catálogo. No uses ambas.
+Responde en español de forma concisa (2-3 oraciones máximo antes del bloque).`;
+
+function appendChatMsg(role, text, cfg, shapeData) {
   const msgs=document.getElementById('chatMsgs');
-  // quitar welcome si existe
   const w=msgs.querySelector('.chat-welcome'); if(w) w.remove();
 
   const div=document.createElement('div');
@@ -828,6 +905,20 @@ function appendChatMsg(role, text, cfg) {
     btn.onclick=()=>{ applyConfig(cfg); btn.textContent='✓ Aplicado'; btn.style.borderColor='#4caf50'; btn.style.color='#7bc67e'; };
     div.appendChild(btn);
   }
+  if(shapeData){
+    const btn=document.createElement('button');
+    btn.className='config-chip';
+    btn.style.borderColor='#6a4acc';btn.style.color='#c0a0ff';
+    btn.textContent=`✨ Agregar al menú: ${shapeData.name}`;
+    btn.onclick=()=>{
+      const shape=addCustomShape(shapeData.name,shapeData.code);
+      const tab=document.querySelector(`[data-shape-id="${shape.id}"]`);
+      setMode(shape.id,tab);
+      btn.textContent='✓ Agregado al menú';
+      btn.style.borderColor='#4caf50';btn.style.color='#7bc67e';
+    };
+    div.appendChild(btn);
+  }
   msgs.appendChild(div);
   msgs.scrollTop=msgs.scrollHeight;
 }
@@ -841,9 +932,16 @@ function parseConfig(text){
   if(!m) return null;
   try{return JSON.parse(m[1]);}catch{return null;}
 }
-
 function stripConfig(text){
   return text.replace(/<config>[\s\S]*?<\/config>/g,'').trim();
+}
+function parseShape(text){
+  const m=text.match(/<shape>([\s\S]*?)<\/shape>/);
+  if(!m) return null;
+  try{return JSON.parse(m[1]);}catch{return null;}
+}
+function stripShape(text){
+  return text.replace(/<shape>[\s\S]*?<\/shape>/g,'').trim();
 }
 
 async function sendChatMsg(){
@@ -878,9 +976,10 @@ async function sendChatMsg(){
     try { data = JSON.parse(rawText); } catch { data = {}; }
     if(res.ok && data.reply){
       const cfg=parseConfig(data.reply);
-      const clean=stripConfig(data.reply);
+      const shapeData=parseShape(data.reply);
+      const clean=stripShape(stripConfig(data.reply));
       chatHistory.push({role:'assistant',content:data.reply});
-      appendChatMsg('ai',clean,cfg);
+      appendChatMsg('ai',clean,cfg,shapeData);
     } else {
       appendChatMsg('ai', `⚠️ Error ${res.status}: ${data.error || rawText.slice(0,120)}`);
     }
@@ -911,6 +1010,7 @@ function applyConfig(cfg){
 // ══════════════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════════════
+customShapes.forEach(shape => addCustomTab(shape));
 renderFields();
 rebuild();
 init3DControls();
