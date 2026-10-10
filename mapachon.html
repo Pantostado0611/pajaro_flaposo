@@ -98,11 +98,11 @@ const W = 960, H = 540;
 const ROOMS = {
   0: {
     name: 'Entrada a las Ruinas',
-    bg: ['#c77d5c', '#d8b18a'],
-    floorColor: '#4d3a35',
-    platColor:  '#745b52',
-    edgeColor:  '#2d221f',
-    particleColor: '#f5ba73',
+    bg: ['#050810', '#0a1020'],
+    floorColor: '#1a2238',
+    platColor:  '#243050',
+    edgeColor:  '#314068',
+    particleColor: '#4060b0',
     platforms: [
       { x:   0, y: 480, w: 960, h: 60 }, // suelo
       { x: 180, y: 370, w: 130, h: 18 },
@@ -119,11 +119,11 @@ const ROOMS = {
   },
   1: {
     name: 'Sala de los Cristales',
-    bg: ['#c88967', '#e4c69a'],
-    floorColor: '#4d4039',
-    platColor:  '#6c5b50',
-    edgeColor:  '#2c2320',
-    particleColor: '#f2bb74',
+    bg: ['#05100a', '#0a1f14'],
+    floorColor: '#1a3028',
+    platColor:  '#224038',
+    edgeColor:  '#2e5448',
+    particleColor: '#30c090',
     platforms: [
       { x:   0, y: 480, w: 320, h: 60 },
       { x: 640, y: 480, w: 320, h: 60 },
@@ -1773,53 +1773,9 @@ function drawBackground(room) {
   const [c1, c2] = room.bg;
   const g = ctx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, c1);
-  g.addColorStop(0.55, '#f2d3b8');
   g.addColorStop(1, c2);
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
-
-  const sunGlow = ctx.createRadialGradient(W * 0.82, H * 0.18, 20, W * 0.82, H * 0.18, 240);
-  sunGlow.addColorStop(0, 'rgba(255,240,180,0.95)');
-  sunGlow.addColorStop(0.2, 'rgba(255,170,110,0.72)');
-  sunGlow.addColorStop(0.6, 'rgba(228,118,70,0.18)');
-  sunGlow.addColorStop(1, 'rgba(228,118,70,0)');
-  ctx.fillStyle = sunGlow;
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.fillStyle = 'rgba(100, 58, 46, 0.42)';
-  ctx.beginPath();
-  ctx.moveTo(0, H * 0.72);
-  ctx.lineTo(80, H * 0.58);
-  ctx.lineTo(150, H * 0.68);
-  ctx.lineTo(220, H * 0.54);
-  ctx.lineTo(320, H * 0.68);
-  ctx.lineTo(430, H * 0.58);
-  ctx.lineTo(520, H * 0.7);
-  ctx.lineTo(620, H * 0.52);
-  ctx.lineTo(700, H * 0.68);
-  ctx.lineTo(810, H * 0.56);
-  ctx.lineTo(930, H * 0.7);
-  ctx.lineTo(W, H * 0.62);
-  ctx.lineTo(W, H);
-  ctx.lineTo(0, H);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.fillStyle = 'rgba(83, 48, 39, 0.58)';
-  for (let i = 0; i < 18; i++) {
-    const x = i * 58 + 18;
-    const w = 32 + ((i % 3) * 12);
-    const h = 52 + ((i % 2) * 30);
-    ctx.fillRect(x, H * 0.64 - h, w, h);
-    ctx.fillRect(x + 6, H * 0.64 - h - 25, w * 0.35, 20);
-  }
-
-  const haze = ctx.createLinearGradient(0, H * 0.36, 0, H * 0.9);
-  haze.addColorStop(0, 'rgba(255,240,220,0)');
-  haze.addColorStop(0.5, 'rgba(210,150,120,0.18)');
-  haze.addColorStop(1, 'rgba(80,50,40,0.30)');
-  ctx.fillStyle = haze;
-  ctx.fillRect(0, H * 0.36, W, H * 0.54);
 }
 
 function drawDecorations(room) {
