@@ -1031,7 +1031,9 @@ Para formas del catálogo, incluye AL FINAL:
 <config>{"mode":"rocket","params":{"radius":7,"bodyHeight":20,"noseHeight":8,"finSize":3}}</config>
 
 Para formas NUEVAS que no están en el catálogo (arcos, espirales, estrellas, cruces, torres, etc.), usa en su lugar:
-<shape>{"name":"Nombre corto","code":"CÓDIGO JS"}</shape>
+<shape name="Nombre corto">
+CÓDIGO JS (tal cual, sin comillas ni escapes, NO lo envuelvas en JSON ni en \`\`\`)
+</shape>
 
 El código JS recibe un array \`blocks\` y debe hacer push de objetos {x,y,z,type?}.
 Ejes: x=izquierda/derecha, y=abajo/arriba, z=frente/atrás.
@@ -1104,15 +1106,30 @@ function stripConfig(text){
   return text.replace(/<config>[\s\S]*?<\/config>/g,'').trim();
 }
 function parseShape(text){
-  const m=text.match(/<shape>([\s\S]*?)<\/shape>/);
+  const m=text.match(/<shape([^>]*)>([\s\S]*?)<\/shape>/i);
   if(!m){
-    if(/<shape>/i.test(text)) return{truncated:true};
+    if(/<shape[\s>]/i.test(text)) return{truncated:true};
     return null;
   }
-  try{return JSON.parse(m[1]);}catch{return{malformed:true};}
+  const attrName=(m[1].match(/name\s*=\s*["']([^"']*)["']/i)||[])[1];
+  let body=m[2].trim().replace(/^```(?:js|javascript|json)?\s*/i,'').replace(/```\s*$/,'').trim();
+  // Formato nuevo: <shape name="...">código</shape>
+  if(attrName!==undefined && !body.startsWith('{')) return{name:attrName||'Forma',code:body};
+  // Formato antiguo JSON: {"name":"...","code":"..."}
+  try{const j=JSON.parse(body);if(j&&j.code)return{name:j.name||attrName||'Forma',code:j.code};}catch{}
+  // JSON con saltos de línea crudos o comillas sin escapar: extraer a mano
+  const nm=(body.match(/"name"\s*:\s*"([^"]*)"/)||[])[1];
+  const cm=body.match(/"code"\s*:\s*"([\s\S]*)"\s*}\s*$/);
+  if(cm){
+    let code=cm[1];
+    try{code=JSON.parse('"'+code.replace(/\r?\n/g,'\\n').replace(/\t/g,'\\t')+'"');}
+    catch{code=code.replace(/\\n/g,'\n').replace(/\\"/g,'"').replace(/\\\\/g,'\\');}
+    return{name:nm||attrName||'Forma',code};
+  }
+  return{malformed:true};
 }
 function stripShape(text){
-  return text.replace(/<shape>[\s\S]*?(<\/shape>|$)/g,'').trim();
+  return text.replace(/<shape[^>]*>[\s\S]*?(<\/shape>|$)/gi,'').trim();
 }
 
 async function sendChatMsg(){

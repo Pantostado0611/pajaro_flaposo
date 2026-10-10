@@ -30,7 +30,7 @@ module.exports = async function handler(req, res) {
   const body = JSON.stringify({
     systemInstruction: { parts: [{ text: system || DEFAULT_SYSTEM }] },
     contents,
-    generationConfig: { maxOutputTokens: 2048 },
+    generationConfig: { maxOutputTokens: 8192 },
   });
 
   try {
@@ -53,7 +53,8 @@ module.exports = async function handler(req, res) {
       }
 
       const data = JSON.parse(lastText);
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+      const parts = data.candidates?.[0]?.content?.parts || [];
+      const reply = parts.filter(p => !p.thought && p.text).map(p => p.text).join('');
       return res.json({ reply });
     }
 
