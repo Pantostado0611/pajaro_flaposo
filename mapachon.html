@@ -186,8 +186,9 @@ const ROOMS = {
       { x: 360, y: 160, w: 240, h: 18 },
     ],
     exits: {
-      down: { room: 1, spawnX: 420, spawnY: 200 },
-      up:   { room: 5, spawnX:  60, spawnY: 400 }, // armería (tras vencer al guardián)
+      down:  { room: 1, spawnX: 420, spawnY: 200 },
+      up:    { room: 5, spawnX:  60, spawnY: 400 }, // armería (tras vencer al guardián)
+      right: { room: 6, spawnX:  30, spawnY: 400 }, // castillo (tras vencer al guardián)
     },
     decorations: [
       { type:'star', x:100, y: 80 },
@@ -242,6 +243,64 @@ const ROOMS = {
       { type:'pillar', x:710, y:420, h:60 },
     ],
   },
+  6: {
+    name: 'Castillo del Umbral',
+    bg: ['#0c0a10', '#18141e'],
+    floorColor: '#2a2630',
+    platColor:  '#3a3542',
+    edgeColor:  '#55505e',
+    particleColor: '#ff9a40',
+    platforms: [
+      { x:   0, y: 480, w: 960, h: 60 },
+      { x:  90, y: 400, w: 150, h: 18 },
+      { x: 300, y: 320, w: 150, h: 18 },
+      { x: 560, y: 250, w: 150, h: 18 },
+      { x: 380, y: 160, w: 200, h: 18 }, // rellano bajo la salida
+    ],
+    // Solo sube a La Cumbre Quebrantada (y vuelve a La Cima)
+    exits: {
+      left: { room: 3, spawnX: 890, spawnY: 400 },
+      up:   { room: 7, spawnX: 280, spawnY: 420 },
+    },
+    decorations: [
+      { type:'bricks' },
+      { type:'window', x:160, y:120 },
+      { type:'window', x:800, y:120 },
+      { type:'banner', x:270, y:40 },
+      { type:'banner', x:690, y:40 },
+      { type:'torch',  x: 60, y:300 },
+      { type:'torch',  x:900, y:300 },
+      { type:'pillar', x: 30, y:480, h:120 },
+      { type:'pillar', x:930, y:480, h:120 },
+    ],
+  },
+  7: {
+    name: 'La Cumbre Quebrantada',
+    bg: ['#1a0610', '#2a0c18'],
+    floorColor: '#2a1420',
+    platColor:  '#40202e',
+    edgeColor:  '#603040',
+    particleColor: '#ff5080',
+    platforms: [
+      { x:   0, y: 480, w: 360, h: 60 }, // suelo izquierdo
+      { x: 600, y: 480, w: 360, h: 60 }, // suelo derecho (hueco = bajada al castillo)
+      { x: 120, y: 370, w: 110, h: 18 },
+      { x: 330, y: 290, w: 100, h: 18 },
+      { x: 540, y: 220, w: 120, h: 18 },
+      { x: 760, y: 330, w: 110, h: 18 },
+    ],
+    exits: {
+      down: { room: 6, spawnX: 460, spawnY: 110 },
+    },
+    decorations: [
+      { type:'crack', x:620, y: 30 },
+      { type:'crack', x:180, y: 60 },
+      { type:'star',  x: 90, y: 50 },
+      { type:'star',  x:860, y: 80 },
+      { type:'pillar', x:820, y:480, h:44 },
+      { type:'pillar', x: 60, y:480, h:70 },
+    ],
+  },
 };
 
 // ─── ENEMIGOS — plantillas por sala ──────────────────────────────────────────
@@ -266,6 +325,11 @@ const ENEMY_TEMPLATES = {
   ],
   4: [], // sala del jefe — sin enemigos normales
   5: [], // armería
+  6: [
+    { x: 600, y: 456, dir: -1, patrolMin: 420, patrolMax: 900, speed: 1.5 },
+    { x: 320, y: 296, dir:  1, patrolMin: 300, patrolMax: 422, speed: 1.3 },
+  ],
+  7: [],
 };
 
 // ─── PARTÍCULAS ───────────────────────────────────────────────────────────────
@@ -340,6 +404,10 @@ const playerShots = [];
 // ─── TECLADO ─────────────────────────────────────────────────────────────────
 const keys = {};
 document.addEventListener('keydown', e => {
+  if (chapterTimer > 0) {
+    if (chapterTimer < chapterDur - 90) chapterTimer = Math.min(chapterTimer, 50);
+    e.preventDefault(); return;
+  }
   if (e.code === 'Tab' || e.code === 'KeyI') { showInventory = !showInventory; e.preventDefault(); return; }
   if (e.code === 'KeyL') {
     cheatState = cheatState === 'closed' ? 'input' : 'closed';
@@ -426,6 +494,26 @@ function addMoney(amount, x, y) {
   moneyPops.push({ x, y, text: '+' + amount, t: 60 });
 }
 let currentEnemies = [];
+// Pantalla de capítulo (al empezar y al llegar por primera vez a La Cumbre)
+const CHAPTER_DUR = 330;
+const CHAPTER_INTRO = 150; // "Nuevo capítulo" antes del título (capítulo II en adelante)
+let chapterDur = CHAPTER_DUR;
+let chapterShown = false; // capítulo de La Cumbre ya visto
+let chapterTimer = 0;
+let chapterText  = { label: '', title: '' };
+function toRoman(n) {
+  const R = [[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],
+             [50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+  let out = '';
+  for (const [v, r] of R) while (n >= v) { out += r; n -= v; }
+  return out;
+}
+function showChapter(num, title) {
+  const intro  = num > 1;
+  chapterText  = { label: 'C A P Í T U L O   ' + toRoman(num), title, intro };
+  chapterDur   = CHAPTER_DUR + (intro ? CHAPTER_INTRO : 0);
+  chapterTimer = chapterDur;
+}
 
 // ─── JEFE ─────────────────────────────────────────────────────────────────────
 let bossDefeated  = false;
@@ -586,6 +674,7 @@ function checkExits() {
   if (!exits) return;
 
   if (exits.right && player.x + player.w >= W) {
+    if (currentRoom === 3 && !boss2Defeated) return; // castillo cerrado
     const e = exits.right;
     startTransition(e.room, e.spawnX, e.spawnY);
   }
@@ -635,6 +724,7 @@ function updateTransition() {
       if (pendingRoom === 4 && !bossDefeated) initBoss();
       if (pendingRoom === 3 && !boss2Defeated) initBoss2();
       playerShots.length = 0;
+      if (pendingRoom === 7 && !chapterShown) { chapterShown = true; showChapter(2, 'La Ruptura'); }
       if (isDeath) {
         // Se conserva el progreso: jefes vencidos, llave, puerta abierta y armas compradas.
         // Los jefes no vencidos se reinician al volver a entrar en su sala.
@@ -1690,6 +1780,69 @@ function drawBackground(room) {
 
 function drawDecorations(room) {
   for (const d of (room.decorations || [])) {
+    if (d.type === 'bricks') {
+      // muro de piedra del castillo
+      ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = 1;
+      for (let row = 0, y = 0; y < H - 60; row++, y += 30) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+        for (let x = (row % 2) * 30; x < W; x += 60) {
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 30); ctx.stroke();
+        }
+      }
+    }
+    if (d.type === 'window') {
+      ctx.fillStyle = '#05040a';
+      ctx.beginPath();
+      ctx.moveTo(d.x - 22, d.y + 90); ctx.lineTo(d.x - 22, d.y + 22);
+      ctx.arc(d.x, d.y + 22, 22, Math.PI, 0); ctx.lineTo(d.x + 22, d.y + 90);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = 'rgba(160,170,255,0.10)';
+      ctx.fill();
+      ctx.strokeStyle = room.edgeColor; ctx.lineWidth = 4; ctx.stroke();
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d.x, d.y + 90); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(d.x - 22, d.y + 50); ctx.lineTo(d.x + 22, d.y + 50); ctx.stroke();
+    }
+    if (d.type === 'banner') {
+      const sway = Math.sin(Date.now() * 0.0015 + d.x) * 3;
+      ctx.fillStyle = '#5a3a20'; ctx.fillRect(d.x - 30, d.y - 4, 60, 6);
+      ctx.fillStyle = '#7a1424';
+      ctx.beginPath();
+      ctx.moveTo(d.x - 24, d.y); ctx.lineTo(d.x + 24, d.y);
+      ctx.lineTo(d.x + 24 + sway, d.y + 110); ctx.lineTo(d.x + sway, d.y + 92);
+      ctx.lineTo(d.x - 24 + sway, d.y + 110); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#d0a040';
+      ctx.beginPath(); ctx.arc(d.x + sway * 0.5, d.y + 44, 10, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#7a1424';
+      ctx.beginPath(); ctx.arc(d.x + sway * 0.5, d.y + 44, 5, 0, Math.PI * 2); ctx.fill();
+    }
+    if (d.type === 'torch') {
+      const f = 0.8 + 0.2 * Math.sin(Date.now() * 0.02 + d.x);
+      const g = ctx.createRadialGradient(d.x, d.y - 12, 0, d.x, d.y - 12, 70 * f);
+      g.addColorStop(0, 'rgba(255,160,60,0.30)');
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(d.x, d.y - 12, 70 * f, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#4a3a2a'; ctx.fillRect(d.x - 3, d.y - 4, 6, 18);
+      ctx.fillStyle = '#ffb040';
+      ctx.beginPath(); ctx.ellipse(d.x, d.y - 12, 6 * f, 11 * f, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff0b0';
+      ctx.beginPath(); ctx.ellipse(d.x, d.y - 9, 2.5, 5, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    if (d.type === 'crack') {
+      // grieta luminosa en el cielo
+      const pulse = 0.5 + 0.3 * Math.sin(Date.now() * 0.003 + d.x);
+      const pts = [[0,0],[-14,40],[10,70],[-8,110],[16,150],[2,190]];
+      ctx.save();
+      ctx.shadowColor = room.particleColor; ctx.shadowBlur = 18;
+      ctx.strokeStyle = hexAlpha(room.particleColor, pulse); ctx.lineWidth = 3;
+      ctx.beginPath();
+      pts.forEach(([px, py], i) => i ? ctx.lineTo(d.x + px, d.y + py) : ctx.moveTo(d.x + px, d.y + py));
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,255,255,' + (pulse * 0.8).toFixed(2) + ')'; ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+    }
     if (d.type === 'pillar') {
       ctx.fillStyle = room.edgeColor;
       ctx.fillRect(d.x - 12, d.y - d.h, 24, d.h);
@@ -1817,7 +1970,7 @@ function drawExitGlow(room) {
   const pc = room.particleColor;
   const pulse = 0.2 + 0.1 * Math.sin(Date.now() * 0.003);
 
-  if (exits.right) {
+  if (exits.right && !(currentRoom === 3 && !boss2Defeated)) {
     const g = ctx.createLinearGradient(W - 60, 0, W, 0);
     g.addColorStop(0, 'rgba(0,0,0,0)');
     g.addColorStop(1, hexAlpha(pc, pulse));
@@ -2222,7 +2375,7 @@ function drawHUD() {
 function drawInventory() {
   if (!showInventory) return;
 
-  const pw = 280, ph = 210, mw = 300, gap = 12;
+  const pw = 280, ph = 250, mw = 300, gap = 12;
   const px = (W - (pw + gap + mw)) / 2, py = (H - ph) / 2;
 
   // Fondo
@@ -2283,7 +2436,7 @@ function drawInventory() {
   drawMiniMap(px + pw + gap, py, mw, ph);
 }
 
-// Minimapa de solo lectura con la sala actual resaltada (la armería aparece al abrirse)
+// Minimapa de solo lectura con la sala actual resaltada
 function drawMiniMap(px, py, pw, ph) {
   ctx.fillStyle = 'rgba(4, 4, 16, 0.45)';
   ctx.fillRect(px, py, pw, ph);
@@ -2304,11 +2457,12 @@ function drawMiniMap(px, py, pw, ph) {
   ctx.stroke();
 
   // Escalar las posiciones del mapa grande al recuadro
-  const nodes = CHEAT_NODES.filter(n => n.id !== 5 || boss2Defeated);
+  // Armería y castillo aparecen al vencer al guardián; la Cumbre, al visitarla
+  const nodes = CHEAT_NODES.filter(n => n.id < 5 || (n.id === 7 ? chapterShown : boss2Defeated));
   const xs = nodes.map(n => n.x), ys = nodes.map(n => n.y);
   const minX = Math.min(...xs), maxX = Math.max(...xs);
   const minY = Math.min(...ys), maxY = Math.max(...ys);
-  const ax = px + 34, aw = pw - 68, ay = py + 72, ah = 52;
+  const ax = px + 34, aw = pw - 68, ay = py + 72, ah = 120;
   const pos = {};
   for (const n of nodes) {
     pos[n.id] = {
@@ -2361,14 +2515,16 @@ function drawMiniMap(px, py, pw, ph) {
 
 // ─── CHEAT MENU ───────────────────────────────────────────────────────────────
 const CHEAT_NODES = [
-  { id:0, x:130, y:310, name:'Entrada',  boss:false,   secret:false },
-  { id:1, x:330, y:310, name:'Cristales',boss:false,   secret:false },
-  { id:2, x:530, y:310, name:'Jardín',   boss:false,   secret:false },
-  { id:3, x:330, y:180, name:'La Cima',  boss:true,    secret:false },
-  { id:4, x:730, y:310, name:'Rey Final',boss:true,    secret:false },
-  { id:5, x:560, y:180, name:'Armería',  boss:false,   secret:false },
+  { id:0, x:130, y:400, name:'Entrada',  boss:false,   secret:false },
+  { id:1, x:330, y:400, name:'Cristales',boss:false,   secret:false },
+  { id:2, x:530, y:400, name:'Jardín',   boss:false,   secret:false },
+  { id:3, x:330, y:270, name:'La Cima',  boss:true,    secret:false },
+  { id:4, x:730, y:400, name:'Rey Final',boss:true,    secret:false },
+  { id:5, x:330, y:140, name:'Armería',  boss:false,   secret:false },
+  { id:6, x:530, y:270, name:'Castillo', boss:false,   secret:false },
+  { id:7, x:530, y:140, name:'Cumbre',   boss:false,   secret:false },
 ];
-const CHEAT_EDGES = [[0,1],[1,2],[2,4],[1,3],[3,5]];
+const CHEAT_EDGES = [[0,1],[1,2],[2,4],[1,3],[3,5],[3,6],[6,7]];
 
 function updateCheatUI() {
   const np = document.getElementById('cheat-numpad');
@@ -2517,6 +2673,7 @@ canvas.addEventListener('click', e => {
   for (const n of CHEAT_NODES) { if ((mx-n.x)**2+(my-n.y)**2<44**2) { cheatTeleport(n.id); return; } }
 });
 canvas.addEventListener('touchend', e => {
+  if (chapterTimer > 0 && chapterTimer < chapterDur - 90) { chapterTimer = Math.min(chapterTimer, 50); return; }
   if (cheatState !== 'map') return;
   e.preventDefault();
   const r=canvas.getBoundingClientRect(), sc=W/r.width;
@@ -2551,6 +2708,64 @@ document.querySelectorAll('#cheat-numpad .np-btn[data-d]').forEach(btn => {
     cheatCode=''; cheatError=0; updateCheatUI();
   }, { passive:false });
 })();
+
+function drawChapter() {
+  if (chapterTimer <= 0) return;
+  chapterTimer--;
+  const t  = chapterDur - chapterTimer;              // frames transcurridos
+  const tt = t - (chapterText.intro ? CHAPTER_INTRO : 0); // frames desde que sale el título
+  const bgA   = Math.min(1, chapterTimer / 50);  // el fondo se va al final
+  const textA = Math.min(1, Math.max(0, (tt - 30) / 50)) * bgA;
+
+  ctx.save();
+  ctx.fillStyle = `rgba(0,0,0,${bgA})`;
+  ctx.fillRect(0, 0, W, H);
+
+  // grieta que parte la pantalla
+  const prog = Math.min(1, t / 70);
+  ctx.strokeStyle = `rgba(255,80,128,${(0.7 * bgA).toFixed(2)})`;
+  ctx.shadowColor = '#ff5080'; ctx.shadowBlur = 16; ctx.lineWidth = 2;
+  ctx.beginPath();
+  const pts = [[0,300],[180,286],[300,310],[420,280],[540,302],[660,276],[780,298],[W,284]];
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) {
+    if (pts[i][0] > W * prog) {
+      const [ax, ay] = pts[i - 1], [bx, by] = pts[i], k = (W * prog - ax) / (bx - ax);
+      ctx.lineTo(ax + (bx - ax) * k, ay + (by - ay) * k);
+      break;
+    }
+    ctx.lineTo(pts[i][0], pts[i][1]);
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  // "Nuevo capítulo": aparece, se quita y luego sale el título
+  if (chapterText.intro && tt < 0) {
+    ctx.globalAlpha = Math.max(0, Math.min(1, (t - 20) / 30, (CHAPTER_INTRO - t) / 30));
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#e0d0ff';
+    ctx.font = 'italic 600 34px Georgia, serif';
+    ctx.fillText('Nuevo capítulo', W / 2, 252);
+  }
+
+  ctx.globalAlpha = textA;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#c8a0ff';
+  ctx.font = '13px monospace';
+  ctx.fillText(chapterText.label, W / 2, 200);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '600 52px Georgia, serif';
+  ctx.fillText(chapterText.title, W / 2, 262);
+  ctx.strokeStyle = 'rgba(200,160,255,0.5)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(W / 2 - 170, 218); ctx.lineTo(W / 2 + 170, 218); ctx.stroke();
+
+  if (t > 120) {
+    ctx.globalAlpha = textA * (0.4 + 0.3 * Math.sin(Date.now() * 0.005));
+    ctx.fillStyle = '#ffffff'; ctx.font = '10px monospace';
+    ctx.fillText('pulsa cualquier tecla', W / 2, H - 40);
+  }
+  ctx.restore();
+}
 
 function drawTransition() {
   if (transAlpha <= 0) return;
@@ -2759,7 +2974,7 @@ function drawShop() {
 
 // ─── LOOP PRINCIPAL ───────────────────────────────────────────────────────────
 function frame() {
-  if (!transitioning && cheatState === 'closed') {
+  if (!transitioning && cheatState === 'closed' && chapterTimer <= 0) {
     updatePlayer();
     updateEnemies();
     checkEnemyCollisions();
@@ -2775,7 +2990,7 @@ function frame() {
   updateTransition();
   updateParticles(currentRoom);
 
-  if (roomLabelTimer > 0) {
+  if (roomLabelTimer > 0 && chapterTimer <= 0) {
     roomLabelTimer--;
     if (roomLabelTimer < 60) roomLabelAlpha = roomLabelTimer / 60;
   }
@@ -2803,6 +3018,7 @@ function frame() {
   drawInventory();
   drawCheat();
   drawTransition();
+  drawChapter();
 
   requestAnimationFrame(frame);
 }
@@ -2825,6 +3041,7 @@ initBoss();
 initBoss2();
 roomLabelAlpha = 1;
 roomLabelTimer = 200;
+showChapter(1, 'Las Profundidades');
 requestAnimationFrame(frame);
 </script>
 </body>
