@@ -296,7 +296,7 @@ const ROOMS = {
       down: { room: 6, spawnX: 460, spawnY: 110 },
     },
     decorations: [
-      { type:'snowMountain' },
+      { type:'nightRanges' },
     ],
   },
 };
@@ -1827,57 +1827,58 @@ function drawDecorations(room) {
       ctx.fillStyle = '#fff0b0';
       ctx.beginPath(); ctx.ellipse(d.x, d.y - 9, 2.5, 5, 0, 0, Math.PI * 2); ctx.fill();
     }
-    if (d.type === 'snowMountain') {
-      // cielo frío y despejado
+    if (d.type === 'nightRanges') {
+      // cielo nocturno
       const g = ctx.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, '#6f8fc4'); g.addColorStop(0.6, '#b9cde6'); g.addColorStop(1, '#e4ecf6');
+      g.addColorStop(0, '#05081a'); g.addColorStop(0.55, '#141c3e'); g.addColorStop(1, '#2a3460');
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-      // una sola montaña grande
-      const peak = [480, 70];
-      const mg = ctx.createLinearGradient(0, peak[1], 0, H);
-      mg.addColorStop(0, '#6a7896'); mg.addColorStop(1, '#3c4660');
-      ctx.fillStyle = mg;
-      ctx.beginPath();
-      ctx.moveTo(-40, H);
-      ctx.quadraticCurveTo(160, 330, 330, 230);
-      ctx.quadraticCurveTo(420, 150, peak[0], peak[1]);
-      ctx.quadraticCurveTo(560, 150, 650, 220);
-      ctx.quadraticCurveTo(820, 330, 1000, H);
-      ctx.closePath(); ctx.fill();
-      // cara en sombra
-      ctx.fillStyle = 'rgba(20,28,50,0.25)';
-      ctx.beginPath();
-      ctx.moveTo(peak[0], peak[1]);
-      ctx.quadraticCurveTo(560, 150, 650, 220);
-      ctx.quadraticCurveTo(820, 330, 1000, H);
-      ctx.lineTo(560, H);
-      ctx.quadraticCurveTo(520, 260, peak[0], peak[1]);
-      ctx.fill();
-      // nieve en la cima
-      const sg = ctx.createLinearGradient(0, peak[1], 0, 250);
-      sg.addColorStop(0, '#ffffff'); sg.addColorStop(1, '#dfe7f4');
-      ctx.fillStyle = sg;
-      ctx.beginPath();
-      ctx.moveTo(peak[0], peak[1]);
-      ctx.quadraticCurveTo(540, 140, 600, 186);
-      ctx.quadraticCurveTo(580, 200, 560, 190);
-      ctx.quadraticCurveTo(545, 214, 525, 198);
-      ctx.quadraticCurveTo(505, 222, 488, 200);
-      ctx.quadraticCurveTo(468, 224, 450, 198);
-      ctx.quadraticCurveTo(430, 214, 412, 196);
-      ctx.quadraticCurveTo(392, 206, 372, 190);
-      ctx.quadraticCurveTo(420, 140, peak[0], peak[1]);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(150,170,210,0.35)';
-      ctx.beginPath();
-      ctx.moveTo(peak[0], peak[1]);
-      ctx.quadraticCurveTo(540, 140, 600, 186);
-      ctx.quadraticCurveTo(560, 196, 525, 198);
-      ctx.quadraticCurveTo(505, 150, peak[0], peak[1]);
-      ctx.fill();
-      // bruma al pie de la montaña
+      // estrellas
+      for (let k = 0; k < 70; k++) {
+        const sx = (k * 137.5) % W, sy = (k * 53.3) % 260;
+        const tw = 0.45 + 0.55 * Math.abs(Math.sin(Date.now() * 0.0015 + k));
+        ctx.fillStyle = `rgba(255,255,255,${(tw * (k % 3 ? 0.55 : 0.9)).toFixed(2)})`;
+        ctx.beginPath(); ctx.arc(sx, sy, k % 5 ? 1 : 1.7, 0, Math.PI * 2); ctx.fill();
+      }
+      // luna
+      const mg = ctx.createRadialGradient(170, 90, 0, 170, 90, 120);
+      mg.addColorStop(0, 'rgba(220,230,255,0.35)'); mg.addColorStop(1, 'rgba(220,230,255,0)');
+      ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(170, 90, 120, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#eef2ff'; ctx.beginPath(); ctx.arc(170, 90, 30, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(170,180,215,0.35)';
+      ctx.beginPath(); ctx.arc(160, 82, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(181, 100, 4, 0, Math.PI * 2); ctx.fill();
+
+      // cordilleras: de la más lejana a la más cercana, con nieve en los picos
+      const range = (pts, top, bottom, snow) => {
+        const lg = ctx.createLinearGradient(0, Math.min(...pts.map(q => q[1])), 0, H);
+        lg.addColorStop(0, top); lg.addColorStop(1, bottom);
+        ctx.fillStyle = lg;
+        ctx.beginPath(); ctx.moveTo(0, H);
+        for (const [x, y] of pts) ctx.lineTo(x, y);
+        ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = snow;
+        for (let k = 1; k < pts.length - 1; k++) {
+          const [x, y] = pts[k], [x0, y0] = pts[k - 1], [x1, y1] = pts[k + 1];
+          if (y >= y0 || y >= y1) continue; // solo picos
+          const f = 0.32;
+          const lx = x + (x0 - x) * f, ly = y + (y0 - y) * f;
+          const rx = x + (x1 - x) * f, ry = y + (y1 - y) * f;
+          ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(rx, ry);
+          ctx.lineTo(x + (rx - x) * 0.5, y + (ry - y) * 0.75);
+          ctx.lineTo(x, y + Math.max(ly - y, ry - y) * 0.6);
+          ctx.lineTo(x + (lx - x) * 0.5, y + (ly - y) * 0.75);
+          ctx.lineTo(lx, ly); ctx.closePath(); ctx.fill();
+        }
+      };
+      range([[0,250],[70,190],[140,230],[220,150],[300,215],[370,170],[450,230],[530,140],[610,205],[690,160],[770,220],[850,150],[920,200],[960,180]],
+            '#3a4878', '#26305a', 'rgba(220,230,255,0.55)');
+      range([[0,300],[90,240],[170,290],[260,215],[350,280],[440,230],[520,295],[620,220],[710,285],[800,235],[890,290],[960,250]],
+            '#28335e', '#1a2244', 'rgba(230,238,255,0.75)');
+      range([[0,360],[110,300],[210,350],[330,290],[430,345],[560,300],[680,350],[790,305],[900,350],[960,320]],
+            '#1a2142', '#10152c', 'rgba(240,244,255,0.85)');
+      // bruma nocturna al pie
       const hz = ctx.createLinearGradient(0, 330, 0, H);
-      hz.addColorStop(0, 'rgba(228,236,246,0)'); hz.addColorStop(1, 'rgba(228,236,246,0.6)');
+      hz.addColorStop(0, 'rgba(120,140,200,0)'); hz.addColorStop(1, 'rgba(120,140,200,0.18)');
       ctx.fillStyle = hz; ctx.fillRect(0, 330, W, H - 330);
     }
     if (d.type === 'pillar') {
