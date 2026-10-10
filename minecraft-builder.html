@@ -216,6 +216,7 @@
       <button class="tab" onclick="setMode('rocket',this)">🚀 Cohete</button>
       <button class="tab" onclick="setMode('pyramid',this)">Pirámide</button>
       <button class="tab" onclick="setMode('dome',this)">Domo</button>
+      <button class="tab" onclick="setMode('cube',this)">Cubo</button>
     </div>
 
     <div id="paramFields"></div>
@@ -404,6 +405,11 @@ const MODES = {
   dome: [
     { id:'radius', label:'Radio', min:2, max:25, val:8 },
   ],
+  cube: [
+    { id:'cubeW', label:'Ancho (X)',     min:1, max:50, val:10 },
+    { id:'cubeH', label:'Alto (Y)',      min:1, max:60, val:10 },
+    { id:'cubeD', label:'Profundidad (Z)',min:1, max:50, val:10 },
+  ],
 };
 
 const params = {};
@@ -590,6 +596,26 @@ function buildPyramid() {
   gridSize=B;
 }
 
+function buildCube() {
+  const W=params.cubeW,H=params.cubeH,D=params.cubeD;
+  const hollow=document.getElementById('hollowCheck').checked;
+  const fillFloor=document.getElementById('fillFloorCheck').checked;
+  const gs=Math.max(W,D);
+  const ox=Math.floor((gs-W)/2),oz=Math.floor((gs-D)/2);
+  layers=[];
+  for(let y=0;y<H;y++){
+    const g=Array.from({length:gs},()=>new Array(gs).fill(0));
+    const isFloor=fillFloor&&(y===0||y===H-1);
+    for(let x=0;x<W;x++)
+      for(let z=0;z<D;z++){
+        const edge=x===0||x===W-1||z===0||z===D-1||y===0||y===H-1;
+        if(!hollow||isFloor||edge) g[ox+x][oz+z]=primaryType;
+      }
+    layers.push(g);
+  }
+  gridSize=gs;
+}
+
 function buildDome() {
   const R=params.radius;
   const hollow=document.getElementById('hollowCheck').checked;
@@ -615,7 +641,7 @@ function buildDome() {
 // ══════════════════════════════════════════════════════
 function rebuild() {
   const builtins={cylinder:buildCylinder,cone:buildCone,sphere:buildSphere,
-    rocket:buildRocket,pyramid:buildPyramid,dome:buildDome};
+    rocket:buildRocket,pyramid:buildPyramid,dome:buildDome,cube:buildCube};
   if(builtins[mode]){
     builtins[mode]();
   } else if(mode.startsWith('custom_')){
