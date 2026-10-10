@@ -250,6 +250,7 @@
     flex-basis: 100%;
   }
 </style>
+<script src="/speed-insights-init.js"></script>
 </head>
 <body>
 
@@ -314,7 +315,7 @@ function appendMessage(role, text) {
   const msgs = document.getElementById('messages');
   const div = document.createElement('div');
   div.className = `msg ${role}`;
-  const emoji = role === 'user' ? '🧑' : '🤖';
+  const emoji = role === 'user' ? '🧑' : '���';
   div.innerHTML = `
     <div class="avatar">${emoji}</div>
     <div class="bubble">${role === 'claude' ? renderMarkdown(text) : escapeHtml(text)}</div>`;
