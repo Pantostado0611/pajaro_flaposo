@@ -1,5 +1,10 @@
 {
   "name": "minijuegos",
   "version": "1.0.0",
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
 }

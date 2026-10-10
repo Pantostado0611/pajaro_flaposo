@@ -200,6 +200,10 @@
     .layout { flex-direction: column; align-items: center; }
   }
 </style>
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 
@@ -746,9 +750,9 @@ function makeFaceColor(type,n){
   return `rgb(${Math.round(r*br)},${Math.round(g*br)},${Math.round(b*br)})`;
 }
 
-// ══════════════════════════════════════════════════════
+// ═══════════════════════════════════════��══════════════
 //  3D — CACHÉ DE CARAS
-// ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════��═══════
 function buildFaceCache() {
   facesCache=[];
   if (!layers.length||!gridSize) return;
