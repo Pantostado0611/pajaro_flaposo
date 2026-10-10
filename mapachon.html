@@ -34,6 +34,7 @@
   #btn-left   { bottom: 24px; left: 16px; }
   #btn-right  { bottom: 24px; left: 100px; }
   #btn-attack { bottom: 24px; right: 100px; background: rgba(255,80,60,0.14); border-color: rgba(255,100,80,0.32); }
+  #btn-shoot  { bottom: 100px; right: 100px; background: rgba(160,255,96,0.14); border-color: rgba(160,255,96,0.32); }
   #btn-jump   { bottom: 24px; right: 16px;  background: rgba(0,200,255,0.14); border-color: rgba(0,200,255,0.32); }
   #btn-inv    { top: 8px;  right: 8px;  width: 48px; height: 48px; font-size: 18px; background: rgba(180,120,255,0.14); border-color: rgba(180,120,255,0.32); }
   #btn-cheat  { top: 64px; right: 8px;  width: 48px; height: 48px; font-size: 18px; background: rgba(255,200,0,0.12);   border-color: rgba(255,200,0,0.28); }
@@ -68,6 +69,7 @@
   <div class="t-btn" id="btn-left">◀</div>
   <div class="t-btn" id="btn-right">▶</div>
   <div class="t-btn" id="btn-attack">⚔</div>
+  <div class="t-btn" id="btn-shoot">🏹</div>
   <div class="t-btn" id="btn-jump">▲</div>
   <div class="t-btn" id="btn-inv">📦</div>
   <div class="t-btn" id="btn-cheat">🔑</div>
@@ -326,16 +328,14 @@ const JUMP_V     = -13.5;
 const MAX_FALL   = 18;
 const COYOTE_MAX = 8;
 const FRICTION   = 0.82;
+// Corta distancia (cuerpo a cuerpo)
 let playerDmg   = 1;
-let weaponName  = 'Blaster';
+let weaponName  = 'Garras';
 let weaponColor = '#40c8ff';
-
-const WEAPONS = [
-  { id:0, name:'Blaster',  damage:1, color:'#40c8ff', col2:'#006688' },
-  { id:1, name:'Hacha',    damage:2, color:'#ff8840', col2:'#cc3300' },
-  { id:2, name:'Lanza',    damage:3, color:'#44ff88', col2:'#008844' },
-  { id:3, name:'Cañón+',   damage:5, color:'#ff44ff', col2:'#aa00cc' },
-];
+// Larga distancia (null = ninguna; se compra en la armería)
+let ranged = null; // { name, color, damage, speed, cooldown }
+let rangedTimer = 0;
+const playerShots = [];
 
 // ─── TECLADO ─────────────────────────────────────────────────────────────────
 const keys = {};
@@ -356,10 +356,8 @@ document.addEventListener('keydown', e => {
   }
   if (!keys[e.code]) {
     if (['Space','ArrowUp','KeyW'].includes(e.code)) player.jumpBuffered = true;
-    if (['KeyZ','KeyJ','KeyX'].includes(e.code) && player.attackTimer === 0) {
-      player.attackTimer  = 26;
-      player.attackActive = 9;
-    }
+    if (['KeyZ','KeyJ','KeyX'].includes(e.code)) tryAttack();
+    if (['KeyC','KeyK'].includes(e.code)) tryShoot();
   }
   keys[e.code] = true;
   e.preventDefault();
@@ -371,7 +369,7 @@ function right()    { return keys['ArrowRight'] || keys['KeyD'] || touch.right; 
 function jumpHeld() { return keys['Space'] || keys['ArrowUp'] || keys['KeyW'] || touch.jump; }
 
 // ─── TÁCTIL ───────────────────────────────────────────────────────────────────
-const touch = { left: false, right: false, jump: false, attack: false };
+const touch = { left: false, right: false, jump: false, attack: false, shoot: false };
 
 (function () {
   function bind(id, key) {
@@ -381,10 +379,8 @@ const touch = { left: false, right: false, jump: false, attack: false };
       e.preventDefault();
       touch[key] = true;
       if (key === 'jump') player.jumpBuffered = true;
-      if (key === 'attack' && player.attackTimer === 0) {
-        player.attackTimer  = 26;
-        player.attackActive = 9;
-      }
+      if (key === 'attack') tryAttack();
+      if (key === 'shoot')  tryShoot();
     }
     function up(e) { e.preventDefault(); touch[key] = false; }
     el.addEventListener('touchstart',  down, { passive: false });
@@ -395,6 +391,7 @@ const touch = { left: false, right: false, jump: false, attack: false };
   bind('btn-right',  'right');
   bind('btn-jump',   'jump');
   bind('btn-attack', 'attack');
+  bind('btn-shoot',  'shoot');
   const invBtn = document.getElementById('btn-inv');
   if (invBtn) {
     invBtn.addEventListener('touchstart', e => { e.preventDefault(); showInventory = !showInventory; }, { passive: false });
@@ -421,8 +418,8 @@ let money      = 0;
 const moneyPops = []; // textos flotantes "+N"
 
 const MONEY_ENEMY = 3, MONEY_BOSS = 20;
-// Alma (como la sombra de Hollow Knight): guarda tu dinero y arma al morir
-let shade = null;      // { room, x, y, money, weapon:{name,color,dmg}, bob }
+// Alma (como la sombra de Hollow Knight): guarda tus mapesos al morir
+let shade = null;      // { room, x, y, money, bob }
 let lastGround = null; // última posición pisando suelo { room, x, y }
 function addMoney(amount, x, y) {
   money += amount;
@@ -637,12 +634,11 @@ function updateTransition() {
       initEnemies(currentRoom);
       if (pendingRoom === 4 && !bossDefeated) initBoss();
       if (pendingRoom === 3 && !boss2Defeated) initBoss2();
-      if (pendingRoom === 5) initWeaponItems();
+      playerShots.length = 0;
       if (isDeath) {
-        // Se conserva el progreso: jefes vencidos, llave y puerta abierta.
+        // Se conserva el progreso: jefes vencidos, llave, puerta abierta y armas compradas.
         // Los jefes no vencidos se reinician al volver a entrar en su sala.
         player.hp = player.maxHp; player.invFrames = 0;
-        playerDmg = 1; weaponName = 'Blaster'; weaponColor = '#40c8ff';
       }
       roomLabelAlpha = 1;
       roomLabelTimer = 200;
@@ -663,8 +659,7 @@ function updateTransition() {
 
 // ─── ALMA ─────────────────────────────────────────────────────────────────────
 function spawnShade() {
-  const hasWeapon = playerDmg > 1;
-  if (money <= 0 && !hasWeapon) { shade = null; return; }
+  if (money <= 0) { shade = null; return; }
   // Si caíste al vacío, el alma aparece en el último suelo que pisaste
   let x = player.x, y = player.y - 10;
   if (player.y > H - 40 && lastGround && lastGround.room === currentRoom) {
@@ -672,7 +667,6 @@ function spawnShade() {
   }
   shade = {
     room: currentRoom, x, y, money, bob: 0,
-    weapon: hasWeapon ? { name: weaponName, color: weaponColor, dmg: playerDmg } : null,
   };
   money = 0; // la alma anterior (si había) se pierde
 }
@@ -686,10 +680,7 @@ function updateShade() {
   const hit = (player.attackActive > 0 && collideRect(atkX, player.y + 6, atkW, atkH, sx, sy, sw, sh)) ||
               collideRect(player.x, player.y, player.w, player.h, sx, sy, sw, sh);
   if (!hit) return;
-  if (shade.money > 0) addMoney(shade.money, sx + sw / 2, sy);
-  if (shade.weapon && shade.weapon.dmg > playerDmg) {
-    playerDmg = shade.weapon.dmg; weaponName = shade.weapon.name; weaponColor = shade.weapon.color;
-  }
+  addMoney(shade.money, sx + sw / 2, sy);
   shade = null;
 }
 
@@ -730,10 +721,6 @@ function drawShade() {
   ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
   ctx.fillStyle = '#ffd040';
   ctx.fillText('💰 ' + shade.money, cx, cy - 30);
-  if (shade.weapon) {
-    ctx.fillStyle = shade.weapon.color;
-    ctx.fillText('⚔ ' + shade.weapon.name, cx, cy - 42);
-  }
 }
 
 // ─── ENEMIGOS ─────────────────────────────────────────────────────────────────
@@ -2187,7 +2174,7 @@ function drawHUD() {
   ctx.font = 'bold 14px monospace';
   ctx.textAlign = 'left';
   ctx.fillStyle = '#ffd040';
-  ctx.fillText('💰 ' + money, 16, 90);
+  ctx.fillText('💰 ' + money + ' mapesos', 16, 90);
   if (shade) {
     ctx.font = '11px monospace';
     ctx.fillStyle = 'rgba(200,170,255,0.8)';
@@ -2200,7 +2187,7 @@ function drawHUD() {
     m.t--; m.y -= 0.8;
     if (m.t <= 0) { moneyPops.splice(i, 1); continue; }
     ctx.globalAlpha = Math.min(1, m.t / 30);
-    ctx.fillStyle = '#ffd040';
+    ctx.fillStyle = m.color || '#ffd040';
     ctx.font = 'bold 15px monospace';
     ctx.textAlign = 'center';
     ctx.fillText(m.text + ' 💰', m.x, m.y);
@@ -2221,19 +2208,21 @@ function drawHUD() {
     ctx.restore();
   }
 
-  // Arma actual
+  // Armas actuales
   ctx.font = '11px monospace'; ctx.textAlign = 'right';
+  ctx.fillStyle = ranged ? ranged.color : 'rgba(255,255,255,0.3)';
+  ctx.fillText(ranged ? '🏹 ' + ranged.name + '  x' + ranged.damage : '🏹 —', W - 16, H - 44);
   ctx.fillStyle = weaponColor;
   ctx.fillText('⚔ ' + weaponName + '  x' + playerDmg, W - 16, H - 28);
   ctx.fillStyle = 'rgba(255,255,255,0.16)';
   ctx.font = '10px monospace';
-  ctx.fillText('Z / J: atacar  |  pisotón: caer encima', W - 16, H - 14);
+  ctx.fillText('Z / J: corta  |  C / K: larga  |  pisotón: caer encima', W - 16, H - 14);
 }
 
 function drawInventory() {
   if (!showInventory) return;
 
-  const pw = 280, ph = 200, mw = 300, gap = 12;
+  const pw = 280, ph = 210, mw = 300, gap = 12;
   const px = (W - (pw + gap + mw)) / 2, py = (H - ph) / 2;
 
   // Fondo
@@ -2268,21 +2257,21 @@ function drawInventory() {
   ctx.textAlign = 'right';
   ctx.fillText(player.maxHp, px + pw - 26, py + 78);
 
-  // Fila: Daño
-  ctx.textAlign = 'left';
-  ctx.fillStyle = weaponColor;
-  ctx.fillText('⚔  ' + weaponName, px + 26, py + 114);
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'right';
-  ctx.fillText('x' + playerDmg, px + pw - 26, py + 114);
-
-  // Fila: Dinero
-  ctx.textAlign = 'left';
-  ctx.fillStyle = '#ffd040';
-  ctx.fillText('💰  Dinero', px + 26, py + 150);
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'right';
-  ctx.fillText(money, px + pw - 26, py + 150);
+  // Filas: corta distancia, larga distancia y mapesos
+  const rows = [
+    ['⚔  ' + weaponName, weaponColor, 'x' + playerDmg],
+    ['🏹  ' + (ranged ? ranged.name : 'Sin arma'), ranged ? ranged.color : '#777', ranged ? 'x' + ranged.damage : '—'],
+    ['💰  Mapesos', '#ffd040', money],
+  ];
+  rows.forEach(([label, color, value], i) => {
+    const ry = py + 106 + i * 28;
+    ctx.textAlign = 'left';
+    ctx.fillStyle = color;
+    ctx.fillText(label, px + 26, ry);
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'right';
+    ctx.fillText(value, px + pw - 26, ry);
+  });
 
   // Hint cierre
   ctx.textAlign = 'center';
@@ -2572,29 +2561,113 @@ function drawTransition() {
   ctx.fillRect(0, 0, W, H);
 }
 
-// ─── ARMAS ────────────────────────────────────────────────────────────────────
-const ROOM5_WEAPONS = [
-  { wid:1, x:155, y:356, active:true, bobTimer:0 },
-  { wid:2, x:480, y:356, active:true, bobTimer:0 },
-  { wid:3, x:805, y:356, active:true, bobTimer:0 },
+// ─── ARMERÍA (TIENDA) ─────────────────────────────────────────────────────────
+// Corta distancia en los escalones, larga distancia en el suelo
+const SHOP_ITEMS = [
+  { icon:1, type:'melee',  name:'Hacha',      damage:2, price:15, color:'#ff8840', col2:'#cc3300', x:155, y:356 },
+  { icon:2, type:'melee',  name:'Lanza',      damage:3, price:35, color:'#44ff88', col2:'#008844', x:480, y:356 },
+  { icon:4, type:'melee',  name:'Espada',     damage:5, price:70, color:'#ffe060', col2:'#aa8800', x:805, y:356 },
+  { icon:5, type:'ranged', name:'Tirachinas', damage:1, price:10, color:'#d0d0d0', col2:'#7a4a28', x:317, y:446, speed:9,  cooldown:28 },
+  { icon:6, type:'ranged', name:'Arco',       damage:2, price:30, color:'#a0ff60', col2:'#7a4a28', x:642, y:446, speed:12, cooldown:24 },
+  { icon:3, type:'ranged', name:'Cañón+',     damage:4, price:60, color:'#ff44ff', col2:'#aa00cc', x:900, y:446, speed:8,  cooldown:40 },
 ];
+const ownedItems = new Set();
 
-function initWeaponItems() {
-  for (const it of ROOM5_WEAPONS) { it.active = true; it.bobTimer = 0; }
+function shopItemUnderPlayer() {
+  if (currentRoom !== 5) return null;
+  return SHOP_ITEMS.find(it =>
+    collideRect(player.x, player.y, player.w, player.h, it.x - 26, it.y - 30, 52, 60)) || null;
 }
 
-function updateWeaponItems() {
-  if (currentRoom !== 5) return;
-  for (const it of ROOM5_WEAPONS) {
-    if (!it.active) continue;
-    it.bobTimer += 0.05;
-    if (collideRect(player.x, player.y, player.w, player.h, it.x-22, it.y-22, 44, 44)) {
-      it.active = false;
-      const w = WEAPONS[it.wid];
-      playerDmg  = w.damage;
-      weaponName = w.name;
-      weaponColor= w.color;
+function isEquipped(it) {
+  return it.type === 'melee' ? weaponName === it.name : (ranged !== null && ranged.name === it.name);
+}
+
+function equipItem(it) {
+  if (it.type === 'melee') {
+    playerDmg = it.damage; weaponName = it.name; weaponColor = it.color;
+  } else {
+    ranged = { name: it.name, color: it.color, damage: it.damage, speed: it.speed, cooldown: it.cooldown };
+  }
+}
+
+// Devuelve true si el botón de ataque se usó para comprar/equipar
+function tryBuy() {
+  const it = shopItemUnderPlayer();
+  if (!it) return false;
+  if (!ownedItems.has(it.name)) {
+    if (money < it.price) {
+      moneyPops.push({ x: it.x, y: it.y - 40, text: 'Faltan ' + (it.price - money), t: 60, color: '#ff5566' });
+      return true;
     }
+    money -= it.price;
+    ownedItems.add(it.name);
+    moneyPops.push({ x: it.x, y: it.y - 40, text: '-' + it.price, t: 60 });
+  }
+  equipItem(it);
+  return true;
+}
+
+function tryAttack() {
+  if (tryBuy()) return;
+  if (player.attackTimer === 0) {
+    player.attackTimer  = 26;
+    player.attackActive = 9;
+  }
+}
+
+function tryShoot() {
+  if (!ranged || rangedTimer > 0) return;
+  rangedTimer = ranged.cooldown;
+  playerShots.push({
+    x: player.x + player.w / 2 + player.facing * 16, y: player.y + 16,
+    vx: player.facing * ranged.speed, dmg: ranged.damage, color: ranged.color,
+    r: ranged.damage >= 4 ? 8 : 5, life: 80,
+  });
+}
+
+function updatePlayerShots() {
+  if (rangedTimer > 0) rangedTimer--;
+  for (let i = playerShots.length - 1; i >= 0; i--) {
+    const s = playerShots[i];
+    s.x += s.vx; s.life--;
+    const sx = s.x - s.r, sy = s.y - s.r, sd = s.r * 2;
+    let hit = false;
+
+    for (const e of currentEnemies) {
+      if (e.dead || !collideRect(sx, sy, sd, sd, e.x, e.y, e.w, e.h)) continue;
+      e.dead = true; e.deathTimer = 22;
+      addMoney(MONEY_ENEMY, e.x + e.w / 2, e.y);
+      hit = true; break;
+    }
+    if (!hit && currentRoom === 4 && !boss.dead &&
+        collideRect(sx, sy, sd, sd, boss.x, boss.y, boss.w, boss.h)) {
+      hit = true;
+      if (boss.invFrames === 0) {
+        boss.hp -= s.dmg; boss.invFrames = 12;
+        if (boss.hp <= 0) { boss.hp = 0; boss.dead = true; boss.deathTimer = 130; boss.projectiles = []; }
+      }
+    }
+    if (!hit && currentRoom === 3 && !boss2.dead &&
+        collideRect(sx, sy, sd, sd, boss2.x, boss2.y, boss2.w, boss2.h)) {
+      hit = true;
+      if (boss2.invFrames === 0) {
+        boss2.hp -= s.dmg; boss2.invFrames = 12;
+        if (boss2.hp <= 0) { boss2.hp = 0; boss2.dead = true; boss2.deathTimer = 150; boss2.projectiles = []; }
+      }
+    }
+    if (hit || s.life <= 0 || s.x < -20 || s.x > W + 20) playerShots.splice(i, 1);
+  }
+}
+
+function drawPlayerShots() {
+  for (const s of playerShots) {
+    const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 2.5);
+    g.addColorStop(0, hexAlpha(s.color, 0.5));
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(s.x, s.y, s.r * 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = s.color; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(s.x, s.y, s.r * 0.4, 0, Math.PI * 2); ctx.fill();
   }
 }
 
@@ -2627,30 +2700,60 @@ function drawWeaponIcon(id, c1, c2) {
       ctx.beginPath(); ctx.arc(Math.cos(a)*r,Math.sin(a)*r,2,0,Math.PI*2); ctx.fill();
     }
     ctx.globalAlpha=1;
+  } else if (id === 4) { // espada
+    ctx.fillStyle='#7a4a28'; ctx.fillRect(-3,10,6,14);
+    ctx.fillStyle=c2; ctx.fillRect(-11,6,22,5);
+    ctx.fillStyle=c1;
+    ctx.beginPath(); ctx.moveTo(-4,6); ctx.lineTo(-4,-18); ctx.lineTo(0,-26); ctx.lineTo(4,-18); ctx.lineTo(4,6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.fillRect(-1,-18,2,22);
+  } else if (id === 5) { // tirachinas
+    ctx.strokeStyle=c2; ctx.lineWidth=4; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(0,22); ctx.lineTo(0,2); ctx.lineTo(-10,-14); ctx.moveTo(0,2); ctx.lineTo(10,-14); ctx.stroke();
+    ctx.strokeStyle=c1; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(-10,-14); ctx.lineTo(0,-4); ctx.lineTo(10,-14); ctx.stroke();
+    ctx.fillStyle=c1; ctx.beginPath(); ctx.arc(0,-5,3,0,Math.PI*2); ctx.fill();
+  } else if (id === 6) { // arco
+    ctx.strokeStyle=c2; ctx.lineWidth=4; ctx.lineCap='round';
+    ctx.beginPath(); ctx.arc(-6,0,22,-Math.PI*0.4,Math.PI*0.4); ctx.stroke();
+    const ex=-6+22*Math.cos(Math.PI*0.4), ey=22*Math.sin(Math.PI*0.4);
+    ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(ex,-ey); ctx.lineTo(ex,ey); ctx.stroke();
+    ctx.strokeStyle=c1; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(ex-4,0); ctx.lineTo(22,0); ctx.stroke();
+    ctx.fillStyle=c1; ctx.beginPath(); ctx.moveTo(26,0); ctx.lineTo(19,-4); ctx.lineTo(19,4); ctx.closePath(); ctx.fill();
   }
 }
 
-function drawWeaponItems() {
+function drawShop() {
   if (currentRoom !== 5) return;
-  for (const it of ROOM5_WEAPONS) {
-    if (!it.active) continue;
-    const w = WEAPONS[it.wid];
-    const iy = it.y + Math.sin(it.bobTimer)*6;
+  const under = shopItemUnderPlayer();
+  for (const it of SHOP_ITEMS) {
+    const iy = it.y + Math.sin(Date.now() * 0.003 + it.x) * 6;
+    const owned = ownedItems.has(it.name), equipped = isEquipped(it);
 
     const g = ctx.createRadialGradient(it.x,iy,0,it.x,iy,36);
-    g.addColorStop(0, hexAlpha(w.color, 0.35));
+    g.addColorStop(0, hexAlpha(it.color, equipped ? 0.5 : 0.3));
     g.addColorStop(1, 'transparent');
     ctx.fillStyle=g; ctx.beginPath(); ctx.arc(it.x,iy,36,0,Math.PI*2); ctx.fill();
 
     ctx.save();
     ctx.translate(it.x, iy);
-    drawWeaponIcon(it.wid, w.color, w.col2);
+    if (!owned) ctx.globalAlpha = 0.75;
+    drawWeaponIcon(it.icon, it.color, it.col2);
     ctx.restore();
 
-    ctx.fillStyle=w.color; ctx.font='bold 13px monospace'; ctx.textAlign='center';
-    ctx.fillText('x'+w.damage, it.x, iy+48);
-    ctx.fillStyle='rgba(255,255,255,0.55)'; ctx.font='9px monospace';
-    ctx.fillText(w.name, it.x, iy+60);
+    ctx.textAlign='center';
+    ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.font='9px monospace';
+    ctx.fillText((it.type === 'melee' ? '⚔ ' : '🏹 ') + it.name + '  x' + it.damage, it.x, iy - 34);
+    ctx.font='bold 11px monospace';
+    if (equipped)   { ctx.fillStyle='#40ff90'; ctx.fillText('EQUIPADO', it.x, iy + 42); }
+    else if (owned) { ctx.fillStyle='#d0b0ff'; ctx.fillText('COMPRADO', it.x, iy + 42); }
+    else            { ctx.fillStyle = money >= it.price ? '#ffd040' : '#aa6666'; ctx.fillText('💰 ' + it.price, it.x, iy + 42); }
+
+    if (it === under && !equipped) {
+      ctx.fillStyle='#fff'; ctx.font='bold 10px monospace';
+      ctx.fillText(owned ? 'Z / ⚔  equipar' : 'Z / ⚔  comprar', it.x, iy - 48);
+    }
   }
 }
 
@@ -2665,7 +2768,7 @@ function frame() {
     updateBoss2();
     checkBoss2Collisions();
     updateKey();
-    updateWeaponItems();
+    updatePlayerShots();
     updateShade();
     checkExits();
   }
@@ -2687,7 +2790,8 @@ function frame() {
   drawBoss();
   drawBoss2();
   drawKey();
-  drawWeaponItems();
+  drawShop();
+  drawPlayerShots();
   drawShade();
   drawPlayer();
   drawRoomLabel();
