@@ -2010,19 +2010,19 @@ function drawCastleRockStone(p) {
   const ground = p.h >= 40;
   const block = (x, y, w, h) => {
     const g = ctx.createLinearGradient(0, y, 0, y + h);
-    g.addColorStop(0, '#a8a09c'); g.addColorStop(0.5, '#8a817e'); g.addColorStop(1, '#6a6262');
+    g.addColorStop(0, '#7a7472'); g.addColorStop(0.5, '#625c5c'); g.addColorStop(1, '#464042');
     ctx.fillStyle = g;
     ctx.beginPath(); ctx.roundRect(x, y, w, h, 7); ctx.fill();
-    ctx.fillStyle = 'rgba(255,245,235,0.18)';
+    ctx.fillStyle = 'rgba(255,245,235,0.07)';
     ctx.beginPath(); ctx.roundRect(x + 4, y + 3, w - 8, 3, 2); ctx.fill();
   };
   ctx.save();
   ctx.beginPath(); ctx.rect(p.x, p.y - 4, p.w, (ground ? H : p.y + p.h + 30) - p.y + 4); ctx.clip();
   if (ground) {
     // camino de ronda
-    ctx.fillStyle = '#4a4040'; ctx.fillRect(p.x, p.y, p.w, H - p.y);
+    ctx.fillStyle = '#2e2828'; ctx.fillRect(p.x, p.y, p.w, H - p.y);
     const tg = ctx.createLinearGradient(0, p.y, 0, p.y + 12);
-    tg.addColorStop(0, '#c4bab4'); tg.addColorStop(1, '#8e8480');
+    tg.addColorStop(0, '#8a8480'); tg.addColorStop(1, '#625c5a');
     ctx.fillStyle = tg; ctx.beginPath(); ctx.roundRect(p.x, p.y, p.w, 12, 4); ctx.fill();
     // fila de bloques grandes
     for (let x = p.x - 10; x < p.x + p.w; x += 72) block(x + 2, p.y + 14, 68, 28);
@@ -2033,12 +2033,12 @@ function drawCastleRockStone(p) {
     }
   } else {
     // repisa de piedra con ménsulas
-    ctx.fillStyle = '#4a4040';
+    ctx.fillStyle = '#2e2828';
     for (const cx of [p.x + 16, p.x + p.w - 16]) {
       ctx.beginPath(); ctx.roundRect(cx - 11, p.y + p.h - 2, 22, 10, [0, 0, 6, 6]); ctx.fill();
       ctx.beginPath(); ctx.roundRect(cx - 7,  p.y + p.h + 6, 14, 9,  [0, 0, 7, 7]); ctx.fill();
     }
-    ctx.fillStyle = '#4a4040'; ctx.beginPath(); ctx.roundRect(p.x, p.y, p.w, p.h, 6); ctx.fill();
+    ctx.fillStyle = '#2e2828'; ctx.beginPath(); ctx.roundRect(p.x, p.y, p.w, p.h, 6); ctx.fill();
     const n = Math.max(1, Math.round(p.w / 56)), bw = p.w / n;
     for (let k = 0; k < n; k++) block(p.x + k * bw + 1, p.y, bw - 2, p.h);
   }
