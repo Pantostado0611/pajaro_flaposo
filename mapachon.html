@@ -245,11 +245,12 @@ const ROOMS = {
   },
   6: {
     name: 'Castillo del Umbral',
-    bg: ['#0c0a10', '#18141e'],
-    floorColor: '#2a2630',
-    platColor:  '#3a3542',
-    edgeColor:  '#55505e',
-    particleColor: '#ff9a40',
+    style: 'rayman', // piedra cálida, hiedra y cielo crepuscular (estilo Rayman Legends)
+    bg: ['#1a2858', '#4a5c9c'],
+    floorColor: '#7a6048',
+    platColor:  '#8e7052',
+    edgeColor:  '#6a9a3a', // musgo
+    particleColor: '#ffd890',
     platforms: [
       { x:   0, y: 480, w: 960, h: 60 },
       { x:  90, y: 400, w: 150, h: 18 },
@@ -263,15 +264,12 @@ const ROOMS = {
       up:   { room: 7, spawnX: 280, spawnY: 420 },
     },
     decorations: [
-      { type:'bricks' },
-      { type:'window', x:160, y:120 },
-      { type:'window', x:800, y:120 },
-      { type:'banner', x:270, y:40 },
-      { type:'banner', x:690, y:40 },
-      { type:'torch',  x: 60, y:300 },
-      { type:'torch',  x:900, y:300 },
-      { type:'pillar', x: 30, y:480, h:120 },
-      { type:'pillar', x:930, y:480, h:120 },
+      { type:'rmBackdrop' },
+      { type:'rmWall' },
+      { type:'rmChain',  x:250, len:150 },
+      { type:'rmChain',  x:720, len:120 },
+      { type:'torch',    x: 60, y:330 },
+      { type:'torch',    x:900, y:330 },
     ],
   },
   7: {
@@ -1833,6 +1831,80 @@ function drawDecorations(room) {
       ctx.fillStyle = '#fff0b0';
       ctx.beginPath(); ctx.ellipse(d.x, d.y - 9, 2.5, 5, 0, 0, Math.PI * 2); ctx.fill();
     }
+    if (d.type === 'rmBackdrop') {
+      // luna grande y torres lejanas azuladas (se ven por los arcos)
+      const g = ctx.createRadialGradient(480, 90, 0, 480, 90, 260);
+      g.addColorStop(0, 'rgba(255,240,200,0.35)');
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#fff4d8';
+      ctx.beginPath(); ctx.arc(480, 90, 46, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#2c3c74';
+      for (const [tx, tw, th] of [[60,50,360],[160,40,300],[700,44,330],[790,60,390],[880,34,290]]) {
+        ctx.fillRect(tx, H - th, tw, th);
+        ctx.beginPath(); ctx.moveTo(tx - 6, H - th); ctx.lineTo(tx + tw / 2, H - th - 46); ctx.lineTo(tx + tw + 6, H - th); ctx.closePath(); ctx.fill();
+      }
+      ctx.fillStyle = 'rgba(255,220,140,0.5)';
+      for (const [wx, wy] of [[80,220],[175,280],[718,250],[815,200],[892,290]]) ctx.fillRect(wx, wy, 6, 10);
+    }
+    if (d.type === 'rmWall') {
+      // muro de piedra cálida con grandes arcos abiertos al cielo
+      const arch = (x, w, top, bottom) => {
+        ctx.moveTo(x, bottom); ctx.lineTo(x, top + w / 2);
+        ctx.arc(x + w / 2, top + w / 2, w / 2, Math.PI, 0); ctx.lineTo(x + w, bottom); ctx.closePath();
+      };
+      const wallPath = () => {
+        ctx.beginPath();
+        ctx.rect(0, 0, W, H);
+        arch(95, 140, 80, 300);
+        arch(725, 140, 80, 300);
+        arch(380, 200, -100, 150); // gran abertura central hacia arriba
+      };
+      ctx.save();
+      wallPath(); ctx.clip('evenodd');
+      ctx.fillStyle = '#5a3e28'; ctx.fillRect(0, 0, W, H);
+      for (let row = 0, y = 0; y < H; row++, y += 36) {
+        for (let x = -(row % 2) * 30; x < W; x += 60) {
+          const shade = ((x * 3 + y * 7) % 6) * 5;
+          ctx.fillStyle = `rgb(${140 + shade},${104 + shade},${68 + shade})`;
+          ctx.beginPath(); ctx.roundRect(x + 2, y + 2, 56, 32, 8); ctx.fill();
+        }
+      }
+      // luz cálida desde abajo y sombra arriba
+      const lg = ctx.createLinearGradient(0, 0, 0, H);
+      lg.addColorStop(0, 'rgba(20,20,60,0.45)');
+      lg.addColorStop(0.6, 'rgba(0,0,0,0)');
+      lg.addColorStop(1, 'rgba(255,150,60,0.15)');
+      ctx.fillStyle = lg; ctx.fillRect(0, 0, W, H);
+      ctx.restore();
+      // marcos de los arcos
+      ctx.strokeStyle = '#c9a678'; ctx.lineWidth = 6;
+      for (const [x, w, top, bottom] of [[95,140,80,300],[725,140,80,300],[380,200,-100,150]]) {
+        ctx.beginPath(); arch(x, w, top, bottom); ctx.stroke();
+      }
+      // alféizares
+      ctx.fillStyle = '#c9a678';
+      ctx.fillRect(85, 300, 160, 10); ctx.fillRect(715, 300, 160, 10); ctx.fillRect(370, 150, 220, 10);
+    }
+    if (d.type === 'rmChain') {
+      const sway = Math.sin(Date.now() * 0.0012 + d.x) * 0.04;
+      ctx.save();
+      ctx.translate(d.x, 0); ctx.rotate(sway);
+      ctx.strokeStyle = '#3a3440'; ctx.lineWidth = 3;
+      for (let y = 0; y < d.len; y += 12) {
+        ctx.beginPath(); ctx.ellipse(0, y + 6, (y / 12) % 2 ? 2 : 4, 6, 0, 0, Math.PI * 2); ctx.stroke();
+      }
+      // farolillo
+      const f = 0.8 + 0.2 * Math.sin(Date.now() * 0.015 + d.x);
+      const g = ctx.createRadialGradient(0, d.len + 16, 0, 0, d.len + 16, 60 * f);
+      g.addColorStop(0, 'rgba(255,200,90,0.45)');
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, d.len + 16, 60 * f, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#3a3440'; ctx.fillRect(-10, d.len, 20, 5); ctx.fillRect(-8, d.len + 28, 16, 4);
+      ctx.fillStyle = '#ffd070'; ctx.fillRect(-7, d.len + 5, 14, 23);
+      ctx.strokeStyle = '#3a3440'; ctx.lineWidth = 2; ctx.strokeRect(-7, d.len + 5, 14, 23);
+      ctx.restore();
+    }
     if (d.type === 'moon') {
       const g = ctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, 90);
       g.addColorStop(0, 'rgba(230,230,255,0.25)');
@@ -2019,6 +2091,7 @@ function drawPlatforms(room) {
       ctx.fillRect(p.x, p.y, p.w, 2);
       continue;
     }
+    if (room.style === 'rayman') { drawRaymanPlatform(p, room); continue; }
     // plataforma normal
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.fillRect(p.x + 4, p.y + 4, p.w, p.h);
@@ -2028,6 +2101,37 @@ function drawPlatforms(room) {
     ctx.fillRect(p.x, p.y, p.w, 4);
     ctx.fillStyle = 'rgba(255,255,255,0.04)';
     ctx.fillRect(p.x, p.y, p.w, 1);
+  }
+}
+
+// Bloques de piedra redondeados con musgo encima (castillo estilo Rayman)
+function drawRaymanPlatform(p, room) {
+  ctx.fillStyle = 'rgba(10,10,30,0.35)';
+  ctx.fillRect(p.x + 5, p.y + 6, p.w, p.h);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(p.x, p.y, p.w, p.h); ctx.clip();
+  ctx.fillStyle = '#4a3828';
+  ctx.fillRect(p.x, p.y, p.w, p.h);
+  const bh = p.h > 30 ? 30 : p.h, bw = 46;
+  for (let row = 0, y = p.y; y < p.y + p.h; row++, y += bh) {
+    for (let x = p.x - (row % 2) * 23; x < p.x + p.w; x += bw) {
+      const shade = ((x * 7 + y * 13) % 5) * 6;
+      ctx.fillStyle = `rgb(${130 + shade},${100 + shade},${72 + shade})`;
+      ctx.beginPath(); ctx.roundRect(x + 2, y + 2, bw - 4, bh - 4, 6); ctx.fill();
+      ctx.fillStyle = 'rgba(255,230,180,0.18)';
+      ctx.fillRect(x + 5, y + 3, bw - 12, 2);
+    }
+  }
+  ctx.restore();
+  // musgo con gotas
+  ctx.fillStyle = room.edgeColor;
+  ctx.fillRect(p.x, p.y - 2, p.w, 6);
+  ctx.fillStyle = '#8cc24a';
+  ctx.fillRect(p.x, p.y - 2, p.w, 2);
+  ctx.fillStyle = room.edgeColor;
+  for (let x = p.x + 8; x < p.x + p.w - 6; x += 17) {
+    const d = 4 + ((x * 31) % 7);
+    ctx.beginPath(); ctx.ellipse(x, p.y + 3, 4, d, 0, 0, Math.PI * 2); ctx.fill();
   }
 }
 
