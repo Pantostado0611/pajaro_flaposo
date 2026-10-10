@@ -43,9 +43,14 @@ module.exports = async function handler(req, res) {
   let lastStatus = 0;
   let lastText = '';
 
+  // Modelos que ya dieron 429: no se reintentan (cada intento gasta cuota)
+  const limited = new Set();
+
   for (let attempt = 0; attempt < MAX_ATTEMPTS && Date.now() - start < DEADLINE - 3000; attempt++) {
+    const available = MODELS.filter(m => !limited.has(m));
+    if (!available.length) break;
     if (attempt > 1) await sleep(1500 * (attempt - 1));
-    const model = MODELS[attempt % MODELS.length];
+    const model = available[attempt % available.length];
     const timeout = Math.min(ATTEMPT_TIMEOUT, DEADLINE - (Date.now() - start));
     if (timeout < 3000) break;
 
@@ -63,7 +68,8 @@ module.exports = async function handler(req, res) {
     }
 
     lastStatus = response.status;
-    if ([429, 500, 503].includes(response.status)) { console.warn(`${model}: ${response.status}`); continue; }
+    if (response.status === 429) { console.warn(`${model}: 429`); limited.add(model); continue; }
+    if ([500, 503].includes(response.status)) { console.warn(`${model}: ${response.status}`); continue; }
 
     if (!response.ok) {
       console.error('Gemini error:', model, response.status, lastText);
