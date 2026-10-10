@@ -37,6 +37,7 @@
   #btn-shoot  { bottom: 100px; right: 100px; background: rgba(160,255,96,0.14); border-color: rgba(160,255,96,0.32); }
   #btn-jump   { bottom: 24px; right: 16px;  background: rgba(0,200,255,0.14); border-color: rgba(0,200,255,0.32); }
   #btn-inv    { top: 8px;  right: 8px;  width: 48px; height: 48px; font-size: 18px; background: rgba(180,120,255,0.14); border-color: rgba(180,120,255,0.32); }
+  #btn-music  { top: 120px; right: 8px; width: 48px; height: 48px; font-size: 18px; background: rgba(120,200,255,0.12); border-color: rgba(120,200,255,0.28); }
   #btn-cheat  { top: 64px; right: 8px;  width: 48px; height: 48px; font-size: 18px; background: rgba(255,200,0,0.12);   border-color: rgba(255,200,0,0.28); }
 
   /* Cheat numpad */
@@ -73,6 +74,7 @@
   <div class="t-btn" id="btn-jump">▲</div>
   <div class="t-btn" id="btn-inv">📦</div>
   <div class="t-btn" id="btn-cheat">🔑</div>
+  <div class="t-btn" id="btn-music">🔊</div>
 </div>
 
 <div id="cheat-numpad">
@@ -402,6 +404,7 @@ const playerShots = [];
 // ─── TECLADO ─────────────────────────────────────────────────────────────────
 const keys = {};
 document.addEventListener('keydown', e => {
+  if (e.code === 'KeyM') { Music.toggleMute(); e.preventDefault(); return; }
   if (chapterTimer > 0) {
     if (chapterTimer < chapterDur - 90) chapterTimer = Math.min(chapterTimer, 50);
     e.preventDefault(); return;
@@ -3176,6 +3179,8 @@ function drawHUD() {
   ctx.fillStyle = 'rgba(255,255,255,0.16)';
   ctx.font = '10px monospace';
   ctx.fillText('Z / J: corta  |  C / K: larga  |  pisotón: caer encima', W - 16, H - 14);
+  ctx.textAlign = 'left';
+  ctx.fillText((Music.muted ? '🔇' : '🔊') + ' M: música', 16, H - 14);
 }
 
 function drawInventory() {
@@ -3795,6 +3800,301 @@ function drawShop() {
   }
 }
 
+// ─── MÚSICA ───────────────────────────────────────────────────────────────────
+// Banda sonora original generada con Web Audio (sin archivos): piano y cuerdas
+// melancólicos para explorar, y temas rápidos con melodía "chiptune" y batería
+// para los jefes. M = silenciar / activar.
+const Music = (() => {
+  const NOTE = { C: 0, 'C#': 1, D: 2, 'D#': 3, E: 4, F: 5, 'F#': 6, G: 7, 'G#': 8, A: 9, 'A#': 10, B: 11, Bb: 10, Eb: 3 };
+  const freq = n => {
+    const m = n.match(/^([A-G][#b]?)(\d)$/);
+    return 440 * Math.pow(2, (NOTE[m[1]] + (+m[2] + 1) * 12 - 69) / 12);
+  };
+  const shift = (n, semis) => freq(n) * Math.pow(2, semis / 12);
+
+  let ac = null, master = null, reverbIn = null, noiseBuf = null;
+  let muted = false;
+  try { muted = localStorage.getItem('mapachon-muted') === '1'; } catch (e) {}
+  let bus = null, track = null, trackName = null, step = 0, nextTime = 0;
+
+  function unlock() {
+    if (!ac) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      ac = new AC();
+      master = ac.createGain();
+      master.gain.value = muted ? 0 : 0.42;
+      master.connect(ac.destination);
+      // reverberación: respuesta de impulso generada con ruido que se apaga
+      const conv = ac.createConvolver();
+      const len = ac.sampleRate * 2.8, imp = ac.createBuffer(2, len, ac.sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const d = imp.getChannelData(ch);
+        for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6);
+      }
+      conv.buffer = imp;
+      reverbIn = ac.createGain(); reverbIn.gain.value = 0.38;
+      reverbIn.connect(conv); conv.connect(master);
+      noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+      const nd = noiseBuf.getChannelData(0);
+      for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+      setInterval(schedule, 25);
+    }
+    if (ac.state === 'suspended') ac.resume();
+  }
+
+  function toggleMute() {
+    muted = !muted;
+    try { localStorage.setItem('mapachon-muted', muted ? '1' : '0'); } catch (e) {}
+    if (master) master.gain.setTargetAtTime(muted ? 0 : 0.42, ac.currentTime, 0.05);
+  }
+
+  // ── Instrumentos ────────────────────────────────────────────────────────────
+  function out(node, wet) {
+    node.connect(bus);
+    if (wet) { const s = ac.createGain(); s.gain.value = wet; node.connect(s); s.connect(reverbIn); }
+  }
+  function env(g, t, a, peak, d, sustainEnd) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + a);
+    g.gain.exponentialRampToValueAtTime(0.0001, sustainEnd + d);
+  }
+  const INST = {
+    piano(t, f, dur, v) {
+      const g = ac.createGain();
+      for (const [type, mul, lvl] of [['triangle', 1, 1], ['sine', 2, 0.25], ['sine', 3, 0.08]]) {
+        const o = ac.createOscillator(); o.type = type; o.frequency.value = f * mul;
+        const og = ac.createGain(); og.gain.value = lvl;
+        o.connect(og); og.connect(g); o.start(t); o.stop(t + dur + 2.2);
+      }
+      env(g, t, 0.006, 0.22 * v, Math.max(1.2, dur * 1.5), t);
+      out(g, 0.9);
+    },
+    pad(t, f, dur, v) {
+      const g = ac.createGain(), lp = ac.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 900;
+      for (const det of [-7, 7]) {
+        const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = det;
+        o.connect(lp); o.start(t); o.stop(t + dur + 1.2);
+      }
+      lp.connect(g);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.045 * v, t + Math.min(0.5, dur * 0.4));
+      g.gain.setValueAtTime(0.045 * v, t + dur);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 1);
+      out(g, 1);
+    },
+    bell(t, f, dur, v) {
+      const g = ac.createGain();
+      for (const [mul, lvl] of [[1, 1], [2.76, 0.3], [5.4, 0.1]]) {
+        const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = f * mul;
+        const og = ac.createGain(); og.gain.value = lvl;
+        o.connect(og); og.connect(g); o.start(t); o.stop(t + 2.6);
+      }
+      env(g, t, 0.004, 0.16 * v, 2.2, t);
+      out(g, 1);
+    },
+    lead(t, f, dur, v) {
+      // onda cuadrada con vibrato, al estilo chiptune
+      const o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter();
+      o.type = 'square'; o.frequency.value = f;
+      const lfo = ac.createOscillator(), lg = ac.createGain();
+      lfo.frequency.value = 5.5; lg.gain.value = 9;
+      lfo.connect(lg); lg.connect(o.detune); lfo.start(t + 0.08); lfo.stop(t + dur + 0.2);
+      lp.type = 'lowpass'; lp.frequency.value = 3200;
+      o.connect(lp); lp.connect(g);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.07 * v, t + 0.01);
+      g.gain.setValueAtTime(0.06 * v, t + Math.max(0.02, dur - 0.05));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.06);
+      o.start(t); o.stop(t + dur + 0.1);
+      out(g, 0.25);
+    },
+    organ(t, f, dur, v) {
+      const g = ac.createGain();
+      for (const [mul, lvl] of [[1, 1], [2, 0.5], [0.5, 0.4]]) {
+        const o = ac.createOscillator(); o.type = 'triangle'; o.frequency.value = f * mul;
+        const og = ac.createGain(); og.gain.value = lvl;
+        o.connect(og); og.connect(g); o.start(t); o.stop(t + dur + 0.5);
+      }
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.07 * v, t + 0.05);
+      g.gain.setValueAtTime(0.07 * v, t + dur);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.4);
+      out(g, 0.6);
+    },
+    harpsi(t, f, dur, v) {
+      const o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter();
+      o.type = 'sawtooth'; o.frequency.value = f;
+      lp.type = 'lowpass'; lp.frequency.value = 2600;
+      o.connect(lp); lp.connect(g);
+      env(g, t, 0.003, 0.05 * v, 0.35, t);
+      o.start(t); o.stop(t + 0.5);
+      out(g, 0.4);
+    },
+    bass(t, f, dur, v) {
+      const o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter();
+      o.type = 'triangle'; o.frequency.value = f;
+      lp.type = 'lowpass'; lp.frequency.value = 600;
+      o.connect(lp); lp.connect(g);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.18 * v, t + 0.02);
+      g.gain.setValueAtTime(0.15 * v, t + Math.max(0.03, dur - 0.05));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.08);
+      o.start(t); o.stop(t + dur + 0.1);
+      out(g, 0.1);
+    },
+    kick(t, f, dur, v) {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.12);
+      o.connect(g); env(g, t, 0.002, 0.5 * v, 0.25, t);
+      o.start(t); o.stop(t + 0.3);
+      out(g, 0);
+    },
+    snare(t, f, dur, v) {
+      const n = ac.createBufferSource(), hp = ac.createBiquadFilter(), g = ac.createGain();
+      n.buffer = noiseBuf; hp.type = 'highpass'; hp.frequency.value = 1400;
+      n.connect(hp); hp.connect(g); env(g, t, 0.002, 0.16 * v, 0.13, t);
+      n.start(t); n.stop(t + 0.2);
+      out(g, 0.3);
+    },
+    hat(t, f, dur, v) {
+      const n = ac.createBufferSource(), hp = ac.createBiquadFilter(), g = ac.createGain();
+      n.buffer = noiseBuf; hp.type = 'highpass'; hp.frequency.value = 7000;
+      n.connect(hp); hp.connect(g); env(g, t, 0.001, 0.05 * v, 0.04, t);
+      n.start(t); n.stop(t + 0.08);
+      out(g, 0);
+    },
+  };
+
+  // ── Composiciones (originales) ──────────────────────────────────────────────
+  // Cada compás tiene 8 pasos (corcheas). Las melodías son [nota, duración en pasos].
+  const MINOR = [0, 7, 12, 15, 19, 15, 12, 7], MAJOR = [0, 7, 12, 16, 19, 16, 12, 7];
+  const chordTones = (root, minor) => [0, minor ? 3 : 4, 7].map(s => shift(root, s));
+
+  function build(def) {
+    const bars = def.chords.length, steps = bars * 8, ev = Array.from({ length: steps }, () => []);
+    def.chords.forEach(([root, minor], b) => {
+      const base = b * 8;
+      if (def.arp) for (let i = 0; i < 8; i++) {
+        if (def.arpEvery && i % def.arpEvery) continue;
+        ev[base + i].push(['arp', shift(root, (minor ? MINOR : MAJOR)[i] + def.arpOct * 12), 1, i === 0 ? 1 : 0.75]);
+      }
+      if (def.pad) for (const f of chordTones(root, minor)) ev[base].push(['pad', f * Math.pow(2, def.padOct), 8, 1]);
+      if (def.bass === 'whole') ev[base].push(['bass', freq(root) / Math.pow(2, def.bassDown), 8, 1]);
+      if (def.bass === 'drive') [0, 0, 12, 0, 0, 12, 0, 7].forEach((s, i) =>
+        ev[base + i].push(['bass', shift(root, s) / Math.pow(2, def.bassDown), 1, i % 4 === 0 ? 1 : 0.8]));
+      if (def.drums) for (const [inst, pos] of def.drums) for (const p of pos) ev[base + p].push([inst, 0, 1, 1]);
+    });
+    let pos = 0;
+    for (const [n, len] of def.melody) {
+      if (n) ev[pos % steps].push(['mel', freq(n), len, 1]);
+      pos += len;
+    }
+    return { ...def, steps, ev, stepDur: 60 / def.bpm / 2 };
+  }
+
+  const TRACKS = {
+    // Exploración: piano melancólico sobre cuerdas (Re menor)
+    ruinas: build({
+      bpm: 76, arp: true, arpOct: -1, inst: { arp: 'piano', mel: 'piano', pad: 'pad', bass: 'bass' },
+      pad: true, padOct: -1, bass: 'whole', bassDown: 2,
+      chords: [['D4', 1], ['A#3', 0], ['F4', 0], ['C4', 0], ['D4', 1], ['G3', 1], ['A#3', 0], ['A3', 0]],
+      melody: [['A4', 2], ['D5', 2], ['F5', 4], ['E5', 2], ['D5', 2], ['C5', 2], ['D5', 2],
+               ['C5', 4], ['A4', 4], ['G4', 2], ['A4', 2], ['C5', 4],
+               ['D5', 2], ['F5', 2], ['A5', 4], ['G5', 2], ['F5', 2], ['D5', 4],
+               ['F5', 2], ['E5', 2], ['D5', 2], ['C5', 2], ['C#5', 4], ['E5', 4]],
+    }),
+    // Capítulo II: campanas y cuerdas, nostálgico (Si menor)
+    cumbre: build({
+      bpm: 66, arp: true, arpOct: -1, arpEvery: 2, inst: { arp: 'piano', mel: 'bell', pad: 'pad', bass: 'bass' },
+      pad: true, padOct: -1, bass: 'whole', bassDown: 2,
+      chords: [['B3', 1], ['G3', 0], ['D4', 0], ['A3', 0], ['B3', 1], ['G3', 0], ['E4', 1], ['F#3', 0]],
+      melody: [['F#5', 4], ['D5', 2], ['B4', 2], ['G5', 4], ['F#5', 2], ['D5', 2],
+               ['A5', 4], ['F#5', 4], ['E5', 4], ['C#5', 4],
+               ['B5', 2], ['A5', 2], ['F#5', 4], ['G5', 2], ['F#5', 2], ['D5', 4],
+               ['E5', 2], ['G5', 2], ['B5', 4], ['A#5', 4], ['C#6', 4]],
+    }),
+    // Jefe: El Último Rey — melodía chiptune con batería (La menor)
+    rey: build({
+      bpm: 138, inst: { mel: 'lead', bass: 'bass' },
+      bass: 'drive', bassDown: 2,
+      drums: [['kick', [0, 4]], ['snare', [2, 6]], ['hat', [0, 1, 2, 3, 4, 5, 6, 7]]],
+      chords: [['A3', 1], ['F3', 0], ['G3', 0], ['E3', 0], ['A3', 1], ['F3', 0], ['G3', 0], ['E3', 0]],
+      melody: [['E5', 2], ['A5', 2], ['G5', 1], ['A5', 1], ['B5', 2], ['C6', 2], ['B5', 1], ['A5', 1], ['G5', 2], ['F5', 2],
+               ['G5', 2], ['D5', 2], ['G5', 1], ['A5', 1], ['B5', 2], ['G#5', 4], ['E5', 4],
+               ['A5', 1], ['A5', 1], ['C6', 2], ['B5', 1], ['A5', 1], ['G5', 2], ['F5', 2], ['A5', 2], ['C6', 2], ['A5', 2],
+               ['B5', 2], ['A5', 1], ['G5', 1], ['F5', 2], ['D5', 2], ['E5', 2], ['G#5', 2], ['B5', 2], ['E6', 2]],
+    }),
+    // Jefe: El Guardián de la Cima — clavecín inquietante y órgano (Mi menor)
+    guardian: build({
+      bpm: 150, arp: true, arpOct: 0, inst: { arp: 'harpsi', mel: 'organ', bass: 'bass' },
+      bass: 'drive', bassDown: 2,
+      drums: [['kick', [0, 3, 4]], ['snare', [2, 6]], ['hat', [1, 3, 5, 7]]],
+      chords: [['E3', 1], ['C3', 0], ['A3', 1], ['B3', 0], ['E3', 1], ['C3', 0], ['A3', 1], ['B3', 0]],
+      melody: [['B4', 8], ['C5', 4], ['E5', 4], ['E5', 4], ['D5', 2], ['C5', 2], ['D#5', 8],
+               ['G5', 4], ['F#5', 4], ['E5', 4], ['G5', 4], ['A5', 4], ['G5', 2], ['E5', 2], ['F#5', 8]],
+    }),
+  };
+
+  function play(name) {
+    if (!ac || name === trackName) return;
+    trackName = name;
+    // fundido de salida del tema anterior
+    if (bus) {
+      const old = bus;
+      old.gain.cancelScheduledValues(ac.currentTime);
+      old.gain.setValueAtTime(old.gain.value, ac.currentTime);
+      old.gain.linearRampToValueAtTime(0, ac.currentTime + 0.8);
+      setTimeout(() => old.disconnect(), 3500);
+    }
+    bus = ac.createGain();
+    bus.gain.setValueAtTime(0, ac.currentTime);
+    bus.gain.linearRampToValueAtTime(1, ac.currentTime + 1.2);
+    bus.connect(master);
+    track = TRACKS[name]; step = 0; nextTime = ac.currentTime + 0.15;
+  }
+
+  function schedule() {
+    if (!ac || !track || ac.state !== 'running') return;
+    while (nextTime < ac.currentTime + 0.12) {
+      for (const [role, f, len, v] of track.ev[step]) {
+        const inst = INST[(track.inst && track.inst[role]) || role];
+        if (inst) inst(nextTime, f, len * track.stepDur, v);
+      }
+      nextTime += track.stepDur;
+      step = (step + 1) % track.steps;
+    }
+  }
+
+  // Elige el tema según la sala y si el jefe sigue vivo
+  function update() {
+    if (!ac) return;
+    let name = 'ruinas';
+    if (currentRoom === 4 && !bossDefeated && !boss.dead) name = 'rey';
+    else if (currentRoom === 3 && !boss2Defeated && !boss2.dead) name = 'guardian';
+    else if (currentRoom === 6 || currentRoom === 7) name = 'cumbre';
+    play(name);
+  }
+
+  return { unlock, toggleMute, update, get muted() { return muted; } };
+})();
+
+// botón táctil de música
+(function () {
+  const el = document.getElementById('btn-music');
+  if (!el) return;
+  const sync = () => { el.textContent = Music.muted ? '🔇' : '🔊'; };
+  sync();
+  el.addEventListener('touchstart', e => { e.preventDefault(); Music.unlock(); Music.toggleMute(); sync(); }, { passive: false });
+})();
+
+// el navegador solo deja sonar audio tras una interacción del jugador
+for (const ev of ['keydown', 'pointerdown', 'touchstart']) {
+  document.addEventListener(ev, () => Music.unlock(), { passive: true });
+}
+
 // ─── LOOP PRINCIPAL ───────────────────────────────────────────────────────────
 const STEP_MS = 1000 / 60;
 let lastTime = 0, stepAcc = 0;
@@ -3811,6 +4111,7 @@ function frame(ts) {
 }
 
 function step() {
+  Music.update();
   ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
   ctx.imageSmoothingQuality = 'high';
   if (shakeTimer > 0) {
