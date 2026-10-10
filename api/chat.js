@@ -30,7 +30,7 @@ module.exports = async function handler(req, res) {
   const body = JSON.stringify({
     systemInstruction: { parts: [{ text: system || DEFAULT_SYSTEM }] },
     contents,
-    generationConfig: { maxOutputTokens: 1024 },
+    generationConfig: { maxOutputTokens: 2048 },
   });
 
   try {

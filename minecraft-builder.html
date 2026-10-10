@@ -1010,7 +1010,7 @@ Tipos de bloque disponibles (Concreto 1-16, Terracota 17-32):
 1=Blanco, 2=Naranja, 3=Magenta, 4=Azul Claro, 5=Amarillo, 6=Lima, 7=Rosa, 8=Gris, 9=Gris Claro, 10=Cian, 11=Morado, 12=Azul, 13=Marrón, 14=Verde, 15=Rojo, 16=Negro
 17-32=mismos colores en Terracota. Default type=6 (Lima Concreto).
 Ejemplo arco romano: const R=6;for(let a=0;a<=Math.PI;a+=0.08){const bx=Math.round(R*Math.cos(a)),by=Math.round(R*Math.sin(a));for(let z=0;z<3;z++)blocks.push({x:bx,y:by,z});}
-El código puede usar Math, bucles for, cualquier lógica. Genera bloques eficientemente con fórmulas matemáticas.
+El código puede usar Math, bucles for, cualquier lógica. USA SIEMPRE bucles y fórmulas — NUNCA listes bloques individuales uno por uno, eso es demasiado largo. Para figuras como animales, usa capas definidas como arrays de strings y recórrelas con bucles.
 
 Para LETREROS o TEXTO en bloques pixelados, tienes disponible el helper:
 textToBlocks(texto, blocks, profundidad)
@@ -1040,18 +1040,23 @@ function appendChatMsg(role, text, cfg, shapeData) {
     div.appendChild(btn);
   }
   if(shapeData){
-    const btn=document.createElement('button');
-    btn.className='config-chip';
-    btn.style.borderColor='#6a4acc';btn.style.color='#c0a0ff';
-    btn.textContent=`✨ Agregar al menú: ${shapeData.name}`;
-    btn.onclick=()=>{
-      const shape=addCustomShape(shapeData.name,shapeData.code);
-      const tab=document.querySelector(`[data-shape-id="${shape.id}"]`);
-      setMode(shape.id,tab);
-      btn.textContent='✓ Agregado al menú';
-      btn.style.borderColor='#4caf50';btn.style.color='#7bc67e';
-    };
-    div.appendChild(btn);
+    const chip=document.createElement('div');
+    chip.className='config-chip';
+    if(shapeData.truncated||shapeData.malformed){
+      chip.style.cssText='border-color:#806000;color:#f0c040;cursor:default';
+      chip.textContent='⚠️ Respuesta cortada — pide de nuevo con "más corto"';
+    } else {
+      chip.style.cssText='border-color:#6a4acc;color:#c0a0ff;cursor:pointer';
+      chip.textContent=`✨ Agregar al menú: ${shapeData.name}`;
+      chip.onclick=()=>{
+        const shape=addCustomShape(shapeData.name,shapeData.code);
+        const tab=document.querySelector(`[data-shape-id="${shape.id}"]`);
+        setMode(shape.id,tab);
+        chip.textContent='✓ Agregado al menú';
+        chip.style.borderColor='#4caf50';chip.style.color='#7bc67e';
+      };
+    }
+    div.appendChild(chip);
   }
   msgs.appendChild(div);
   msgs.scrollTop=msgs.scrollHeight;
@@ -1071,11 +1076,14 @@ function stripConfig(text){
 }
 function parseShape(text){
   const m=text.match(/<shape>([\s\S]*?)<\/shape>/);
-  if(!m) return null;
-  try{return JSON.parse(m[1]);}catch{return null;}
+  if(!m){
+    if(/<shape>/i.test(text)) return{truncated:true};
+    return null;
+  }
+  try{return JSON.parse(m[1]);}catch{return{malformed:true};}
 }
 function stripShape(text){
-  return text.replace(/<shape>[\s\S]*?<\/shape>/g,'').trim();
+  return text.replace(/<shape>[\s\S]*?(<\/shape>|$)/g,'').trim();
 }
 
 async function sendChatMsg(){
