@@ -492,6 +492,9 @@ function addMoney(amount, x, y) {
   moneyPops.push({ x, y, text: '+' + amount, t: 60 });
 }
 let currentEnemies = [];
+// Temblor de pantalla (golpes fuertes de los jefes)
+let shakeTimer = 0, shakeMag = 0;
+function shake(frames, mag) { shakeTimer = Math.max(shakeTimer, frames); shakeMag = Math.max(shakeMag, mag); }
 // Pantalla de capítulo (al empezar y al llegar por primera vez a La Cumbre)
 const CHAPTER_DUR = 330;
 const CHAPTER_INTRO = 150; // "Nuevo capítulo" antes del título (capítulo II en adelante)
@@ -1043,6 +1046,7 @@ function initBoss() {
     hp: 10, state: 'wait', stateTimer: 90,
     phase: 1, invFrames: 0, facing: -1,
     dead: false, deathTimer: 0, projectiles: [],
+    roared: false, windNext: null,
   });
   bossAttackIdx = 0;
 }
@@ -1067,11 +1071,20 @@ function fireBossOrbs() {
 function updateBoss() {
   if (currentRoom !== 4) return;
 
-  // Actualizar proyectiles
+  // Proyectiles: orbes con gravedad, ondas por el suelo y lluvia del cetro
   for (const p of boss.projectiles) {
-    p.x += p.vx; p.y += p.vy;
-    p.vy += 0.12;
-    p.life--;
+    if (p.type === 'wave') {
+      p.x += p.vx; p.life--;
+    } else if (p.type === 'rain') {
+      if (p.delay > 0) { p.delay--; continue; }
+      p.vy = Math.min(p.vy + 0.5, 12);
+      p.y += p.vy;
+      if (p.y >= BOSS_FLOOR_Y + boss.h - 8) p.life = 0;
+    } else {
+      p.x += p.vx; p.y += p.vy;
+      p.vy += 0.12;
+      p.life--;
+    }
   }
   boss.projectiles = boss.projectiles.filter(
     p => p.life > 0 && p.x > -30 && p.x < W + 30 && p.y < H + 30
@@ -1091,21 +1104,38 @@ function updateBoss() {
   }
 
   if (boss.invFrames > 0) boss.invFrames--;
-  boss.phase = boss.hp <= Math.floor(boss.maxHp / 2) ? 2 : 1;
+  const newPhase = boss.hp <= Math.floor(boss.maxHp / 2) ? 2 : 1;
+  // Rugido de furia al pasar a la fase 2
+  if (newPhase === 2 && !boss.roared && boss.y >= BOSS_FLOOR_Y) {
+    boss.roared = true;
+    boss.state = 'roar'; boss.stateTimer = 70;
+    boss.vx = 0; boss.projectiles = [];
+    shake(40, 7);
+  }
+  boss.phase = newPhase;
 
-  // Gravedad (al saltar)
+  // Gravedad (al saltar); al aterrizar golpea el suelo y lanza ondas
   if (boss.y < BOSS_FLOOR_Y) {
     boss.vy += 0.65;
     boss.y  += boss.vy;
     if (boss.y >= BOSS_FLOOR_Y) {
       boss.y = BOSS_FLOOR_Y; boss.vy = 0;
-      if (boss.state === 'jump') { boss.state = 'wait'; boss.vx = 0; boss.stateTimer = 55; }
+      if (boss.state === 'jump') {
+        bossSlam();
+        boss.state = 'wait'; boss.vx = 0; boss.stateTimer = 55;
+      }
     }
   }
 
   boss.stateTimer--;
 
-  if (boss.state === 'charge') {
+  if (boss.state === 'roar') {
+    if (boss.stateTimer <= 0) { boss.state = 'wait'; boss.stateTimer = 30; }
+
+  } else if (boss.state === 'windup') {
+    if (boss.stateTimer <= 0) startBossAttack(boss.windNext);
+
+  } else if (boss.state === 'charge') {
     boss.x += boss.vx;
     if (boss.x <= 20)              { boss.x = 20;              boss.vx =  Math.abs(boss.vx) * 0.92; boss.facing =  1; }
     if (boss.x + boss.w >= W - 20) { boss.x = W - 20 - boss.w; boss.vx = -Math.abs(boss.vx) * 0.92; boss.facing = -1; }
@@ -1117,10 +1147,13 @@ function updateBoss() {
     if (boss.x + boss.w >= W - 20) { boss.x = W - 20 - boss.w; boss.vx = -Math.abs(boss.vx); boss.facing = -1; }
     if (boss.stateTimer <= 0)      { boss.y = BOSS_FLOOR_Y; boss.vy = 0; boss.state = 'wait'; boss.vx = 0; boss.stateTimer = 50; }
 
+  } else if (boss.state === 'rain') {
+    if (boss.stateTimer <= 0) { boss.state = 'wait'; boss.stateTimer = 40; }
+
   } else if (boss.state === 'wait') {
     if (boss.stateTimer <= 0) {
       const pattern = boss.phase === 2
-        ? ['charge','jump','shoot','charge','jump','shoot','charge','charge']
+        ? ['charge','jump','shoot','rain','charge','jump','shoot','charge']
         : ['charge','jump','charge','jump'];
       const next = pattern[bossAttackIdx % pattern.length];
       bossAttackIdx++;
@@ -1131,17 +1164,53 @@ function updateBoss() {
         fireBossOrbs();
         boss.stateTimer = boss.phase === 2 ? 35 : 50;
       } else {
-        boss.state = next;
-        if (next === 'charge') {
-          boss.vx = boss.facing * (boss.phase === 2 ? 7.8 : 6.2);
-          boss.stateTimer = 130;
-        } else {
-          boss.vx = boss.facing * 4.5;
-          boss.vy = -14;
-          boss.stateTimer = 160;
-        }
+        // aviso antes de atacar
+        boss.state = 'windup';
+        boss.windNext = next;
+        boss.stateTimer = boss.phase === 2 ? 18 : 26;
       }
     }
+  }
+}
+
+function startBossAttack(next) {
+  boss.state = next;
+  if (next === 'charge') {
+    boss.vx = boss.facing * (boss.phase === 2 ? 7.8 : 6.2);
+    boss.stateTimer = 130;
+  } else if (next === 'jump') {
+    boss.vx = boss.facing * 4.5;
+    boss.vy = -14;
+    boss.y -= 1;               // despega del suelo para que actúe la gravedad
+    boss.stateTimer = 160;
+  } else if (next === 'rain') {
+    spawnBossRain();
+    boss.stateTimer = 80;
+  }
+}
+
+// Al aterrizar: temblor y dos ondas de choque por el suelo (hay que saltarlas)
+function bossSlam() {
+  shake(16, 5);
+  const fy = BOSS_FLOOR_Y + boss.h - 12;
+  for (const dir of [-1, 1]) {
+    boss.projectiles.push({
+      type: 'wave', x: boss.x + boss.w / 2 + dir * 30, y: fy,
+      vx: dir * (boss.phase === 2 ? 6.5 : 5), vy: 0, r: 12, life: 140,
+    });
+  }
+}
+
+// Lluvia del cetro: orbes que caen del cielo; antes se marca dónde caerán
+function spawnBossRain() {
+  const n = boss.phase === 2 ? 7 : 5;
+  const px = player.x + player.w / 2;
+  for (let i = 0; i < n; i++) {
+    const off = i - (n - 1) / 2;
+    boss.projectiles.push({
+      type: 'rain', x: Math.max(30, Math.min(W - 30, px + off * 95)), y: -20,
+      vx: 0, vy: 0, r: 10, life: 400, delay: 34 + Math.abs(off) * 10,
+    });
   }
 }
 
@@ -1153,7 +1222,7 @@ function checkBossCollisions() {
   const atkY = player.y + 6;
 
   // Ataque del jugador golpea al jefe
-  if (player.attackActive > 0 && boss.invFrames === 0 &&
+  if (player.attackActive > 0 && boss.invFrames === 0 && boss.state !== 'roar' &&
       collideRect(atkX, atkY, atkW, atkH, boss.x, boss.y, boss.w, boss.h)) {
     boss.hp -= playerDmg;
     boss.invFrames = 28;
@@ -1163,7 +1232,7 @@ function checkBossCollisions() {
   // Pisotón al jefe
   const onBoss   = collideRect(player.x, player.y, player.w, player.h, boss.x, boss.y, boss.w, boss.h);
   const fromTop  = player.vy > 1 && (player.y + player.h) < (boss.y + boss.h * 0.5);
-  if (onBoss && fromTop && boss.invFrames === 0) {
+  if (onBoss && fromTop && boss.invFrames === 0 && boss.state !== 'roar') {
     boss.hp -= playerDmg;
     boss.invFrames = 28;
     player.vy = -12;
@@ -1204,6 +1273,91 @@ function checkBossCollisions() {
 }
 
 // Orbe mágico con núcleo, halo y pequeña estela
+// Proyectiles de jefe según su tipo
+function drawBossProjectile(p, rgb, core) {
+  if (p.type === 'wave') {
+    // onda de choque que avanza por el suelo
+    const a = Math.min(1, p.life / 20);
+    ctx.save();
+    ctx.globalAlpha = a;
+    const g = ctx.createRadialGradient(p.x, p.y + 12, 0, p.x, p.y + 12, 28);
+    g.addColorStop(0, `rgba(${rgb},0.9)`); g.addColorStop(1, `rgba(${rgb},0)`);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.ellipse(p.x, p.y + 12, 16, 26, 0, Math.PI, 0); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(p.x, p.y + 12, 10, 18, 0, Math.PI, 0); ctx.stroke();
+    // polvo que levanta
+    ctx.fillStyle = 'rgba(200,180,160,0.5)';
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath(); ctx.arc(p.x - Math.sign(p.vx) * (8 + i * 7), p.y + 10 - i * 2, 3 - i * 0.7, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+    return;
+  }
+  if (p.type === 'rain' && p.delay > 0) {
+    // aviso en el suelo de dónde caerá
+    const floorY = BOSS_FLOOR_Y + boss.h;
+    const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.02);
+    ctx.save();
+    ctx.strokeStyle = `rgba(${rgb},${(0.45 + 0.4 * pulse).toFixed(2)})`; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(p.x, floorY - 2, 16 + pulse * 3, 5, 0, 0, Math.PI * 2); ctx.stroke();
+    const beam = ctx.createLinearGradient(0, 0, 0, floorY);
+    beam.addColorStop(0, `rgba(${rgb},0)`); beam.addColorStop(1, `rgba(${rgb},0.18)`);
+    ctx.fillStyle = beam; ctx.fillRect(p.x - 8, 0, 16, floorY);
+    ctx.restore();
+    return;
+  }
+  if (p.type === 'bat') {
+    // murcielaguito
+    const fl = Math.sin(p.flap) * 0.6;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.scale(p.vx >= 0 ? 1 : -1, 1);
+    ctx.fillStyle = '#1a0830';
+    for (const s of [-1, 1]) {
+      ctx.save(); ctx.scale(s, 1); ctx.rotate(fl);
+      ctx.beginPath(); ctx.moveTo(2, 0); ctx.quadraticCurveTo(9, -9, 15, -3);
+      ctx.quadraticCurveTo(11, -1, 12, 3); ctx.quadraticCurveTo(7, 1, 2, 4); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+    ctx.fillStyle = vol(0, 0, 6, '#4a2470', '#12051e');
+    ctx.beginPath(); ctx.ellipse(0, 1, 5, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-4, -3); ctx.lineTo(-3, -9); ctx.lineTo(-1, -4); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(4, -3); ctx.lineTo(3, -9); ctx.lineTo(1, -4); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ff5070';
+    ctx.beginPath(); ctx.arc(-1.8, 0, 1.2, 0, Math.PI * 2); ctx.arc(1.8, 0, 1.2, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    return;
+  }
+  drawOrb(p, rgb, core);
+}
+
+// Aviso "¡!" sobre un jefe que va a atacar
+function drawWarning(x, y, color) {
+  const pulse = 1 + Math.sin(Date.now() * 0.03) * 0.12;
+  ctx.save();
+  ctx.translate(x, y); ctx.scale(pulse, pulse);
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.stroke();
+  ctx.fillStyle = color;
+  ctx.font = 'bold 18px Georgia, serif'; ctx.textAlign = 'center';
+  ctx.fillText('!', 0, 6.5);
+  ctx.restore();
+}
+
+// Anillos que salen al rugir / chillar
+function drawRoarRings(x, y, t, rgb) {
+  ctx.save();
+  for (let i = 0; i < 3; i++) {
+    const k = ((t + i / 3) % 1);
+    ctx.strokeStyle = `rgba(${rgb},${(0.6 * (1 - k)).toFixed(2)})`;
+    ctx.lineWidth = 4 * (1 - k) + 1;
+    ctx.beginPath(); ctx.arc(x, y, 20 + k * 110, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function drawOrb(p, glowRGB, core) {
   const sp = Math.hypot(p.vx, p.vy) || 1;
   const tx = p.x - (p.vx / sp) * p.r * 2.4, ty = p.y - (p.vy / sp) * p.r * 2.4;
@@ -1248,7 +1402,7 @@ function drawBossDeath(cx, cy, t, cols, maxDist) {
 function drawBoss() {
   if (currentRoom !== 4) return;
 
-  for (const p of boss.projectiles) drawOrb(p, '180,60,255', '#a040e0');
+  for (const p of boss.projectiles) drawBossProjectile(p, '180,60,255', '#a040e0');
 
   if (boss.dead) {
     if (boss.deathTimer <= 0) return;
@@ -1282,9 +1436,26 @@ function drawBoss() {
     }
   }
 
+  // Aura de llamas cuando está furioso (fase 2)
+  if (p2) {
+    for (let i = 0; i < 7; i++) {
+      const fx = -hw + (i / 6) * boss.w, fl = Math.sin(t * 6 + i * 1.7);
+      const fh = 26 + fl * 8 + (i % 2) * 8;
+      const fg = ctx.createLinearGradient(0, hh, 0, hh - fh - 30);
+      fg.addColorStop(0, 'rgba(255,90,30,0.55)'); fg.addColorStop(1, 'rgba(255,200,60,0)');
+      ctx.fillStyle = fg;
+      ctx.beginPath(); ctx.moveTo(fx - 10, hh);
+      ctx.quadraticCurveTo(fx - 6 + fl * 4, hh - fh, fx + fl * 3, hh - fh - 30);
+      ctx.quadraticCurveTo(fx + 6 + fl * 4, hh - fh, fx + 10, hh); ctx.closePath(); ctx.fill();
+    }
+  }
+
   // Respiración: se hincha un poco desde los pies
-  const br = 1 + Math.sin(t * 2) * 0.025;
-  ctx.translate(0, hh); ctx.scale(1, br); ctx.translate(0, -hh);
+  let br = 1 + Math.sin(t * 2) * 0.025;
+  if (boss.state === 'windup' && boss.windNext === 'jump') br = 0.86;
+  ctx.translate(0, hh);
+  if (boss.state === 'windup' && boss.windNext === 'charge') ctx.rotate(-0.12);
+  ctx.scale(1, br); ctx.translate(0, -hh);
 
   // Capa real con pliegues y borde ondulante
   const capeG = ctx.createLinearGradient(0, -hh + 18, 0, hh + 12);
@@ -1445,6 +1616,19 @@ function drawBoss() {
   ctx.beginPath(); ctx.arc(hw + 22, -hh - 12, 7, 0, Math.PI * 2); ctx.fill();
 
   ctx.restore();
+
+  // Aviso, rugido y cetro alzado para la lluvia
+  if (boss.state === 'windup') drawWarning(cx, cy - hh - 52, p2 ? '#ff5533' : '#ffd040');
+  if (boss.state === 'roar') drawRoarRings(cx, cy + hy, (Date.now() * 0.0015) % 1, '255,90,40');
+  if (boss.state === 'rain' || (boss.state === 'windup' && boss.windNext === 'rain')) {
+    const ox = cx + boss.facing * (hw + 22), oy = cy - hh - 12;
+    const rg = ctx.createRadialGradient(ox, oy, 0, ox, oy, 46);
+    rg.addColorStop(0, 'rgba(255,120,120,0.7)'); rg.addColorStop(1, 'rgba(255,60,60,0)');
+    ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(ox, oy, 46, 0, Math.PI * 2); ctx.fill();
+    const bm = ctx.createLinearGradient(0, 0, 0, oy);
+    bm.addColorStop(0, 'rgba(255,90,90,0)'); bm.addColorStop(1, 'rgba(255,90,90,0.35)');
+    ctx.fillStyle = bm; ctx.fillRect(ox - 5, 0, 10, oy);
+  }
 }
 
 function drawBossUI() {
@@ -1626,6 +1810,7 @@ function initBoss2() {
     hp: 12, state: 'hover', stateTimer: 90,
     swoopPhase: 'down', phase: 1, invFrames: 0, facing: 1,
     dead: false, deathTimer: 0, projectiles: [],
+    alpha: 1, shrieked: false, spiralA: 0, blinkPhase: 'out',
   });
   boss2AttackIdx = 0;
 }
@@ -1639,14 +1824,35 @@ function fireBoss2Burst() {
   }
 }
 
+// Murcielaguitos que persiguen al jugador (un golpe o un disparo los destruye)
+function summonBats() {
+  const n = boss2.phase === 2 ? 3 : 2;
+  const cx = boss2.x + boss2.w / 2, cy = boss2.y + boss2.h / 2;
+  for (let i = 0; i < n; i++) {
+    const a = Math.PI * 0.25 + (i / Math.max(1, n - 1)) * Math.PI * 0.5;
+    boss2.projectiles.push({ type: 'bat', x: cx, y: cy, vx: Math.cos(a) * 3 * (i % 2 ? 1 : -1), vy: Math.sin(a) * 2, r: 8, life: 420, flap: i });
+  }
+}
+
 function updateBoss2() {
   if (currentRoom !== 3) return;
 
   for (const p of boss2.projectiles) {
-    p.x += p.vx; p.y += p.vy; p.vy += 0.08; p.life--;
+    if (p.type === 'bat') {
+      const dx = player.x + player.w / 2 - p.x, dy = player.y + player.h / 2 - p.y;
+      const d = Math.hypot(dx, dy) || 1;
+      p.vx += dx / d * 0.12; p.vy += dy / d * 0.12;
+      const sp = Math.hypot(p.vx, p.vy), max = 2.6;
+      if (sp > max) { p.vx *= max / sp; p.vy *= max / sp; }
+      p.x += p.vx; p.y += p.vy; p.flap += 0.3; p.life--;
+    } else if (p.type === 'spiral') {
+      p.x += p.vx; p.y += p.vy; p.life--;
+    } else {
+      p.x += p.vx; p.y += p.vy; p.vy += 0.08; p.life--;
+    }
   }
   boss2.projectiles = boss2.projectiles.filter(
-    p => p.life > 0 && p.x > -30 && p.x < W + 30 && p.y < H + 30
+    p => p.life > 0 && p.x > -30 && p.x < W + 30 && p.y < H + 30 && p.y > -60
   );
 
   if (boss2.dead) {
@@ -1659,34 +1865,102 @@ function updateBoss2() {
   }
 
   if (boss2.invFrames > 0) boss2.invFrames--;
-  boss2.phase = boss2.hp <= 6 ? 2 : 1;
+  const newPhase = boss2.hp <= 6 ? 2 : 1;
+  // Chillido al pasar a la fase 2
+  if (newPhase === 2 && !boss2.shrieked) {
+    boss2.shrieked = true;
+    boss2.state = 'shriek'; boss2.stateTimer = 60;
+    boss2.vx = 0; boss2.vy = 0; boss2.alpha = 1; boss2.projectiles = [];
+    shake(36, 6);
+  }
+  boss2.phase = newPhase;
   boss2.stateTimer--;
 
-  if (boss2.state === 'hover') {
-    // Flotar suavemente de lado a lado
+  const hoverDrift = () => {
     const targetX = W / 2 + Math.sin(Date.now() * 0.0009) * 220;
     boss2.vx += (targetX - (boss2.x + boss2.w / 2)) * 0.004;
     boss2.vx  = Math.max(-3.5, Math.min(3.5, boss2.vx));
     boss2.x  += boss2.vx;
     boss2.y   = BOSS2_HOVER_Y + Math.sin(Date.now() * 0.003) * 14;
     boss2.facing = boss2.vx > 0 ? 1 : -1;
+  };
+  const toHover = (timer) => { boss2.state = 'hover'; boss2.stateTimer = timer; };
 
+  if (boss2.state === 'shriek') {
+    boss2.y = BOSS2_HOVER_Y + Math.sin(Date.now() * 0.05) * 3;
+    if (boss2.stateTimer <= 0) {
+      const cx = boss2.x + boss2.w / 2, cy = boss2.y + boss2.h / 2;
+      for (let i = 0; i < 12; i++) {
+        const a = (i / 12) * Math.PI * 2;
+        boss2.projectiles.push({ type: 'spiral', x: cx, y: cy, vx: Math.cos(a) * 3.4, vy: Math.sin(a) * 3.4, r: 8, life: 220 });
+      }
+      toHover(45);
+    }
+
+  } else if (boss2.state === 'hover') {
+    hoverDrift();
     if (boss2.stateTimer <= 0) {
       const pattern = boss2.phase === 2
-        ? ['swoop','burst','swoop','swoop','burst','swoop']
-        : ['swoop','burst','swoop'];
+        ? ['swoop','spiral','blink','swoop','summon','burst','blink','swoop']
+        : ['swoop','burst','summon','swoop','burst'];
       const next = pattern[boss2AttackIdx % pattern.length];
       boss2AttackIdx++;
 
       if (next === 'burst') {
         fireBoss2Burst();
         boss2.stateTimer = boss2.phase === 2 ? 40 : 55;
+      } else if (next === 'summon') {
+        summonBats();
+        boss2.stateTimer = 60;
+      } else if (next === 'spiral') {
+        boss2.state = 'spiral'; boss2.stateTimer = 75; boss2.vx = 0;
+      } else if (next === 'blink') {
+        boss2.state = 'blink'; boss2.blinkPhase = 'out'; boss2.stateTimer = 20;
       } else {
-        boss2.state = 'swoop';
-        boss2.swoopPhase = 'down';
-        boss2.stateTimer = 200;
-        const pdx = (player.x + player.w / 2) - (boss2.x + boss2.w / 2);
-        boss2.facing = pdx > 0 ? 1 : -1;
+        // aviso antes de lanzarse en picado
+        boss2.state = 'swoopPrep';
+        boss2.stateTimer = boss2.phase === 2 ? 14 : 22;
+      }
+    }
+
+  } else if (boss2.state === 'swoopPrep') {
+    boss2.vx *= 0.8; boss2.x += boss2.vx;
+    const pdx = (player.x + player.w / 2) - (boss2.x + boss2.w / 2);
+    boss2.facing = pdx > 0 ? 1 : -1;
+    if (boss2.stateTimer <= 0) {
+      boss2.state = 'swoop';
+      boss2.swoopPhase = 'down';
+      boss2.stateTimer = 200;
+    }
+
+  } else if (boss2.state === 'spiral') {
+    boss2.y = BOSS2_HOVER_Y + Math.sin(Date.now() * 0.003) * 6;
+    if (boss2.stateTimer % 5 === 0) {
+      const cx = boss2.x + boss2.w / 2, cy = boss2.y + boss2.h / 2;
+      for (const off of [0, Math.PI]) {
+        const a = boss2.spiralA + off;
+        boss2.projectiles.push({ type: 'spiral', x: cx, y: cy, vx: Math.cos(a) * 3, vy: Math.sin(a) * 3, r: 7, life: 220 });
+      }
+      boss2.spiralA += 0.35;
+    }
+    if (boss2.stateTimer <= 0) toHover(45);
+
+  } else if (boss2.state === 'blink') {
+    if (boss2.blinkPhase === 'out') {
+      boss2.alpha = Math.max(0, boss2.stateTimer / 20);
+      if (boss2.stateTimer <= 0) {
+        // reaparece encima del jugador, a un lado
+        const side = Math.random() < 0.5 ? -1 : 1;
+        boss2.x = Math.max(40, Math.min(W - 40 - boss2.w, player.x + side * 170));
+        boss2.y = BOSS2_HOVER_Y;
+        boss2.blinkPhase = 'in'; boss2.stateTimer = 20;
+      }
+    } else {
+      boss2.alpha = Math.min(1, 1 - boss2.stateTimer / 20);
+      if (boss2.stateTimer <= 0) {
+        boss2.alpha = 1;
+        fireBoss2Burst();
+        toHover(40);
       }
     }
 
@@ -1712,13 +1986,12 @@ function updateBoss2() {
       boss2.y  += boss2.vy;
       if (boss2.y <= BOSS2_HOVER_Y) {
         boss2.y = BOSS2_HOVER_Y; boss2.vy = 0; boss2.vx = 0;
-        boss2.state = 'hover';
-        boss2.stateTimer = boss2.phase === 2 ? 35 : 55;
+        toHover(boss2.phase === 2 ? 35 : 55);
       }
     }
     if (boss2.stateTimer <= 0) {
       boss2.y = BOSS2_HOVER_Y; boss2.vy = 0; boss2.vx = 0;
-      boss2.state = 'hover'; boss2.stateTimer = 45;
+      toHover(45);
     }
   }
 }
@@ -1730,7 +2003,8 @@ function checkBoss2Collisions() {
   const atkX = player.facing === 1 ? player.x + player.w : player.x - atkW;
   const atkY = player.y + 6;
 
-  if (player.attackActive > 0 && boss2.invFrames === 0 &&
+  const b2solid = boss2.state !== 'shriek' && boss2.alpha > 0.5;
+  if (player.attackActive > 0 && boss2.invFrames === 0 && b2solid &&
       collideRect(atkX, atkY, atkW, atkH, boss2.x, boss2.y, boss2.w, boss2.h)) {
     boss2.hp -= playerDmg;
     boss2.invFrames = 26;
@@ -1739,14 +2013,14 @@ function checkBoss2Collisions() {
 
   const onBoss2  = collideRect(player.x, player.y, player.w, player.h, boss2.x, boss2.y, boss2.w, boss2.h);
   const fromTop2 = player.vy > 1 && (player.y + player.h) < (boss2.y + boss2.h * 0.5);
-  if (onBoss2 && fromTop2 && boss2.invFrames === 0) {
+  if (onBoss2 && fromTop2 && boss2.invFrames === 0 && b2solid) {
     boss2.hp -= playerDmg;
     boss2.invFrames = 26;
     player.vy = -13;
     if (boss2.hp <= 0) { boss2.hp = 0; boss2.dead = true; boss2.deathTimer = 150; boss2.projectiles = []; return; }
   }
 
-  if (player.invFrames === 0 && !fromTop2 &&
+  if (player.invFrames === 0 && !fromTop2 && boss2.alpha > 0.5 &&
       collideRect(player.x + 3, player.y + 3, player.w - 6, player.h - 3, boss2.x, boss2.y, boss2.w, boss2.h)) {
     if (!godMode) {
       player.hp--;
@@ -1780,7 +2054,7 @@ function checkBoss2Collisions() {
 function drawBoss2() {
   if (currentRoom !== 3) return;
 
-  for (const p of boss2.projectiles) drawOrb(p, '220,130,255', '#c070ff');
+  for (const p of boss2.projectiles) drawBossProjectile(p, '220,130,255', '#c070ff');
 
   if (boss2.dead) {
     if (boss2.deathTimer <= 0) return;
@@ -1794,7 +2068,7 @@ function drawBoss2() {
   const hy = -hh + 4;
   const t  = Date.now() * 0.002;
   const p2 = boss2.phase === 2;
-  const base = boss2.invFrames > 0 && Math.floor(boss2.invFrames / 4) % 2 === 0 ? 0.35 : 1;
+  const base = (boss2.invFrames > 0 && Math.floor(boss2.invFrames / 4) % 2 === 0 ? 0.35 : 1) * (boss2.alpha ?? 1);
   const main = p2 ? '255,32,96' : '96,32,192';   // color del aura
 
   ctx.save();
@@ -1955,6 +2229,22 @@ function drawBoss2() {
   }
 
   ctx.restore();
+
+  if (boss2.state === 'swoopPrep') drawWarning(cx, cy - hh - 50, p2 ? '#ff4070' : '#c080ff');
+  if (boss2.state === 'shriek') drawRoarRings(cx, cy, (Date.now() * 0.0018) % 1, p2 ? '255,60,120' : '180,90,255');
+  if (boss2.state === 'spiral') {
+    // círculo mágico que gira
+    ctx.save();
+    ctx.translate(cx, cy); ctx.rotate(Date.now() * 0.003);
+    ctx.strokeStyle = 'rgba(255,120,180,0.5)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, hw + 22, 0, Math.PI * 2); ctx.stroke();
+    for (let i = 0; i < 6; i++) {
+      const a = i * Math.PI / 3;
+      ctx.beginPath(); ctx.moveTo(Math.cos(a) * (hw + 22), Math.sin(a) * (hw + 22));
+      ctx.lineTo(Math.cos(a + Math.PI / 1.5) * (hw + 22), Math.sin(a + Math.PI / 1.5) * (hw + 22)); ctx.stroke();
+    }
+    ctx.restore();
+  }
 }
 
 function drawBoss2UI() {
@@ -3371,10 +3661,15 @@ function updatePlayerShots() {
       addMoney(MONEY_ENEMY, e.x + e.w / 2, e.y);
       hit = true; break;
     }
+    if (!hit && currentRoom === 3) {
+      const bi = boss2.projectiles.findIndex(b => b.type === 'bat' &&
+        collideRect(sx, sy, sd, sd, b.x - b.r, b.y - b.r, b.r * 2, b.r * 2));
+      if (bi >= 0) { boss2.projectiles.splice(bi, 1); hit = true; }
+    }
     if (!hit && currentRoom === 4 && !boss.dead &&
         collideRect(sx, sy, sd, sd, boss.x, boss.y, boss.w, boss.h)) {
       hit = true;
-      if (boss.invFrames === 0) {
+      if (boss.invFrames === 0 && boss.state !== 'roar') {
         boss.hp -= s.dmg; boss.invFrames = 12;
         if (boss.hp <= 0) { boss.hp = 0; boss.dead = true; boss.deathTimer = 130; boss.projectiles = []; }
       }
@@ -3382,7 +3677,7 @@ function updatePlayerShots() {
     if (!hit && currentRoom === 3 && !boss2.dead &&
         collideRect(sx, sy, sd, sd, boss2.x, boss2.y, boss2.w, boss2.h)) {
       hit = true;
-      if (boss2.invFrames === 0) {
+      if (boss2.invFrames === 0 && boss2.state !== 'shriek' && boss2.alpha > 0.5) {
         boss2.hp -= s.dmg; boss2.invFrames = 12;
         if (boss2.hp <= 0) { boss2.hp = 0; boss2.dead = true; boss2.deathTimer = 150; boss2.projectiles = []; }
       }
@@ -3518,6 +3813,13 @@ function frame(ts) {
 function step() {
   ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
   ctx.imageSmoothingQuality = 'high';
+  if (shakeTimer > 0) {
+    shakeTimer--;
+    const m = shakeMag * Math.min(1, shakeTimer / 10);
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+    ctx.translate((Math.random() - 0.5) * 2 * m, (Math.random() - 0.5) * 2 * m);
+    if (!shakeTimer) shakeMag = 0;
+  }
   if (!transitioning && cheatState === 'closed' && chapterTimer <= 0) {
     updatePlayer();
     updateEnemies();
@@ -3554,6 +3856,7 @@ function step() {
   drawShade();
   drawPlayer();
   drawVignette(room);
+  ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
   drawRoomLabel();
   drawBossUI();
   drawBoss2UI();
