@@ -30,7 +30,7 @@ module.exports = async function handler(req, res) {
   const body = JSON.stringify({
     systemInstruction: { parts: [{ text: system || DEFAULT_SYSTEM }] },
     contents,
-    generationConfig: { maxOutputTokens: 8192 },
+    generationConfig: { maxOutputTokens: 8192, thinkingConfig: { thinkingLevel: 'low' } },
   });
 
   try {
@@ -40,7 +40,7 @@ module.exports = async function handler(req, res) {
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: AbortSignal.timeout(45000) }
       );
 
       lastText = await response.text();
@@ -62,6 +62,7 @@ module.exports = async function handler(req, res) {
 
   } catch (err) {
     console.error('Handler error:', err);
+    if (err.name === 'TimeoutError') return res.status(504).json({ error: 'Gemini tardó demasiado, intenta de nuevo.' });
     res.status(500).json({ error: err.message || 'Error interno' });
   }
 };

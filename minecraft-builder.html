@@ -1157,6 +1157,7 @@ async function sendChatMsg(){
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({messages:chatHistory,system:BUILDER_SYSTEM}),
+      signal:AbortSignal.timeout(70000),
     });
     typing.remove();
     const rawText = await res.text();
@@ -1173,7 +1174,8 @@ async function sendChatMsg(){
     }
   }catch(e){
     typing.remove();
-    appendChatMsg('ai',`⚠️ Error de red: ${e.message}`);
+    chatHistory.pop();
+    appendChatMsg('ai',e.name==='TimeoutError'?'⚠️ Tardó demasiado, intenta de nuevo.':`⚠️ Error de red: ${e.message}`);
   }
 
   chatLoading=false;
