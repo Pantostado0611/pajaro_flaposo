@@ -276,11 +276,12 @@ const ROOMS = {
   },
   7: {
     name: 'La Cumbre Quebrantada',
-    bg: ['#1a0610', '#2a0c18'],
-    floorColor: '#2a1420',
-    platColor:  '#40202e',
-    edgeColor:  '#603040',
-    particleColor: '#ff5080',
+    // Exterior: ladera de la montaña junto a las murallas del castillo
+    bg: ['#0c0a22', '#3a2440'],
+    floorColor: '#2a2834',
+    platColor:  '#3c3a48',
+    edgeColor:  '#c8cce0', // nieve en los bordes
+    particleColor: '#e8ecff',
     platforms: [
       { x:   0, y: 480, w: 360, h: 60 }, // suelo izquierdo
       { x: 600, y: 480, w: 360, h: 60 }, // suelo derecho (hueco = bajada al castillo)
@@ -293,12 +294,15 @@ const ROOMS = {
       down: { room: 6, spawnX: 460, spawnY: 110 },
     },
     decorations: [
-      { type:'crack', x:620, y: 30 },
-      { type:'crack', x:180, y: 60 },
-      { type:'star',  x: 90, y: 50 },
-      { type:'star',  x:860, y: 80 },
-      { type:'pillar', x:820, y:480, h:44 },
-      { type:'pillar', x: 60, y:480, h:70 },
+      { type:'moon',      x:800, y: 80 },
+      { type:'star',      x: 90, y: 50 },
+      { type:'star',      x:420, y: 40 },
+      { type:'star',      x:640, y: 90 },
+      { type:'crack',     x:250, y: 20 },
+      { type:'mountains' },
+      { type:'castleSil', x:600, y:300 },
+      { type:'cloud',     x:150, y:150, speed:0.15 },
+      { type:'cloud',     x:700, y:210, speed:0.10 },
     ],
   },
 };
@@ -1828,6 +1832,68 @@ function drawDecorations(room) {
       ctx.beginPath(); ctx.ellipse(d.x, d.y - 12, 6 * f, 11 * f, 0, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#fff0b0';
       ctx.beginPath(); ctx.ellipse(d.x, d.y - 9, 2.5, 5, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    if (d.type === 'moon') {
+      const g = ctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, 90);
+      g.addColorStop(0, 'rgba(230,230,255,0.25)');
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(d.x, d.y, 90, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#eceaf8';
+      ctx.beginPath(); ctx.arc(d.x, d.y, 30, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(160,160,200,0.35)';
+      ctx.beginPath(); ctx.arc(d.x - 9, d.y - 6, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(d.x + 10, d.y + 9, 4, 0, Math.PI * 2); ctx.fill();
+    }
+    if (d.type === 'mountains') {
+      // cordillera lejana
+      const far = [[0,330],[90,250],[170,300],[260,200],[350,280],[430,230],[520,300],[640,190],[760,270],[860,220],[960,280]];
+      ctx.fillStyle = '#231a38';
+      ctx.beginPath(); ctx.moveTo(0, H);
+      for (const [x, y] of far) ctx.lineTo(x, y);
+      ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+      // nieve en los picos lejanos
+      ctx.fillStyle = 'rgba(220,225,245,0.35)';
+      for (let i = 1; i < far.length - 1; i++) {
+        const [x, y] = far[i];
+        if (y > far[i - 1][1] || y > far[i + 1][1]) continue;
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 18, y + 22); ctx.lineTo(x + 18, y + 22); ctx.closePath(); ctx.fill();
+      }
+      // ladera cercana (la montaña del castillo)
+      ctx.fillStyle = '#17121f';
+      ctx.beginPath(); ctx.moveTo(0, H);
+      for (const [x, y] of [[0,400],[120,370],[260,390],[400,330],[520,300],[700,300],[820,340],[960,380]]) ctx.lineTo(x, y);
+      ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+    }
+    if (d.type === 'castleSil') {
+      // murallas y torres del castillo, vistas desde fuera
+      const c = '#0e0a16', bx = d.x, by = d.y;
+      const merlons = (x, y, w) => { for (let mx = x; mx < x + w - 4; mx += 12) ctx.fillRect(mx, y - 8, 7, 8); };
+      ctx.fillStyle = c;
+      ctx.fillRect(bx - 150, by - 50, 300, 50);      merlons(bx - 150, by - 50, 300); // muralla
+      ctx.fillRect(bx - 175, by - 120, 50, 120);     merlons(bx - 175, by - 120, 50); // torre izq.
+      ctx.fillRect(bx + 125, by - 105, 46, 105);     merlons(bx + 125, by - 105, 46); // torre der.
+      ctx.fillRect(bx - 30, by - 170, 60, 170);                                     // torre del homenaje
+      ctx.beginPath(); ctx.moveTo(bx - 38, by - 170); ctx.lineTo(bx, by - 230); ctx.lineTo(bx + 38, by - 170); ctx.closePath(); ctx.fill();
+      ctx.fillRect(bx - 1, by - 250, 2, 22);
+      const wave = Math.sin(Date.now() * 0.004) * 3;
+      ctx.fillStyle = '#7a1424';
+      ctx.beginPath(); ctx.moveTo(bx + 1, by - 250); ctx.lineTo(bx + 22, by - 245 + wave); ctx.lineTo(bx + 1, by - 238); ctx.closePath(); ctx.fill();
+      // ventanas encendidas
+      const f = 0.7 + 0.3 * Math.sin(Date.now() * 0.01);
+      ctx.fillStyle = `rgba(255,170,70,${f.toFixed(2)})`;
+      for (const [wx, wy] of [[bx - 6, by - 140], [bx - 6, by - 100], [bx - 156, by - 95], [bx + 142, by - 80]]) {
+        ctx.fillRect(wx, wy, 8, 14);
+      }
+      // grieta en la muralla
+      ctx.strokeStyle = 'rgba(255,80,128,0.6)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(bx + 60, by - 50); ctx.lineTo(bx + 52, by - 30); ctx.lineTo(bx + 66, by - 18); ctx.lineTo(bx + 58, by); ctx.stroke();
+    }
+    if (d.type === 'cloud') {
+      const cx = ((d.x + Date.now() * 0.06 * d.speed) % (W + 300)) - 150;
+      ctx.fillStyle = 'rgba(200,190,230,0.10)';
+      for (const [ox, oy, r] of [[0,0,34],[38,6,28],[-36,8,26],[14,-14,24]]) {
+        ctx.beginPath(); ctx.arc(cx + ox, d.y + oy, r, 0, Math.PI * 2); ctx.fill();
+      }
     }
     if (d.type === 'crack') {
       // grieta luminosa en el cielo
