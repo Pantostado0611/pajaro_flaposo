@@ -3835,7 +3835,7 @@ const Music = (() => {
       conv.buffer = imp;
       reverbIn = ac.createGain(); reverbIn.gain.value = 0.38;
       reverbIn.connect(conv); conv.connect(master);
-      noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+      noiseBuf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate);
       const nd = noiseBuf.getChannelData(0);
       for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
       setInterval(schedule, 25);
@@ -3850,6 +3850,7 @@ const Music = (() => {
   }
 
   // ── Instrumentos ────────────────────────────────────────────────────────────
+  const newGain = () => ac.createGain();
   function out(node, wet) {
     node.connect(bus);
     if (wet) { const s = ac.createGain(); s.gain.value = wet; node.connect(s); s.connect(reverbIn); }
@@ -3894,43 +3895,73 @@ const Music = (() => {
       env(g, t, 0.004, 0.16 * v, 2.2, t);
       out(g, 1);
     },
-    lead(t, f, dur, v) {
-      // onda cuadrada con vibrato, al estilo chiptune
-      const o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter();
-      o.type = 'square'; o.frequency.value = f;
-      const lfo = ac.createOscillator(), lg = ac.createGain();
-      lfo.frequency.value = 5.5; lg.gain.value = 9;
-      lfo.connect(lg); lg.connect(o.detune); lfo.start(t + 0.08); lfo.stop(t + dur + 0.2);
-      lp.type = 'lowpass'; lp.frequency.value = 3200;
-      o.connect(lp); lp.connect(g);
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.07 * v, t + 0.01);
-      g.gain.setValueAtTime(0.06 * v, t + Math.max(0.02, dur - 0.05));
-      g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.06);
-      o.start(t); o.stop(t + dur + 0.1);
-      out(g, 0.25);
-    },
-    organ(t, f, dur, v) {
-      const g = ac.createGain();
-      for (const [mul, lvl] of [[1, 1], [2, 0.5], [0.5, 0.4]]) {
-        const o = ac.createOscillator(); o.type = 'triangle'; o.frequency.value = f * mul;
-        const og = ac.createGain(); og.gain.value = lvl;
-        o.connect(og); og.connect(g); o.start(t); o.stop(t + dur + 0.5);
+    strings(t, f, dur, v) {
+      // cuerdas en staccato (ostinato rápido)
+      const g = newGain(), lp = ac.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 2400;
+      for (const det of [-6, 6]) {
+        const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = det;
+        o.connect(lp); o.start(t); o.stop(t + 0.3);
       }
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.linearRampToValueAtTime(0.07 * v, t + 0.05);
-      g.gain.setValueAtTime(0.07 * v, t + dur);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.4);
-      out(g, 0.6);
+      lp.connect(g);
+      env(g, t, 0.01, 0.045 * v, 0.14, t + Math.min(dur, 0.08));
+      out(g, 0.5);
     },
-    harpsi(t, f, dur, v) {
-      const o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter();
-      o.type = 'sawtooth'; o.frequency.value = f;
-      lp.type = 'lowpass'; lp.frequency.value = 2600;
+    brass(t, f, dur, v) {
+      // metales: el filtro se abre al soplar
+      const g = newGain(), lp = ac.createBiquadFilter();
+      lp.type = 'lowpass'; lp.Q.value = 2;
+      lp.frequency.setValueAtTime(500, t);
+      lp.frequency.linearRampToValueAtTime(2600, t + 0.12);
+      lp.frequency.linearRampToValueAtTime(1500, t + Math.max(0.2, dur));
+      for (const [mul, det] of [[1, -5], [1, 5], [0.5, 0]]) {
+        const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f * mul; o.detune.value = det;
+        o.connect(lp); o.start(t); o.stop(t + dur + 0.4);
+      }
+      lp.connect(g);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.06 * v, t + 0.05);
+      g.gain.setValueAtTime(0.055 * v, t + Math.max(0.06, dur - 0.05));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.3);
+      out(g, 0.7);
+    },
+    choir(t, f, dur, v) {
+      // coro "aah": sierra con vibrato filtrada por dos formantes
+      const g = newGain(), mix = ac.createGain();
+      const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f;
+      const lfo = ac.createOscillator(), lg = ac.createGain();
+      lfo.frequency.value = 5; lg.gain.value = 6; lfo.connect(lg); lg.connect(o.detune);
+      for (const [fr, q, lvl] of [[750, 6, 1], [1180, 7, 0.6]]) {
+        const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = fr; bp.Q.value = q;
+        const bg = ac.createGain(); bg.gain.value = lvl;
+        o.connect(bp); bp.connect(bg); bg.connect(mix);
+      }
+      mix.connect(g);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(0.11 * v, t + Math.min(0.6, dur * 0.4));
+      g.gain.setValueAtTime(0.11 * v, t + dur);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.9);
+      o.start(t); o.stop(t + dur + 1); lfo.start(t); lfo.stop(t + dur + 1);
+      out(g, 1);
+    },
+    harp(t, f, dur, v) {
+      const o = ac.createOscillator(), g = newGain(), lp = ac.createBiquadFilter();
+      o.type = 'triangle'; o.frequency.value = f;
+      lp.type = 'lowpass'; lp.frequency.setValueAtTime(4000, t); lp.frequency.exponentialRampToValueAtTime(700, t + 0.6);
       o.connect(lp); lp.connect(g);
-      env(g, t, 0.003, 0.05 * v, 0.35, t);
-      o.start(t); o.stop(t + 0.5);
-      out(g, 0.4);
+      env(g, t, 0.003, 0.12 * v, 0.9, t);
+      o.start(t); o.stop(t + 1.1);
+      out(g, 0.9);
+    },
+    celesta(t, f, dur, v) {
+      const g = newGain();
+      for (const [mul, lvl] of [[1, 1], [4, 0.25], [6.8, 0.06]]) {
+        const o = ac.createOscillator(); o.type = 'sine'; o.frequency.value = f * mul;
+        const og = ac.createGain(); og.gain.value = lvl;
+        o.connect(og); og.connect(g); o.start(t); o.stop(t + 1.8);
+      }
+      env(g, t, 0.003, 0.14 * v, 1.4, t);
+      out(g, 1);
     },
     bass(t, f, dur, v) {
       const o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter();
@@ -3952,12 +3983,25 @@ const Music = (() => {
       o.start(t); o.stop(t + 0.3);
       out(g, 0);
     },
-    snare(t, f, dur, v) {
-      const n = ac.createBufferSource(), hp = ac.createBiquadFilter(), g = ac.createGain();
-      n.buffer = noiseBuf; hp.type = 'highpass'; hp.frequency.value = 1400;
-      n.connect(hp); hp.connect(g); env(g, t, 0.002, 0.16 * v, 0.13, t);
+    taiko(t, f, dur, v) {
+      // tambor grande: golpe grave + parche
+      const o = ac.createOscillator(), g = newGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(f || 110, t); o.frequency.exponentialRampToValueAtTime((f || 110) * 0.45, t + 0.25);
+      o.connect(g); env(g, t, 0.003, 0.55 * v, 0.55, t);
+      o.start(t); o.stop(t + 0.7);
+      const n = ac.createBufferSource(), lp = ac.createBiquadFilter(), ng = newGain();
+      n.buffer = noiseBuf; lp.type = 'lowpass'; lp.frequency.value = 900;
+      n.connect(lp); lp.connect(ng); env(ng, t, 0.002, 0.18 * v, 0.12, t);
       n.start(t); n.stop(t + 0.2);
-      out(g, 0.3);
+      out(g, 0.35); out(ng, 0.35);
+    },
+    crash(t, f, dur, v) {
+      const n = ac.createBufferSource(), hp = ac.createBiquadFilter(), g = newGain();
+      n.buffer = noiseBuf; hp.type = 'highpass'; hp.frequency.value = 4500;
+      n.connect(hp); hp.connect(g); env(g, t, 0.003, 0.09 * v, 1.3, t);
+      n.start(t); n.stop(t + 1);
+      out(g, 0.6);
     },
     hat(t, f, dur, v) {
       const n = ac.createBufferSource(), hp = ac.createBiquadFilter(), g = ac.createGain();
@@ -3982,10 +4026,16 @@ const Music = (() => {
         ev[base + i].push(['arp', shift(root, (minor ? MINOR : MAJOR)[i] + def.arpOct * 12), 1, i === 0 ? 1 : 0.75]);
       }
       if (def.pad) for (const f of chordTones(root, minor)) ev[base].push(['pad', f * Math.pow(2, def.padOct), 8, 1]);
+      if (def.choir) for (const f of chordTones(root, minor)) ev[base].push(['choir', f * Math.pow(2, def.choirOct), 8, 0.8]);
+      if (def.ost) def.ost.forEach((st, i) =>
+        ev[base + i].push(['ost', shift(root, st + def.ostOct * 12), 1, i % 4 === 0 ? 1 : 0.7]));
       if (def.bass === 'whole') ev[base].push(['bass', freq(root) / Math.pow(2, def.bassDown), 8, 1]);
       if (def.bass === 'drive') [0, 0, 12, 0, 0, 12, 0, 7].forEach((s, i) =>
         ev[base + i].push(['bass', shift(root, s) / Math.pow(2, def.bassDown), 1, i % 4 === 0 ? 1 : 0.8]));
-      if (def.drums) for (const [inst, pos] of def.drums) for (const p of pos) ev[base + p].push([inst, 0, 1, 1]);
+      if (def.drums) for (const [inst, pos, every = 1, f = 0, v = 1] of def.drums) {
+        if (b % every) continue;
+        for (const p of pos) ev[base + p].push([inst, f, 1, v]);
+      }
     });
     let pos = 0;
     for (const [n, len] of def.melody) {
@@ -4016,25 +4066,30 @@ const Music = (() => {
                ['B5', 2], ['A5', 2], ['F#5', 4], ['G5', 2], ['F#5', 2], ['D5', 4],
                ['E5', 2], ['G5', 2], ['B5', 4], ['A#5', 4], ['C#6', 4]],
     }),
-    // Jefe: El Último Rey — melodía chiptune con batería (La menor)
+    // Jefe: El Último Rey — épica orquestal: cuerdas en ostinato, metales,
+    // coro y tambores taiko (Re menor)
     rey: build({
-      bpm: 138, inst: { mel: 'lead', bass: 'bass' },
-      bass: 'drive', bassDown: 2,
-      drums: [['kick', [0, 4]], ['snare', [2, 6]], ['hat', [0, 1, 2, 3, 4, 5, 6, 7]]],
-      chords: [['A3', 1], ['F3', 0], ['G3', 0], ['E3', 0], ['A3', 1], ['F3', 0], ['G3', 0], ['E3', 0]],
-      melody: [['E5', 2], ['A5', 2], ['G5', 1], ['A5', 1], ['B5', 2], ['C6', 2], ['B5', 1], ['A5', 1], ['G5', 2], ['F5', 2],
-               ['G5', 2], ['D5', 2], ['G5', 1], ['A5', 1], ['B5', 2], ['G#5', 4], ['E5', 4],
-               ['A5', 1], ['A5', 1], ['C6', 2], ['B5', 1], ['A5', 1], ['G5', 2], ['F5', 2], ['A5', 2], ['C6', 2], ['A5', 2],
-               ['B5', 2], ['A5', 1], ['G5', 1], ['F5', 2], ['D5', 2], ['E5', 2], ['G#5', 2], ['B5', 2], ['E6', 2]],
+      bpm: 152, inst: { ost: 'strings', mel: 'brass', bass: 'bass' },
+      ost: [0, 0, 12, 0, 7, 0, 12, 7], ostOct: -1,
+      choir: true, choirOct: -1, bass: 'whole', bassDown: 2,
+      drums: [['taiko', [0, 3, 6], 1, 110], ['taiko', [4], 1, 70, 1.2], ['crash', [0], 4]],
+      chords: [['D4', 1], ['D4', 1], ['A#3', 0], ['C4', 0], ['D4', 1], ['G3', 1], ['A3', 0], ['A3', 0]],
+      melody: [['D5', 3], ['A4', 1], ['D5', 2], ['F5', 2], ['E5', 2], ['D5', 2], ['A4', 4],
+               ['F5', 3], ['E5', 1], ['D5', 2], ['C5', 2], ['E5', 4], ['G5', 4],
+               ['A5', 3], ['G5', 1], ['F5', 2], ['E5', 2], ['D5', 2], ['F5', 2], ['A#5', 4],
+               ['A5', 2], ['G5', 2], ['F5', 2], ['E5', 2], ['C#5', 4], ['A4', 4]],
     }),
-    // Jefe: El Guardián de la Cima — clavecín inquietante y órgano (Mi menor)
+    // Jefe: El Guardián de la Cima — etéreo y fantasmal: arpa, celesta y coro,
+    // con un pulso de tambor suave (Mi frigio)
     guardian: build({
-      bpm: 150, arp: true, arpOct: 0, inst: { arp: 'harpsi', mel: 'organ', bass: 'bass' },
-      bass: 'drive', bassDown: 2,
-      drums: [['kick', [0, 3, 4]], ['snare', [2, 6]], ['hat', [1, 3, 5, 7]]],
-      chords: [['E3', 1], ['C3', 0], ['A3', 1], ['B3', 0], ['E3', 1], ['C3', 0], ['A3', 1], ['B3', 0]],
-      melody: [['B4', 8], ['C5', 4], ['E5', 4], ['E5', 4], ['D5', 2], ['C5', 2], ['D#5', 8],
-               ['G5', 4], ['F#5', 4], ['E5', 4], ['G5', 4], ['A5', 4], ['G5', 2], ['E5', 2], ['F#5', 8]],
+      bpm: 126, arp: true, arpOct: -1, inst: { arp: 'harp', mel: 'celesta', bass: 'bass' },
+      choir: true, choirOct: -1, bass: 'whole', bassDown: 2,
+      drums: [['taiko', [0, 4], 1, 90, 0.7], ['hat', [2, 6], 1, 0, 0.6], ['crash', [0], 8, 0, 0.6]],
+      chords: [['E4', 1], ['F4', 0], ['E4', 1], ['D4', 0], ['C4', 0], ['A3', 1], ['B3', 0], ['B3', 0]],
+      melody: [['B5', 4], ['G5', 2], ['E5', 2], ['F5', 4], ['A5', 2], ['C6', 2],
+               ['B5', 2], ['A5', 2], ['G5', 2], ['F#5', 2], ['F#5', 4], ['D5', 4],
+               ['E5', 2], ['G5', 2], ['C6', 4], ['B5', 2], ['A5', 2], ['E5', 4],
+               ['D#5', 4], ['F#5', 4], ['B5', 8]],
     }),
   };
 
