@@ -185,6 +185,7 @@ const ROOMS = {
     ],
     exits: {
       down: { room: 1, spawnX: 420, spawnY: 200 },
+      up:   { room: 5, spawnX:  60, spawnY: 400 }, // armería (tras vencer al guardián)
     },
     decorations: [
       { type:'star', x:100, y: 80 },
@@ -230,7 +231,7 @@ const ROOMS = {
       { x: 405, y: 390, w: 150, h: 18 },
       { x: 730, y: 390, w: 150, h: 18 },
     ],
-    exits: { left: { room: 0, spawnX: 890, spawnY: 400 } },
+    exits: { left: { room: 3, spawnX: 460, spawnY: 110 } },
     decorations: [
       { type:'pillar', x: 40, y:420, h:60 },
       { type:'pillar', x:920, y:420, h:60 },
@@ -262,7 +263,7 @@ const ENEMY_TEMPLATES = {
     { x: 660, y: 346, dir: -1, patrolMin: 640, patrolMax: 795, speed: 1.4 },
   ],
   4: [], // sala del jefe — sin enemigos normales
-  5: [], // armería secreta
+  5: [], // armería
 };
 
 // ─── PARTÍCULAS ───────────────────────────────────────────────────────────────
@@ -592,6 +593,7 @@ function checkExits() {
   if (exits.up && player.y <= 0) {
     if (currentRoom === 1 && !hasKey && !keyUsed) return; // puerta con llave
     if (currentRoom === 1 && hasKey) { hasKey = false; keyUsed = true; }
+    if (currentRoom === 3 && !boss2Defeated) return; // armería cerrada
     const e = exits.up;
     startTransition(e.room, e.spawnX, e.spawnY);
   }
@@ -630,10 +632,9 @@ function updateTransition() {
       if (pendingRoom === 3 && !boss2Defeated) initBoss2();
       if (pendingRoom === 5) initWeaponItems();
       if (isDeath) {
+        // Se conserva el progreso: jefes vencidos, llave y puerta abierta.
+        // Los jefes no vencidos se reinician al volver a entrar en su sala.
         player.hp = player.maxHp; player.invFrames = 0;
-        bossDefeated = false; initBoss();
-        boss2Defeated = false; initBoss2();
-        hasKey = false; keyUsed = false; keyItem.active = false;
         playerDmg = 1; weaponName = 'Blaster'; weaponColor = '#40c8ff';
       }
       roomLabelAlpha = 1;
@@ -1836,7 +1837,7 @@ function drawExitGlow(room) {
     ctx.fillStyle = g;
     ctx.fillRect(0, 100, 60, H - 200);
   }
-  if (exits.up) {
+  if (exits.up && !(currentRoom === 3 && !boss2Defeated)) {
     const g = ctx.createLinearGradient(0, 0, 0, 60);
     g.addColorStop(0, hexAlpha(pc, pulse));
     g.addColorStop(1, 'rgba(0,0,0,0)');
@@ -2286,7 +2287,7 @@ function drawInventory() {
   drawMiniMap(px + pw + gap, py, mw, ph);
 }
 
-// Minimapa de solo lectura (sin salas secretas) con la sala actual resaltada
+// Minimapa de solo lectura con la sala actual resaltada (la armería aparece al abrirse)
 function drawMiniMap(px, py, pw, ph) {
   ctx.fillStyle = 'rgba(4, 4, 16, 0.45)';
   ctx.fillRect(px, py, pw, ph);
@@ -2307,7 +2308,7 @@ function drawMiniMap(px, py, pw, ph) {
   ctx.stroke();
 
   // Escalar las posiciones del mapa grande al recuadro
-  const nodes = CHEAT_NODES.filter(n => !n.secret);
+  const nodes = CHEAT_NODES.filter(n => n.id !== 5 || boss2Defeated);
   const xs = nodes.map(n => n.x), ys = nodes.map(n => n.y);
   const minX = Math.min(...xs), maxX = Math.max(...xs);
   const minY = Math.min(...ys), maxY = Math.max(...ys);
@@ -2369,9 +2370,9 @@ const CHEAT_NODES = [
   { id:2, x:530, y:310, name:'Jardín',   boss:false,   secret:false },
   { id:3, x:330, y:180, name:'La Cima',  boss:true,    secret:false },
   { id:4, x:730, y:310, name:'Rey Final',boss:true,    secret:false },
-  { id:5, x:760, y:180, name:'Armería',  boss:false,   secret:true  },
+  { id:5, x:560, y:180, name:'Armería',  boss:false,   secret:false },
 ];
-const CHEAT_EDGES = [[0,1],[1,2],[2,4],[1,3]];
+const CHEAT_EDGES = [[0,1],[1,2],[2,4],[1,3],[3,5]];
 
 function updateCheatUI() {
   const np = document.getElementById('cheat-numpad');
