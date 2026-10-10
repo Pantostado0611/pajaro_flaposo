@@ -245,12 +245,11 @@ const ROOMS = {
   },
   6: {
     name: 'Castillo del Umbral',
-    style: 'rayman', // piedra cálida, hiedra y cielo crepuscular (estilo Rayman Legends)
-    bg: ['#1a2858', '#4a5c9c'],
-    floorColor: '#7a6048',
-    platColor:  '#8e7052',
-    edgeColor:  '#6a9a3a', // musgo
-    particleColor: '#ffd890',
+    bg: ['#0c0a10', '#18141e'],
+    floorColor: '#2a2630',
+    platColor:  '#3a3542',
+    edgeColor:  '#55505e',
+    particleColor: '#ff9a40',
     platforms: [
       { x:   0, y: 480, w: 960, h: 60 },
       { x:  90, y: 400, w: 150, h: 18 },
@@ -264,22 +263,26 @@ const ROOMS = {
       up:   { room: 7, spawnX: 280, spawnY: 420 },
     },
     decorations: [
-      { type:'rmBackdrop' },
-      { type:'rmWall' },
-      { type:'rmChain',  x:250, len:150 },
-      { type:'rmChain',  x:720, len:120 },
-      { type:'torch',    x: 60, y:330 },
-      { type:'torch',    x:900, y:330 },
+      { type:'bricks' },
+      { type:'window', x:160, y:120 },
+      { type:'window', x:800, y:120 },
+      { type:'banner', x:270, y:40 },
+      { type:'banner', x:690, y:40 },
+      { type:'torch',  x: 60, y:300 },
+      { type:'torch',  x:900, y:300 },
+      { type:'pillar', x: 30, y:480, h:120 },
+      { type:'pillar', x:930, y:480, h:120 },
     ],
   },
   7: {
     name: 'La Cumbre Quebrantada',
-    // Exterior: ladera de la montaña junto a las murallas del castillo
-    bg: ['#0c0a22', '#3a2440'],
-    floorColor: '#2a2834',
-    platColor:  '#3c3a48',
-    edgeColor:  '#c8cce0', // nieve en los bordes
-    particleColor: '#e8ecff',
+    // Exterior del castillo en la montaña, estilo Rayman Legends (formas suaves, sin píxel)
+    style: 'rayman',
+    bg: ['#1b2a6b', '#f0b48a'],
+    floorColor: '#6a4a3c',
+    platColor:  '#7a5846',
+    edgeColor:  '#6ab83a',
+    particleColor: '#fff0a0',
     platforms: [
       { x:   0, y: 480, w: 360, h: 60 }, // suelo izquierdo
       { x: 600, y: 480, w: 360, h: 60 }, // suelo derecho (hueco = bajada al castillo)
@@ -292,15 +295,12 @@ const ROOMS = {
       down: { room: 6, spawnX: 460, spawnY: 110 },
     },
     decorations: [
-      { type:'moon',      x:800, y: 80 },
-      { type:'star',      x: 90, y: 50 },
-      { type:'star',      x:420, y: 40 },
-      { type:'star',      x:640, y: 90 },
-      { type:'crack',     x:250, y: 20 },
-      { type:'mountains' },
-      { type:'castleSil', x:600, y:300 },
-      { type:'cloud',     x:150, y:150, speed:0.15 },
-      { type:'cloud',     x:700, y:210, speed:0.10 },
+      { type:'rmSky' },
+      { type:'crack',       x:250, y: 20 },
+      { type:'rmMountains' },
+      { type:'rmCastleOut', x:640, y:362 },
+      { type:'rmCloud',     x:120, y:140, speed:0.15, s:1.0 },
+      { type:'rmCloud',     x:620, y:200, speed:0.10, s:0.7 },
     ],
   },
 };
@@ -1831,140 +1831,117 @@ function drawDecorations(room) {
       ctx.fillStyle = '#fff0b0';
       ctx.beginPath(); ctx.ellipse(d.x, d.y - 9, 2.5, 5, 0, 0, Math.PI * 2); ctx.fill();
     }
-    if (d.type === 'rmBackdrop') {
-      // luna grande y torres lejanas azuladas (se ven por los arcos)
-      const g = ctx.createRadialGradient(480, 90, 0, 480, 90, 260);
-      g.addColorStop(0, 'rgba(255,240,200,0.35)');
-      g.addColorStop(1, 'transparent');
+    if (d.type === 'rmSky') {
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0,    '#1b2a6b');
+      g.addColorStop(0.45, '#5a5fa8');
+      g.addColorStop(0.8,  '#d99a94');
+      g.addColorStop(1,    '#f0b48a');
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = '#fff4d8';
-      ctx.beginPath(); ctx.arc(480, 90, 46, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#2c3c74';
-      for (const [tx, tw, th] of [[60,50,360],[160,40,300],[700,44,330],[790,60,390],[880,34,290]]) {
-        ctx.fillRect(tx, H - th, tw, th);
-        ctx.beginPath(); ctx.moveTo(tx - 6, H - th); ctx.lineTo(tx + tw / 2, H - th - 46); ctx.lineTo(tx + tw + 6, H - th); ctx.closePath(); ctx.fill();
+      // luna grande con halo suave
+      const mg = ctx.createRadialGradient(780, 110, 0, 780, 110, 180);
+      mg.addColorStop(0,   'rgba(255,246,220,0.55)');
+      mg.addColorStop(0.25,'rgba(255,230,200,0.25)');
+      mg.addColorStop(1,   'rgba(255,220,200,0)');
+      ctx.fillStyle = mg; ctx.fillRect(560, 0, 400, 320);
+      const mb = ctx.createRadialGradient(770, 100, 4, 780, 110, 44);
+      mb.addColorStop(0, '#fffdf2'); mb.addColorStop(1, '#ffe8c0');
+      ctx.fillStyle = mb; ctx.beginPath(); ctx.arc(780, 110, 44, 0, Math.PI * 2); ctx.fill();
+      // estrellas suaves
+      for (const [sx, sy, r] of [[60,40,1.6],[180,90,1.2],[330,30,1.8],[460,70,1.1],[540,25,1.4],[900,40,1.3],[120,170,1]]) {
+        const tw = 0.5 + 0.5 * Math.sin(Date.now() * 0.002 + sx);
+        const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * 4);
+        sg.addColorStop(0, `rgba(255,255,255,${(0.9 * tw).toFixed(2)})`);
+        sg.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(sx, sy, r * 4, 0, Math.PI * 2); ctx.fill();
       }
-      ctx.fillStyle = 'rgba(255,220,140,0.5)';
-      for (const [wx, wy] of [[80,220],[175,280],[718,250],[815,200],[892,290]]) ctx.fillRect(wx, wy, 6, 10);
     }
-    if (d.type === 'rmWall') {
-      // muro de piedra cálida con grandes arcos abiertos al cielo
-      const arch = (x, w, top, bottom) => {
-        ctx.moveTo(x, bottom); ctx.lineTo(x, top + w / 2);
-        ctx.arc(x + w / 2, top + w / 2, w / 2, Math.PI, 0); ctx.lineTo(x + w, bottom); ctx.closePath();
-      };
-      const wallPath = () => {
-        ctx.beginPath();
-        ctx.rect(0, 0, W, H);
-        arch(95, 140, 80, 300);
-        arch(725, 140, 80, 300);
-        arch(380, 200, -100, 150); // gran abertura central hacia arriba
-      };
-      ctx.save();
-      wallPath(); ctx.clip('evenodd');
-      ctx.fillStyle = '#5a3e28'; ctx.fillRect(0, 0, W, H);
-      for (let row = 0, y = 0; y < H; row++, y += 36) {
-        for (let x = -(row % 2) * 30; x < W; x += 60) {
-          const shade = ((x * 3 + y * 7) % 6) * 5;
-          ctx.fillStyle = `rgb(${140 + shade},${104 + shade},${68 + shade})`;
-          ctx.beginPath(); ctx.roundRect(x + 2, y + 2, 56, 32, 8); ctx.fill();
+    if (d.type === 'rmMountains') {
+      // capas de montañas redondeadas con bruma (de lejos a cerca)
+      const layer = (pts, top, bottom) => {
+        const g = ctx.createLinearGradient(0, Math.min(...pts.map(q => q[1])), 0, H);
+        g.addColorStop(0, top); g.addColorStop(1, bottom);
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.moveTo(0, H); ctx.lineTo(pts[0][0], pts[0][1]);
+        for (let i = 1; i < pts.length; i++) {
+          const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+          ctx.quadraticCurveTo(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2);
         }
-      }
-      // luz cálida desde abajo y sombra arriba
-      const lg = ctx.createLinearGradient(0, 0, 0, H);
-      lg.addColorStop(0, 'rgba(20,20,60,0.45)');
-      lg.addColorStop(0.6, 'rgba(0,0,0,0)');
-      lg.addColorStop(1, 'rgba(255,150,60,0.15)');
-      ctx.fillStyle = lg; ctx.fillRect(0, 0, W, H);
-      ctx.restore();
-      // marcos de los arcos
-      ctx.strokeStyle = '#c9a678'; ctx.lineWidth = 6;
-      for (const [x, w, top, bottom] of [[95,140,80,300],[725,140,80,300],[380,200,-100,150]]) {
-        ctx.beginPath(); arch(x, w, top, bottom); ctx.stroke();
-      }
-      // alféizares
-      ctx.fillStyle = '#c9a678';
-      ctx.fillRect(85, 300, 160, 10); ctx.fillRect(715, 300, 160, 10); ctx.fillRect(370, 150, 220, 10);
+        const last = pts[pts.length - 1];
+        ctx.lineTo(last[0], last[1]); ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
+      };
+      layer([[0,300],[110,230],[230,280],[350,190],[480,260],[600,200],[740,250],[860,180],[960,240]], '#a6a2d8', '#e6b4a8');
+      layer([[0,360],[140,290],[280,340],[420,280],[560,330],[700,270],[840,320],[960,290]], '#6c6cb0', '#c48e98');
+      layer([[0,420],[160,370],[320,400],[480,340],[640,330],[800,350],[960,390]], '#3c3c7c', '#6a4a6a');
     }
-    if (d.type === 'rmChain') {
-      const sway = Math.sin(Date.now() * 0.0012 + d.x) * 0.04;
+    if (d.type === 'rmCastleOut') {
+      // castillo de piedra cálida visto desde fuera, con torres redondas y tejados cónicos
+      const bx = d.x, by = d.y;
+      const stone = (x, y, w, h) => {
+        const g = ctx.createLinearGradient(x, 0, x + w, 0);
+        g.addColorStop(0, '#b07a52'); g.addColorStop(0.35, '#e8be8a'); g.addColorStop(1, '#9a6a48');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.roundRect(x, y, w, h, [10, 10, 0, 0]); ctx.fill();
+      };
+      const roof = (cx, y, w, h) => {
+        const g = ctx.createLinearGradient(cx - w / 2, 0, cx + w / 2, 0);
+        g.addColorStop(0, '#3a2f8a'); g.addColorStop(0.4, '#6a5ac8'); g.addColorStop(1, '#2a2060');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(cx - w / 2 - 6, y);
+        ctx.quadraticCurveTo(cx - w / 4, y - h * 0.5, cx, y - h);
+        ctx.quadraticCurveTo(cx + w / 4, y - h * 0.5, cx + w / 2 + 6, y);
+        ctx.quadraticCurveTo(cx, y + 8, cx - w / 2 - 6, y);
+        ctx.fill();
+        ctx.fillStyle = '#ffd060';
+        ctx.beginPath(); ctx.arc(cx, y - h - 3, 4, 0, Math.PI * 2); ctx.fill();
+      };
+      const win = (x, y, w, h) => {
+        const f = 0.8 + 0.2 * Math.sin(Date.now() * 0.006 + x);
+        const gl = ctx.createRadialGradient(x + w / 2, y + h / 2, 0, x + w / 2, y + h / 2, 26);
+        gl.addColorStop(0, `rgba(255,200,110,${(0.45 * f).toFixed(2)})`); gl.addColorStop(1, 'rgba(255,200,110,0)');
+        ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(x + w / 2, y + h / 2, 26, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffcf7a';
+        ctx.beginPath(); ctx.roundRect(x, y, w, h, [w / 2, w / 2, 2, 2]); ctx.fill();
+      };
+      // muralla con almenas redondeadas
+      stone(bx - 170, by - 60, 340, 60);
+      ctx.fillStyle = '#d8a876';
+      for (let mx = bx - 166; mx < bx + 166; mx += 22) { ctx.beginPath(); ctx.roundRect(mx, by - 74, 14, 16, [6, 6, 0, 0]); ctx.fill(); }
+      // torres
+      stone(bx - 200, by - 150, 56, 150); roof(bx - 172, by - 150, 56, 70);
+      stone(bx + 140, by - 130, 50, 130); roof(bx + 165, by - 130, 50, 62);
+      stone(bx - 40, by - 200, 80, 200);  roof(bx, by - 200, 80, 100);
+      // bandera ondulante
+      const wv = Math.sin(Date.now() * 0.004) * 4;
+      ctx.strokeStyle = '#4a3a2a'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(bx, by - 303); ctx.lineTo(bx, by - 330); ctx.stroke();
+      ctx.fillStyle = '#e04a5a';
+      ctx.beginPath(); ctx.moveTo(bx, by - 330);
+      ctx.quadraticCurveTo(bx + 14, by - 334 + wv, bx + 30, by - 324 + wv);
+      ctx.quadraticCurveTo(bx + 14, by - 318 + wv, bx, by - 316); ctx.fill();
+      // ventanas
+      win(bx - 10, by - 170, 20, 30); win(bx - 10, by - 115, 20, 30);
+      win(bx - 182, by - 120, 18, 26); win(bx + 156, by - 100, 18, 26);
+      // puerta
+      ctx.fillStyle = '#4a2e22';
+      ctx.beginPath(); ctx.roundRect(bx - 22, by - 44, 44, 44, [22, 22, 0, 0]); ctx.fill();
+      // grieta luminosa en la muralla
       ctx.save();
-      ctx.translate(d.x, 0); ctx.rotate(sway);
-      ctx.strokeStyle = '#3a3440'; ctx.lineWidth = 3;
-      for (let y = 0; y < d.len; y += 12) {
-        ctx.beginPath(); ctx.ellipse(0, y + 6, (y / 12) % 2 ? 2 : 4, 6, 0, 0, Math.PI * 2); ctx.stroke();
-      }
-      // farolillo
-      const f = 0.8 + 0.2 * Math.sin(Date.now() * 0.015 + d.x);
-      const g = ctx.createRadialGradient(0, d.len + 16, 0, 0, d.len + 16, 60 * f);
-      g.addColorStop(0, 'rgba(255,200,90,0.45)');
-      g.addColorStop(1, 'transparent');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, d.len + 16, 60 * f, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#3a3440'; ctx.fillRect(-10, d.len, 20, 5); ctx.fillRect(-8, d.len + 28, 16, 4);
-      ctx.fillStyle = '#ffd070'; ctx.fillRect(-7, d.len + 5, 14, 23);
-      ctx.strokeStyle = '#3a3440'; ctx.lineWidth = 2; ctx.strokeRect(-7, d.len + 5, 14, 23);
+      ctx.shadowColor = '#ff5080'; ctx.shadowBlur = 12;
+      ctx.strokeStyle = 'rgba(255,110,150,0.85)'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(bx + 80, by - 60);
+      ctx.quadraticCurveTo(bx + 70, by - 40, bx + 86, by - 28);
+      ctx.quadraticCurveTo(bx + 96, by - 14, bx + 84, by); ctx.stroke();
       ctx.restore();
     }
-    if (d.type === 'moon') {
-      const g = ctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, 90);
-      g.addColorStop(0, 'rgba(230,230,255,0.25)');
-      g.addColorStop(1, 'transparent');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(d.x, d.y, 90, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#eceaf8';
-      ctx.beginPath(); ctx.arc(d.x, d.y, 30, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = 'rgba(160,160,200,0.35)';
-      ctx.beginPath(); ctx.arc(d.x - 9, d.y - 6, 6, 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(d.x + 10, d.y + 9, 4, 0, Math.PI * 2); ctx.fill();
-    }
-    if (d.type === 'mountains') {
-      // cordillera lejana
-      const far = [[0,330],[90,250],[170,300],[260,200],[350,280],[430,230],[520,300],[640,190],[760,270],[860,220],[960,280]];
-      ctx.fillStyle = '#231a38';
-      ctx.beginPath(); ctx.moveTo(0, H);
-      for (const [x, y] of far) ctx.lineTo(x, y);
-      ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
-      // nieve en los picos lejanos
-      ctx.fillStyle = 'rgba(220,225,245,0.35)';
-      for (let i = 1; i < far.length - 1; i++) {
-        const [x, y] = far[i];
-        if (y > far[i - 1][1] || y > far[i + 1][1]) continue;
-        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 18, y + 22); ctx.lineTo(x + 18, y + 22); ctx.closePath(); ctx.fill();
-      }
-      // ladera cercana (la montaña del castillo)
-      ctx.fillStyle = '#17121f';
-      ctx.beginPath(); ctx.moveTo(0, H);
-      for (const [x, y] of [[0,400],[120,370],[260,390],[400,330],[520,300],[700,300],[820,340],[960,380]]) ctx.lineTo(x, y);
-      ctx.lineTo(W, H); ctx.closePath(); ctx.fill();
-    }
-    if (d.type === 'castleSil') {
-      // murallas y torres del castillo, vistas desde fuera
-      const c = '#0e0a16', bx = d.x, by = d.y;
-      const merlons = (x, y, w) => { for (let mx = x; mx < x + w - 4; mx += 12) ctx.fillRect(mx, y - 8, 7, 8); };
-      ctx.fillStyle = c;
-      ctx.fillRect(bx - 150, by - 50, 300, 50);      merlons(bx - 150, by - 50, 300); // muralla
-      ctx.fillRect(bx - 175, by - 120, 50, 120);     merlons(bx - 175, by - 120, 50); // torre izq.
-      ctx.fillRect(bx + 125, by - 105, 46, 105);     merlons(bx + 125, by - 105, 46); // torre der.
-      ctx.fillRect(bx - 30, by - 170, 60, 170);                                     // torre del homenaje
-      ctx.beginPath(); ctx.moveTo(bx - 38, by - 170); ctx.lineTo(bx, by - 230); ctx.lineTo(bx + 38, by - 170); ctx.closePath(); ctx.fill();
-      ctx.fillRect(bx - 1, by - 250, 2, 22);
-      const wave = Math.sin(Date.now() * 0.004) * 3;
-      ctx.fillStyle = '#7a1424';
-      ctx.beginPath(); ctx.moveTo(bx + 1, by - 250); ctx.lineTo(bx + 22, by - 245 + wave); ctx.lineTo(bx + 1, by - 238); ctx.closePath(); ctx.fill();
-      // ventanas encendidas
-      const f = 0.7 + 0.3 * Math.sin(Date.now() * 0.01);
-      ctx.fillStyle = `rgba(255,170,70,${f.toFixed(2)})`;
-      for (const [wx, wy] of [[bx - 6, by - 140], [bx - 6, by - 100], [bx - 156, by - 95], [bx + 142, by - 80]]) {
-        ctx.fillRect(wx, wy, 8, 14);
-      }
-      // grieta en la muralla
-      ctx.strokeStyle = 'rgba(255,80,128,0.6)'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(bx + 60, by - 50); ctx.lineTo(bx + 52, by - 30); ctx.lineTo(bx + 66, by - 18); ctx.lineTo(bx + 58, by); ctx.stroke();
-    }
-    if (d.type === 'cloud') {
+    if (d.type === 'rmCloud') {
       const cx = ((d.x + Date.now() * 0.06 * d.speed) % (W + 300)) - 150;
-      ctx.fillStyle = 'rgba(200,190,230,0.10)';
-      for (const [ox, oy, r] of [[0,0,34],[38,6,28],[-36,8,26],[14,-14,24]]) {
-        ctx.beginPath(); ctx.arc(cx + ox, d.y + oy, r, 0, Math.PI * 2); ctx.fill();
+      for (const [ox, oy, r] of [[0,0,40],[44,8,32],[-42,10,30],[16,-18,28]]) {
+        const R = r * d.s;
+        const g = ctx.createRadialGradient(cx + ox * d.s, d.y + oy * d.s - R * 0.3, 0, cx + ox * d.s, d.y + oy * d.s, R);
+        g.addColorStop(0, 'rgba(255,240,240,0.35)'); g.addColorStop(1, 'rgba(255,220,230,0)');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx + ox * d.s, d.y + oy * d.s, R, 0, Math.PI * 2); ctx.fill();
       }
     }
     if (d.type === 'crack') {
@@ -2054,8 +2031,15 @@ function hexAlpha(hex, a) {
 }
 
 function drawParticles() {
+  const soft = ROOMS[currentRoom].style === 'rayman';
   for (const p of particles) {
     ctx.globalAlpha = p.alpha;
+    if (soft) {
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4);
+      g.addColorStop(0, p.col); g.addColorStop(1, 'rgba(255,240,160,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * 4, 0, Math.PI * 2); ctx.fill();
+      continue;
+    }
     ctx.fillStyle = p.col;
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
@@ -2091,7 +2075,7 @@ function drawPlatforms(room) {
       ctx.fillRect(p.x, p.y, p.w, 2);
       continue;
     }
-    if (room.style === 'rayman') { drawRaymanPlatform(p, room); continue; }
+    if (room.style === 'rayman') { drawRaymanRock(p); continue; }
     // plataforma normal
     ctx.fillStyle = 'rgba(0,0,0,0.35)';
     ctx.fillRect(p.x + 4, p.y + 4, p.w, p.h);
@@ -2104,35 +2088,44 @@ function drawPlatforms(room) {
   }
 }
 
-// Bloques de piedra redondeados con musgo encima (castillo estilo Rayman)
-function drawRaymanPlatform(p, room) {
-  ctx.fillStyle = 'rgba(10,10,30,0.35)';
-  ctx.fillRect(p.x + 5, p.y + 6, p.w, p.h);
-  ctx.save();
-  ctx.beginPath(); ctx.rect(p.x, p.y, p.w, p.h); ctx.clip();
-  ctx.fillStyle = '#4a3828';
-  ctx.fillRect(p.x, p.y, p.w, p.h);
-  const bh = p.h > 30 ? 30 : p.h, bw = 46;
-  for (let row = 0, y = p.y; y < p.y + p.h; row++, y += bh) {
-    for (let x = p.x - (row % 2) * 23; x < p.x + p.w; x += bw) {
-      const shade = ((x * 7 + y * 13) % 5) * 6;
-      ctx.fillStyle = `rgb(${130 + shade},${100 + shade},${72 + shade})`;
-      ctx.beginPath(); ctx.roundRect(x + 2, y + 2, bw - 4, bh - 4, 6); ctx.fill();
-      ctx.fillStyle = 'rgba(255,230,180,0.18)';
-      ctx.fillRect(x + 5, y + 3, bw - 12, 2);
-    }
+// Roca redondeada con hierba (sin bordes duros), estilo Rayman
+function drawRaymanRock(p) {
+  const ground = p.h >= 40;
+  const r = ground ? 18 : 9;
+  if (!ground) {
+    const sh = ctx.createRadialGradient(p.x + p.w / 2, p.y + p.h + 10, 0, p.x + p.w / 2, p.y + p.h + 10, p.w / 2);
+    sh.addColorStop(0, 'rgba(20,10,40,0.35)'); sh.addColorStop(1, 'rgba(20,10,40,0)');
+    ctx.fillStyle = sh; ctx.beginPath(); ctx.ellipse(p.x + p.w / 2, p.y + p.h + 10, p.w / 2, 10, 0, 0, Math.PI * 2); ctx.fill();
   }
-  ctx.restore();
-  // musgo con gotas
-  ctx.fillStyle = room.edgeColor;
-  ctx.fillRect(p.x, p.y - 2, p.w, 6);
-  ctx.fillStyle = '#8cc24a';
-  ctx.fillRect(p.x, p.y - 2, p.w, 2);
-  ctx.fillStyle = room.edgeColor;
-  for (let x = p.x + 8; x < p.x + p.w - 6; x += 17) {
-    const d = 4 + ((x * 31) % 7);
-    ctx.beginPath(); ctx.ellipse(x, p.y + 3, 4, d, 0, 0, Math.PI * 2); ctx.fill();
+  // cuerpo de roca
+  const g = ctx.createLinearGradient(0, p.y, 0, p.y + p.h);
+  g.addColorStop(0, '#9a7258'); g.addColorStop(1, '#4a3040');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.roundRect(p.x, p.y, p.w, p.h + (ground ? 20 : 0), ground ? [r, r, 0, 0] : [r, r, p.h, p.h]);
+  ctx.fill();
+  // piedras incrustadas
+  ctx.fillStyle = 'rgba(255,220,190,0.12)';
+  for (let x = p.x + 20; x < p.x + p.w - 14; x += 46) {
+    const yy = p.y + (ground ? 26 + ((x * 13) % 18) : p.h * 0.6);
+    ctx.beginPath(); ctx.ellipse(x, yy, ground ? 10 : 6, ground ? 6 : 3, 0, 0, Math.PI * 2); ctx.fill();
   }
+  // hierba redondeada
+  const gg = ctx.createLinearGradient(0, p.y - 6, 0, p.y + 10);
+  gg.addColorStop(0, '#9be05a'); gg.addColorStop(1, '#4a9a2a');
+  ctx.fillStyle = gg;
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y + 8);
+  ctx.quadraticCurveTo(p.x, p.y - 2, p.x + r, p.y - 2);
+  for (let x = p.x + r; x < p.x + p.w - r; x += 14) {
+    ctx.quadraticCurveTo(x + 7, p.y - 7, x + 14, p.y - 2);
+  }
+  ctx.lineTo(p.x + p.w - r, p.y - 2);
+  ctx.quadraticCurveTo(p.x + p.w, p.y - 2, p.x + p.w, p.y + 8);
+  ctx.quadraticCurveTo(p.x + p.w / 2, p.y + 14, p.x, p.y + 8);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,220,0.35)';
+  ctx.beginPath(); ctx.ellipse(p.x + p.w * 0.3, p.y, p.w * 0.18, 1.5, 0, 0, Math.PI * 2); ctx.fill();
 }
 
 function drawExitGlow(room) {
