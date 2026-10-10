@@ -2107,11 +2107,10 @@ function drawHUD() {
 function drawInventory() {
   if (!showInventory) return;
 
-  const pw = 280, ph = 180;
-  const px = (W - pw) / 2, py = (H - ph) / 2;
+  const px = 40, py = 40, pw = W - 80, ph = H - 80;
 
   // Fondo
-  ctx.fillStyle = 'rgba(4, 4, 16, 0.94)';
+  ctx.fillStyle = 'rgba(4, 4, 16, 0.95)';
   ctx.fillRect(px, py, pw, ph);
   ctx.strokeStyle = '#5a3a8a';
   ctx.lineWidth = 3;
@@ -2124,31 +2123,31 @@ function drawInventory() {
   ctx.fillStyle = '#d0a8ff';
   ctx.font = 'bold 15px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('⚙  ESTADÍSTICAS', W / 2, py + 33);
+  ctx.fillText('🗺  MAPA', W / 2, py + 30);
 
   // Separador
   ctx.strokeStyle = '#3a2a5a';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(px + 18, py + 44); ctx.lineTo(px + pw - 18, py + 44);
+  ctx.moveTo(px + 18, py + 42); ctx.lineTo(px + pw - 18, py + 42);
   ctx.stroke();
 
-  // Fila: Vida máxima
-  ctx.textAlign = 'left';
-  ctx.font = '13px monospace';
-  ctx.fillStyle = '#ff6688';
-  ctx.fillText('❤  Vida máxima', px + 26, py + 78);
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'right';
-  ctx.fillText(player.maxHp, px + pw - 26, py + 78);
+  // Mapa (solo lectura, sin salas secretas)
+  drawRoomGraph(false, currentRoom);
 
-  // Fila: Daño
-  ctx.textAlign = 'left';
+  // Estadísticas
+  const sy = py + ph - 62;
+  ctx.strokeStyle = '#3a2a5a';
+  ctx.beginPath();
+  ctx.moveTo(px + 18, sy - 22); ctx.lineTo(px + pw - 18, sy - 22);
+  ctx.stroke();
+
+  ctx.font = '13px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ff6688';
+  ctx.fillText('❤  Vida máxima: ' + player.maxHp, W / 2 - 160, sy);
   ctx.fillStyle = weaponColor;
-  ctx.fillText('⚔  ' + weaponName, px + 26, py + 114);
-  ctx.fillStyle = '#ffffff';
-  ctx.textAlign = 'right';
-  ctx.fillText('x' + playerDmg, px + pw - 26, py + 114);
+  ctx.fillText('⚔  ' + weaponName + '  x' + playerDmg, W / 2 + 160, sy);
 
   // Hint cierre
   ctx.textAlign = 'center';
@@ -2252,6 +2251,17 @@ function drawCheatMap() {
   ctx.strokeStyle='#3a1a6a'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(px+18,py+42); ctx.lineTo(px+pw-18,py+42); ctx.stroke();
 
+  drawRoomGraph(true, -1);
+
+  ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.font='10px monospace'; ctx.textAlign='center';
+  ctx.fillText('L / ESC para cerrar', W/2, py+ph-14);
+}
+
+// Dibuja las salas y conexiones. showSecret: incluir salas secretas.
+// hereId: sala a resaltar como "estás aquí" (-1 = ninguna).
+function drawRoomGraph(showSecret, hereId) {
+  const nodes = CHEAT_NODES.filter(n => showSecret || !n.secret);
+
   // Conexiones
   ctx.strokeStyle='rgba(154,106,255,0.35)'; ctx.lineWidth=2;
   for (const [a,b] of CHEAT_EDGES) {
@@ -2262,7 +2272,7 @@ function drawCheatMap() {
   ctx.setLineDash([]);
 
   // Nodos
-  for (const n of CHEAT_NODES) {
+  for (const n of nodes) {
     const pulse = 0.65+0.35*Math.sin(Date.now()*0.003+n.id*1.2);
     const gc = n.boss ? `255,60,60` : `154,106,255`;
     const glow = ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,50);
@@ -2284,10 +2294,16 @@ function drawCheatMap() {
     ctx.fillText(n.name, n.x, n.y+54);
     if (n.boss)   { ctx.fillStyle='rgba(255,80,80,0.7)';   ctx.font='8px monospace'; ctx.fillText('[ JEFE ]',   n.x, n.y+67); }
     if (n.secret) { ctx.fillStyle='rgba(255,210,0,0.75)';  ctx.font='8px monospace'; ctx.fillText('[ SECRETO ]',n.x, n.y+67); }
-  }
 
-  ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.font='10px monospace'; ctx.textAlign='center';
-  ctx.fillText('L / ESC para cerrar', W/2, py+ph-14);
+    if (n.id === hereId) {
+      const bob = Math.sin(Date.now()*0.006)*4;
+      ctx.strokeStyle='#40ff90'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.arc(n.x,n.y,40,0,Math.PI*2); ctx.stroke();
+      ctx.fillStyle='#40ff90';
+      ctx.beginPath(); ctx.moveTo(n.x,n.y-44+bob); ctx.lineTo(n.x-9,n.y-58+bob); ctx.lineTo(n.x+9,n.y-58+bob); ctx.closePath(); ctx.fill();
+      ctx.font='bold 9px monospace'; ctx.fillText('ESTÁS AQUÍ', n.x, n.y-64+bob);
+    }
+  }
 }
 
 // Canvas click/touch para el mapa
