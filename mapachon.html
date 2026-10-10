@@ -297,8 +297,6 @@ const ROOMS = {
     },
     decorations: [
       { type:'snowMountain' },
-      { type:'crBalls',  x:600, y:220 },
-      { type:'crBalls',  x:800, y:330 },
     ],
   },
 };
@@ -1881,14 +1879,6 @@ function drawDecorations(room) {
       const hz = ctx.createLinearGradient(0, 330, 0, H);
       hz.addColorStop(0, 'rgba(228,236,246,0)'); hz.addColorStop(1, 'rgba(228,236,246,0.6)');
       ctx.fillStyle = hz; ctx.fillRect(0, 330, W, H - 330);
-    }
-    if (d.type === 'crBalls') {
-      // pila de balas de cañón
-      for (const [ox, oy] of [[-12,-8],[0,-8],[12,-8],[-6,-19],[6,-19],[0,-30]]) {
-        const g = ctx.createRadialGradient(d.x + ox - 3, d.y + oy - 3, 1, d.x + ox, d.y + oy, 7);
-        g.addColorStop(0, '#6a6470'); g.addColorStop(1, '#25222a');
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(d.x + ox, d.y + oy, 6.5, 0, Math.PI * 2); ctx.fill();
-      }
     }
     if (d.type === 'pillar') {
       ctx.fillStyle = room.edgeColor;
