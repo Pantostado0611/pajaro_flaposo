@@ -7,6 +7,50 @@ const DEADLINE = 55000;
 const MAX_ATTEMPTS = 5;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// Lee el cuerpo de un 429 de Gemini: qué cuota se agotó y cuánto esperar
+function parse429(text) {
+  let details = [];
+  try { details = JSON.parse(text).error?.details || []; } catch {}
+  const quotaId = details.flatMap(d => d.violations || []).map(v => v.quotaId || '').join(' ');
+  const delay = details.find(d => d.retryDelay)?.retryDelay;
+  return {
+    daily: /PerDay/i.test(quotaId),
+    perMinute: /PerMinute/i.test(quotaId),
+    waitSec: delay ? Math.ceil(parseFloat(delay)) : null,
+  };
+}
+
+// Segundos hasta la próxima medianoche en hora del Pacífico (reinicio de la cuota diaria)
+function secondsToPacificMidnight() {
+  const now = new Date();
+  const [h, m, sec] = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles', hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit',
+  }).format(now).split(':').map(Number);
+  return 86400 - ((h % 24) * 3600 + m * 60 + sec);
+}
+
+function formatWait(sec) {
+  if (sec < 90) return `${sec} s`;
+  if (sec < 3600) return `${Math.ceil(sec / 60)} min`;
+  const h = Math.floor(sec / 3600), m = Math.round((sec % 3600) / 60);
+  return m ? `${h} h ${m} min` : `${h} h`;
+}
+
+function quotaMessage(infos) {
+  const resetUtc = new Date(Date.now() + secondsToPacificMidnight() * 1000).toISOString().slice(11, 16);
+  // Si algún modelo solo tiene límite por minuto, ese es el que se libera antes
+  const minute = infos.filter(i => i.perMinute && !i.daily);
+  if (!infos.some(i => i.daily || i.perMinute)) {
+    return `Gemini: límite de cuota alcanzado (429). Espera un minuto; si sigue, es el límite diario (se reinicia a las ${resetUtc} UTC).`;
+  }
+  if (minute.length) {
+    const waits = minute.map(i => i.waitSec).filter(Boolean);
+    const wait = waits.length ? Math.min(...waits) : 60;
+    return `Gemini: límite por minuto alcanzado. Espera ${formatWait(wait)} y vuelve a intentar.`;
+  }
+  return `Gemini: límite diario de tu API key agotado. Se reinicia en ${formatWait(secondsToPacificMidnight())} (${resetUtc} UTC, medianoche hora del Pacífico).`;
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
@@ -45,6 +89,7 @@ module.exports = async function handler(req, res) {
 
   // Modelos que ya dieron 429: no se reintentan (cada intento gasta cuota)
   const limited = new Set();
+  const quotaInfos = [];
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS && Date.now() - start < DEADLINE - 3000; attempt++) {
     const available = MODELS.filter(m => !limited.has(m));
@@ -68,7 +113,7 @@ module.exports = async function handler(req, res) {
     }
 
     lastStatus = response.status;
-    if (response.status === 429) { console.warn(`${model}: 429`); limited.add(model); continue; }
+    if (response.status === 429) { console.warn(`${model}: 429`, lastText); limited.add(model); quotaInfos.push(parse429(lastText)); continue; }
     if ([500, 503].includes(response.status)) { console.warn(`${model}: ${response.status}`); continue; }
 
     if (!response.ok) {
@@ -84,7 +129,7 @@ module.exports = async function handler(req, res) {
   }
 
   if (lastStatus === 429) {
-    return res.status(429).json({ error: 'Gemini: límite de cuota alcanzado (429). Espera un minuto o revisa la cuota de tu API key en Google AI Studio.' });
+    return res.status(429).json({ error: quotaMessage(quotaInfos) });
   }
   if (lastStatus === 504) {
     return res.status(504).json({ error: 'Gemini tardó demasiado, intenta de nuevo.' });
