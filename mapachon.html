@@ -490,10 +490,14 @@ function resolveCollisions() {
   const plats = ROOMS[currentRoom].platforms;
   player.onGround = false;
 
+  // Escalones (plataformas finas): se atraviesan desde abajo y los lados
+  const oneWay = p => p.h <= 18;
+
   // X primero
   player.x += player.vx;
   for (const p of plats) {
     if (p.trapdoor && boss2Defeated) continue;
+    if (oneWay(p)) continue;
     if (collideRect(player.x, player.y, player.w, player.h, p.x, p.y, p.w, p.h)) {
       if (player.vx > 0) player.x = p.x - player.w;
       if (player.vx < 0) player.x = p.x + p.w;
@@ -502,9 +506,12 @@ function resolveCollisions() {
   }
 
   // Y después
+  const prevBottom = player.y + player.h;
   player.y += player.vy;
   for (const p of plats) {
     if (p.trapdoor && boss2Defeated) continue;
+    // Escalón: solo se apoya si caes y venías desde encima
+    if (oneWay(p) && (player.vy < 0 || prevBottom > p.y)) continue;
     if (collideRect(player.x, player.y, player.w, player.h, p.x, p.y, p.w, p.h)) {
       if (player.vy > 0) {
         player.y = p.y - player.h;
