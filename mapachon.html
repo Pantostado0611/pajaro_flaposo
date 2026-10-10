@@ -416,6 +416,17 @@ let cheatState = 'closed'; // 'closed' | 'input' | 'map'
 let cheatCode  = '';
 let cheatError = 0;
 let godMode    = false;
+let money      = 0;
+const moneyPops = []; // textos flotantes "+N"
+
+const MONEY_ENEMY = 3, MONEY_BOSS = 20;
+// Alma (como la sombra de Hollow Knight): guarda tu dinero y arma al morir
+let shade = null;      // { room, x, y, money, weapon:{name,color,dmg}, bob }
+let lastGround = null; // última posición pisando suelo { room, x, y }
+function addMoney(amount, x, y) {
+  money += amount;
+  moneyPops.push({ x, y, text: '+' + amount, t: 60 });
+}
 let currentEnemies = [];
 
 // ─── JEFE ─────────────────────────────────────────────────────────────────────
@@ -497,6 +508,7 @@ function resolveCollisions() {
       if (player.vy > 0) {
         player.y = p.y - player.h;
         player.onGround = true;
+        lastGround = { room: currentRoom, x: player.x, y: player.y };
       } else {
         player.y = p.y + p.h;
       }
@@ -605,6 +617,7 @@ function updateTransition() {
       transAlpha = 1;
       transPhase = 'black';
       transBlackFrames = 18;
+      if (isDeath) spawnShade();
       // Cambiar sala ahora
       currentRoom = pendingRoom;
       player.x = pendingPos.x;
@@ -640,6 +653,81 @@ function updateTransition() {
   }
 }
 
+// ─── ALMA ─────────────────────────────────────────────────────────────────────
+function spawnShade() {
+  const hasWeapon = playerDmg > 1;
+  if (money <= 0 && !hasWeapon) { shade = null; return; }
+  // Si caíste al vacío, el alma aparece en el último suelo que pisaste
+  let x = player.x, y = player.y - 10;
+  if (player.y > H - 40 && lastGround && lastGround.room === currentRoom) {
+    x = lastGround.x; y = lastGround.y - 10;
+  }
+  shade = {
+    room: currentRoom, x, y, money, bob: 0,
+    weapon: hasWeapon ? { name: weaponName, color: weaponColor, dmg: playerDmg } : null,
+  };
+  money = 0; // la alma anterior (si había) se pierde
+}
+
+function updateShade() {
+  if (!shade || shade.room !== currentRoom) return;
+  shade.bob += 0.05;
+  const sx = shade.x - 4, sy = shade.y + Math.sin(shade.bob) * 6, sw = 36, sh = 44;
+  const atkW = 52, atkH = 30;
+  const atkX = player.facing === 1 ? player.x + player.w : player.x - atkW;
+  const hit = (player.attackActive > 0 && collideRect(atkX, player.y + 6, atkW, atkH, sx, sy, sw, sh)) ||
+              collideRect(player.x, player.y, player.w, player.h, sx, sy, sw, sh);
+  if (!hit) return;
+  if (shade.money > 0) addMoney(shade.money, sx + sw / 2, sy);
+  if (shade.weapon && shade.weapon.dmg > playerDmg) {
+    playerDmg = shade.weapon.dmg; weaponName = shade.weapon.name; weaponColor = shade.weapon.color;
+  }
+  shade = null;
+}
+
+function drawShade() {
+  if (!shade || shade.room !== currentRoom) return;
+  const t = Date.now() * 0.004;
+  const cx = shade.x + 14, cy = shade.y + 20 + Math.sin(shade.bob) * 6;
+
+  // Aura
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 46);
+  g.addColorStop(0, 'rgba(120,80,200,0.35)');
+  g.addColorStop(1, 'transparent');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, 46, 0, Math.PI * 2); ctx.fill();
+
+  // Cuerpo con cola ondulante
+  ctx.fillStyle = 'rgba(10,6,20,0.92)';
+  ctx.beginPath();
+  ctx.arc(cx, cy - 4, 16, Math.PI, 0);
+  ctx.lineTo(cx + 16, cy + 14);
+  for (let i = 0; i <= 4; i++) {
+    const wx = cx + 16 - i * 8;
+    ctx.lineTo(wx, cy + 14 + (i % 2 ? 6 : 0) + Math.sin(t * 2 + i) * 3);
+  }
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(180,140,255,0.5)'; ctx.lineWidth = 1.5; ctx.stroke();
+
+  // Orejas de mapache
+  ctx.fillStyle = 'rgba(10,6,20,0.92)';
+  ctx.beginPath(); ctx.arc(cx - 11, cy - 17, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx + 11, cy - 17, 6, 0, Math.PI * 2); ctx.fill();
+
+  // Ojos
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.ellipse(cx - 6, cy - 4, 4, 5.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(cx + 6, cy - 4, 4, 5.5, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Lo que guarda
+  ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffd040';
+  ctx.fillText('💰 ' + shade.money, cx, cy - 30);
+  if (shade.weapon) {
+    ctx.fillStyle = shade.weapon.color;
+    ctx.fillText('⚔ ' + shade.weapon.name, cx, cy - 42);
+  }
+}
+
 // ─── ENEMIGOS ─────────────────────────────────────────────────────────────────
 function initEnemies(roomId) {
   const templates = ENEMY_TEMPLATES[roomId] || [];
@@ -669,6 +757,7 @@ function checkEnemyCollisions() {
         collideRect(atkX, atkY, atkW, atkH, e.x, e.y, e.w, e.h)) {
       e.dead = true;
       e.deathTimer = 22;
+      addMoney(MONEY_ENEMY, e.x + e.w / 2, e.y);
       // Rebote ligero al golpear
       if (player.knockbackTimer === 0) { player.vy = Math.min(player.vy, -4); }
       continue;
@@ -680,6 +769,7 @@ function checkEnemyCollisions() {
     if (stompOverlap && fromAbove) {
       e.dead = true;
       e.deathTimer = 22;
+      addMoney(MONEY_ENEMY, e.x + e.w / 2, e.y);
       player.vy = -11;
       continue;
     }
@@ -840,6 +930,7 @@ function updateBoss() {
     if (boss.deathTimer > 0) { boss.deathTimer--; }
     else if (!bossDefeated)  {
       bossDefeated = true;
+      addMoney(MONEY_BOSS, boss.x + boss.w / 2, boss.y);
       keyItem.x = boss.x + boss.w / 2 - 12;
       keyItem.y = BOSS_FLOOR_Y - 28;
       keyItem.active = true;
@@ -1276,7 +1367,10 @@ function updateBoss2() {
 
   if (boss2.dead) {
     if (boss2.deathTimer > 0) { boss2.deathTimer--; }
-    else if (!boss2Defeated)  { boss2Defeated = true; }
+    else if (!boss2Defeated)  {
+      boss2Defeated = true;
+      addMoney(MONEY_BOSS, boss2.x + boss2.w / 2, boss2.y);
+    }
     return;
   }
 
@@ -2081,6 +2175,30 @@ function drawHUD() {
     ctx.fillRect(16, 64, barW * prog, 4);
   }
 
+  // Dinero
+  ctx.font = 'bold 14px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#ffd040';
+  ctx.fillText('💰 ' + money, 16, 90);
+  if (shade) {
+    ctx.font = '11px monospace';
+    ctx.fillStyle = 'rgba(200,170,255,0.8)';
+    ctx.fillText('👻 Tu alma te espera en ' + ROOMS[shade.room].name, 16, 108);
+  }
+
+  // Textos flotantes de dinero
+  for (let i = moneyPops.length - 1; i >= 0; i--) {
+    const m = moneyPops[i];
+    m.t--; m.y -= 0.8;
+    if (m.t <= 0) { moneyPops.splice(i, 1); continue; }
+    ctx.globalAlpha = Math.min(1, m.t / 30);
+    ctx.fillStyle = '#ffd040';
+    ctx.font = 'bold 15px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(m.text + ' 💰', m.x, m.y);
+    ctx.globalAlpha = 1;
+  }
+
   // God mode indicator
   if (godMode) {
     const p = 0.7 + 0.3 * Math.sin(Date.now() * 0.006);
@@ -2107,7 +2225,7 @@ function drawHUD() {
 function drawInventory() {
   if (!showInventory) return;
 
-  const pw = 280, ph = 180, mw = 300, gap = 12;
+  const pw = 280, ph = 200, mw = 300, gap = 12;
   const px = (W - (pw + gap + mw)) / 2, py = (H - ph) / 2;
 
   // Fondo
@@ -2149,6 +2267,14 @@ function drawInventory() {
   ctx.fillStyle = '#ffffff';
   ctx.textAlign = 'right';
   ctx.fillText('x' + playerDmg, px + pw - 26, py + 114);
+
+  // Fila: Dinero
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#ffd040';
+  ctx.fillText('💰  Dinero', px + 26, py + 150);
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'right';
+  ctx.fillText(money, px + pw - 26, py + 150);
 
   // Hint cierre
   ctx.textAlign = 'center';
@@ -2217,6 +2343,11 @@ function drawMiniMap(px, py, pw, ph) {
     ctx.fillStyle = here ? '#40ff90' : (n.boss ? '#ff8888' : '#d0b0ff');
     ctx.font = '8px monospace';
     ctx.fillText(n.name, p.x, p.y + 22);
+
+    if (shade && shade.room === n.id) {
+      ctx.font = '12px monospace';
+      ctx.fillText('👻', p.x + 14, p.y - 8);
+    }
 
     if (here) {
       const bob = Math.sin(Date.now() * 0.006) * 2;
@@ -2527,6 +2658,7 @@ function frame() {
     checkBoss2Collisions();
     updateKey();
     updateWeaponItems();
+    updateShade();
     checkExits();
   }
   updateTransition();
@@ -2548,6 +2680,7 @@ function frame() {
   drawBoss2();
   drawKey();
   drawWeaponItems();
+  drawShade();
   drawPlayer();
   drawRoomLabel();
   drawBossUI();
