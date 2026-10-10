@@ -2107,10 +2107,11 @@ function drawHUD() {
 function drawInventory() {
   if (!showInventory) return;
 
-  const px = 40, py = 40, pw = W - 80, ph = H - 80;
+  const pw = 280, ph = 180, mw = 300, gap = 12;
+  const px = (W - (pw + gap + mw)) / 2, py = (H - ph) / 2;
 
   // Fondo
-  ctx.fillStyle = 'rgba(4, 4, 16, 0.95)';
+  ctx.fillStyle = 'rgba(4, 4, 16, 0.94)';
   ctx.fillRect(px, py, pw, ph);
   ctx.strokeStyle = '#5a3a8a';
   ctx.lineWidth = 3;
@@ -2123,37 +2124,111 @@ function drawInventory() {
   ctx.fillStyle = '#d0a8ff';
   ctx.font = 'bold 15px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('🗺  MAPA', W / 2, py + 30);
+  ctx.fillText('⚙  ESTADÍSTICAS', px + pw / 2, py + 33);
 
   // Separador
   ctx.strokeStyle = '#3a2a5a';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(px + 18, py + 42); ctx.lineTo(px + pw - 18, py + 42);
+  ctx.moveTo(px + 18, py + 44); ctx.lineTo(px + pw - 18, py + 44);
   ctx.stroke();
 
-  // Mapa (solo lectura, sin salas secretas)
-  drawRoomGraph(false, currentRoom);
-
-  // Estadísticas
-  const sy = py + ph - 62;
-  ctx.strokeStyle = '#3a2a5a';
-  ctx.beginPath();
-  ctx.moveTo(px + 18, sy - 22); ctx.lineTo(px + pw - 18, sy - 22);
-  ctx.stroke();
-
+  // Fila: Vida máxima
+  ctx.textAlign = 'left';
   ctx.font = '13px monospace';
-  ctx.textAlign = 'center';
   ctx.fillStyle = '#ff6688';
-  ctx.fillText('❤  Vida máxima: ' + player.maxHp, W / 2 - 160, sy);
+  ctx.fillText('❤  Vida máxima', px + 26, py + 78);
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'right';
+  ctx.fillText(player.maxHp, px + pw - 26, py + 78);
+
+  // Fila: Daño
+  ctx.textAlign = 'left';
   ctx.fillStyle = weaponColor;
-  ctx.fillText('⚔  ' + weaponName + '  x' + playerDmg, W / 2 + 160, sy);
+  ctx.fillText('⚔  ' + weaponName, px + 26, py + 114);
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'right';
+  ctx.fillText('x' + playerDmg, px + pw - 26, py + 114);
 
   // Hint cierre
   ctx.textAlign = 'center';
   ctx.fillStyle = 'rgba(255,255,255,0.28)';
   ctx.font = '10px monospace';
-  ctx.fillText('TAB / I  ·  📦  para cerrar', W / 2, py + ph - 14);
+  ctx.fillText('TAB / I  ·  📦  para cerrar', px + pw / 2, py + ph - 14);
+
+  // Minimapa a la derecha
+  drawMiniMap(px + pw + gap, py, mw, ph);
+}
+
+// Minimapa de solo lectura (sin salas secretas) con la sala actual resaltada
+function drawMiniMap(px, py, pw, ph) {
+  ctx.fillStyle = 'rgba(4, 4, 16, 0.94)';
+  ctx.fillRect(px, py, pw, ph);
+  ctx.strokeStyle = '#5a3a8a';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(px, py, pw, ph);
+  ctx.strokeStyle = '#2a1a4a';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(px + 5, py + 5, pw - 10, ph - 10);
+
+  ctx.fillStyle = '#d0a8ff';
+  ctx.font = 'bold 15px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('🗺  MAPA', px + pw / 2, py + 33);
+  ctx.strokeStyle = '#3a2a5a';
+  ctx.beginPath();
+  ctx.moveTo(px + 18, py + 44); ctx.lineTo(px + pw - 18, py + 44);
+  ctx.stroke();
+
+  // Escalar las posiciones del mapa grande al recuadro
+  const nodes = CHEAT_NODES.filter(n => !n.secret);
+  const xs = nodes.map(n => n.x), ys = nodes.map(n => n.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const ax = px + 34, aw = pw - 68, ay = py + 72, ah = 52;
+  const pos = {};
+  for (const n of nodes) {
+    pos[n.id] = {
+      x: ax + (n.x - minX) / (maxX - minX) * aw,
+      y: ay + (n.y - minY) / (maxY - minY) * ah,
+    };
+  }
+
+  // Conexiones
+  ctx.strokeStyle = 'rgba(154,106,255,0.4)'; ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 3]);
+  for (const [a, b] of CHEAT_EDGES) {
+    if (!pos[a] || !pos[b]) continue;
+    ctx.beginPath(); ctx.moveTo(pos[a].x, pos[a].y); ctx.lineTo(pos[b].x, pos[b].y); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Nodos
+  for (const n of nodes) {
+    const p = pos[n.id], here = n.id === currentRoom;
+    ctx.fillStyle = n.boss ? '#3a0808' : '#160828';
+    ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = here ? '#40ff90' : (n.boss ? '#ff4444' : '#9a6aff');
+    ctx.lineWidth = here ? 3 : 2;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 11, 0, Math.PI * 2); ctx.stroke();
+
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(n.id + 1, p.x, p.y + 4);
+    ctx.fillStyle = here ? '#40ff90' : (n.boss ? '#ff8888' : '#d0b0ff');
+    ctx.font = '8px monospace';
+    ctx.fillText(n.name, p.x, p.y + 22);
+
+    if (here) {
+      const bob = Math.sin(Date.now() * 0.006) * 2;
+      ctx.fillStyle = '#40ff90';
+      ctx.beginPath(); ctx.moveTo(p.x, p.y - 14 + bob); ctx.lineTo(p.x - 5, p.y - 22 + bob); ctx.lineTo(p.x + 5, p.y - 22 + bob); ctx.closePath(); ctx.fill();
+    }
+  }
+
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(nodes.some(n => n.id === currentRoom) ? '▼ estás aquí' : '¿?  ubicación desconocida', px + pw / 2, py + ph - 14);
 }
 
 // ─── CHEAT MENU ───────────────────────────────────────────────────────────────
