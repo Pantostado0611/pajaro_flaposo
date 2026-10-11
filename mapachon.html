@@ -5820,6 +5820,24 @@ const Music = (() => {
                ['C5', 2], ['D#5', 2], ['G5', 4], ['F5', 3], ['D#5', 1], ['D5', 4],
                ['D#5', 2], ['C5', 2], ['G#4', 4], ['B4', 4], ['D5', 4]],
     }),
+    // Jefes: Los Guardias del Castillo — marcha marcial: cuerdas a paso de
+    // desfile, fanfarria de metales y tambores de marcha (Sol menor)
+    guardias: build({
+      bpm: 132, inst: { ost: 'strings', mel: 'brass', bass: 'bass' },
+      ost: [0, 0, 7, 0, 0, 7, 12, 7], ostOct: -1,
+      choir: true, choirOct: -1, bass: 'drive', bassDown: 2,
+      drums: [['taiko', [0, 4], 1, 100, 1.1], ['taiko', [2, 6], 1, 140, 0.6],
+              ['hat', [1, 3, 5, 7], 1, 0, 0.5], ['crash', [0], 4, 0, 0.8]],
+      chords: [['G3', 1], ['G3', 1], ['D#4', 0], ['F3', 0], ['G3', 1], ['C4', 1], ['D4', 0], ['D4', 0]],
+      melody: [['G4', 2], ['G4', 1], ['G4', 1], ['D5', 4],
+               ['C5', 2], ['A#4', 2], ['A4', 2], ['G4', 2],
+               ['A#4', 3], ['C5', 1], ['D#5', 4],
+               ['D5', 2], ['C5', 2], ['F5', 4],
+               ['G5', 3], ['F5', 1], ['D5', 2], ['A#4', 2],
+               ['C5', 2], ['D#5', 2], ['G5', 2], ['F5', 2],
+               ['F#5', 4], ['D5', 2], ['A4', 2],
+               ['F#4', 2], ['A4', 2], ['D5', 4]],
+    }),
   };
 
   function play(name) {
@@ -5858,7 +5876,7 @@ const Music = (() => {
     let name = 'ruinas';
     if (currentRoom === 4 && !bossDefeated && !boss.dead) name = 'rey';
     else if (currentRoom === 3 && !boss2Defeated && !boss2.dead) name = 'guardian';
-    else if (currentRoom === 13) name = !guardsDefeated ? 'rey' : 'cumbre';
+    else if (currentRoom === 13) name = !guardsDefeated ? 'guardias' : 'cumbre';
     else if (currentRoom === 12) name = !boss3Defeated && !boss3.dead ? 'coloso' : 'ruinas';
     else if (zoneOf(currentRoom) >= 6) name = 'cumbre';
     play(name);
