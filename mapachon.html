@@ -644,6 +644,7 @@ function addMoney(amount, x, y) {
   moneyPops.push({ x, y, text: '+' + amount, t: 60 });
 }
 let currentEnemies = [];
+const jumpPuffs = []; // nubecitas del doble salto
 let camX = 0, camY = 0; // desplazamiento de la cámara (solo en salas grandes)
 let camRoom = -1;
 // Temblor de pantalla (golpes fuertes de los jefes)
@@ -788,11 +789,16 @@ function updatePlayer() {
     player.coyoteTime--;
   }
 
-  // Saltar
+  // Saltar (y doble salto en el aire si ya venciste al Coloso)
+  if (player.onGround) player.usedDouble = false;
   if (player.jumpBuffered && player.coyoteTime > 0) {
     player.vy = JUMP_V;
     player.coyoteTime = 0;
     player.jumpBuffered = false;
+  } else if (player.jumpBuffered && boss3Defeated && !player.usedDouble) {
+    player.vy = JUMP_V * 0.92;
+    player.usedDouble = true;
+    jumpPuffs.push({ x: player.x + player.w / 2, y: player.y + player.h, t: 22 });
   }
   player.jumpBuffered = false;
 
@@ -2159,7 +2165,10 @@ function drawBoss3UI() {
     ctx.fillStyle = '#a0e0ff'; ctx.font = 'bold 34px serif';
     ctx.fillText('¡El Coloso ha caído!', W / 2, 110);
     ctx.fillStyle = '#ffffff'; ctx.font = '18px serif';
-    ctx.fillText('La salida está a la izquierda', W / 2, 144);
+    ctx.fillStyle = '#bfe4ff';
+    ctx.fillText('Has obtenido el DOBLE SALTO: salta otra vez en el aire', W / 2, 144);
+    ctx.fillStyle = '#ffffff'; ctx.font = '15px serif';
+    ctx.fillText('La salida está a la izquierda', W / 2, 168);
     ctx.restore();
   }
 }
@@ -3324,7 +3333,25 @@ function blinkNow(seed) {
   return ((Date.now() + seed * 977) % 3500) < 130;
 }
 
+function drawJumpPuffs() {
+  for (let i = jumpPuffs.length - 1; i >= 0; i--) {
+    const f = jumpPuffs[i];
+    if (--f.t <= 0) { jumpPuffs.splice(i, 1); continue; }
+    const k = 1 - f.t / 22;
+    ctx.save();
+    ctx.globalAlpha = 0.7 * (1 - k);
+    ctx.strokeStyle = '#bfe4ff'; ctx.lineWidth = 2.5 * (1 - k) + 0.5;
+    ctx.beginPath(); ctx.ellipse(f.x, f.y + k * 6, 10 + k * 18, 3 + k * 4, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#e8f4ff';
+    for (const dx of [-1, 1]) {
+      ctx.beginPath(); ctx.arc(f.x + dx * (8 + k * 16), f.y + 2 + k * 8, 3 * (1 - k) + 1, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
 function drawPlayer() {
+  drawJumpPuffs();
   const px = Math.round(player.x);
   const py = Math.round(player.y);
   const f  = player.facing;
@@ -3802,6 +3829,7 @@ function drawInventory() {
     ['🏹  ' + (ranged ? ranged.name : 'Sin arma'), ranged ? ranged.color : '#777', ranged ? 'x' + ranged.damage : '—'],
     ['💰  Mapesos', '#ffd040', fmtMoney(money)],
   ];
+  if (boss3Defeated) rows.push(['🪶  Doble salto', '#bfe4ff', '✓']);
   rows.forEach(([label, color, value], i) => {
     const ry = py + 106 + i * 28;
     ctx.textAlign = 'left';
@@ -3844,7 +3872,7 @@ function drawMiniMap(px, py, pw, ph) {
 
   // Escalar las posiciones del mapa grande al recuadro
   // Armería y castillo aparecen al vencer al guardián; la Cumbre, al visitarla
-  const nodes = CHEAT_NODES.filter(n => n.id < 5 || (n.id >= 8 ? visitedRooms.has(n.id) : n.id === 7 ? chapterShown : boss2Defeated));
+  const nodes = CHEAT_NODES.filter(n => !n.secret && (n.id < 5 || (n.id >= 8 ? visitedRooms.has(n.id) : n.id === 7 ? chapterShown : boss2Defeated)));
   const xs = nodes.map(n => n.x), ys = nodes.map(n => n.y);
   const minX = Math.min(...xs), maxX = Math.max(...xs);
   const minY = Math.min(...ys), maxY = Math.max(...ys);
