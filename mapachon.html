@@ -135,7 +135,7 @@ const ROOMS = {
       { x: 420, y: 180, w: 120, h: 18 },
     ],
     exits: {
-      left:  { room: 15, spawnX: 890, spawnY: 400 },
+      left:  { room: 15, spawnX: 1390, spawnY: 400 },
       right: { room: 16, spawnX:  30, spawnY: 400 },
       up:    { room: 22, spawnX: 180, spawnY: 400 },
     },
@@ -162,7 +162,7 @@ const ROOMS = {
       { x: 820, y: 390, w: 100, h: 18 },
     ],
     exits: {
-      left:  { room: 17, spawnX: 890, spawnY: 400 },
+      left:  { room: 17, spawnX: 1390, spawnY: 400 },
       right: { room: 18, spawnX:  30, spawnY: 400 },
     },
     decorations: [
@@ -220,7 +220,7 @@ const ROOMS = {
       { x: 890, y: 105, w: 70, h: 12, secretStair: true },
     ],
     exits: {
-      left: { room: 21, spawnX: 890, spawnY: 400 },
+      left: { room: 21, spawnX: 1390, spawnY: 400 },
       up:   { room: 12, spawnX: 80, spawnY: 400 }, // sala secreta
     },
     decorations: [
@@ -267,7 +267,7 @@ const ROOMS = {
     ],
     // Solo sube a La Cumbre Quebrantada (y vuelve a La Cima)
     exits: {
-      left: { room: 27, spawnX: 890, spawnY: 400 },
+      left: { room: 27, spawnX: 1390, spawnY: 400 },
       up:   { room: 7, spawnX: 280, spawnY: 420 },
     },
     decorations: [
@@ -324,7 +324,7 @@ const ROOMS = {
       { x: 770, y: 240, w: 130, h: 18 },
     ],
     exits: {
-      left:  { room: 29, spawnX: 890, spawnY: 400 },
+      left:  { room: 29, spawnX: 1390, spawnY: 400 },
       right: { room: 30, spawnX:  30, spawnY: 400 },
     },
     decorations: [ { type:'nightRanges', level: 1 } ],
@@ -345,7 +345,7 @@ const ROOMS = {
       { x: 590, y: 180, w: 120, h: 18 },
     ],
     exits: {
-      left:  { room: 31, spawnX: 890, spawnY: 400 },
+      left:  { room: 31, spawnX: 1390, spawnY: 400 },
       right: { room: 32, spawnX: 30, spawnY: 400 },
     },
     decorations: [ { type:'nightRanges', level: 2 } ],
@@ -366,7 +366,7 @@ const ROOMS = {
       { x: 560, y: 190, w: 100, h: 18 },
     ],
     exits: {
-      left:  { room: 33, spawnX: 890, spawnY: 400 },
+      left:  { room: 33, spawnX: 1390, spawnY: 400 },
       right: { room: 34, spawnX: 30, spawnY: 400 },
     },
     decorations: [ { type:'nightRanges', level: 3 } ],
@@ -384,7 +384,7 @@ const ROOMS = {
       { x: 620, y: 360, w: 340, h: 180 }, // la cima
     ],
     exits: {
-      left: { room: 35, spawnX: 890, spawnY: 400 },
+      left: { room: 35, spawnX: 1390, spawnY: 400 },
     },
     hatch: { x: 690, y: 360, w: 56, room: 36 }, // trampilla al interior del castillo
     decorations: [ { type:'nightRanges', level: 4 } ],
@@ -458,161 +458,204 @@ const ROOMS = {
   // ── Salas añadidas: cada zona tiene ahora 3 salas (zone = sala principal)
   14: {
     name: 'Pasillo Derrumbado',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 0,
     bg: ['#050810', '#0a1020'],
     floorColor: '#1a2238', platColor: '#243050', edgeColor: '#314068',
     particleColor: '#4060b0',
     platforms: [
-      { x: 0, y: 480, w: 960, h: 60 },
-      { x: 150, y: 380, w: 130, h: 18 },
-      { x: 360, y: 300, w: 120, h: 18 },
-      { x: 560, y: 380, w: 130, h: 18 },
-      { x: 740, y: 290, w: 120, h: 18 },
-      { x: 420, y: 180, w: 120, h: 18 },
+      { x: 0, y: 480, w: 900, h: 60 },
+      { x: 900, y: 160, w: 540, h: 380 },
+      { x: 1420, y: -120, w: 20, h: 280 },
+      { x: 500, y: -180, w: 640, h: 60 },
+      { x: 1340, y: -180, w: 100, h: 60 },
+      { x: 640, y: 380, w: 120, h: 18 },
+      { x: 760, y: 280, w: 120, h: 18 },
+      { x: 1100, y: 60, w: 120, h: 18 },
+      { x: 1230, y: -50, w: 100, h: 18 },
+      { x: 180, y: 300, w: 130, h: 18 },
+      { x: 320, y: 140, w: 120, h: 18 },
     ],
     exits: {
       left: { room: 0, spawnX: 890, spawnY: 400 },
-      right: { room: 15, spawnX: 30, spawnY: 400 },
+      right: { room: 15, spawnX: 30, spawnY: -260, band: [-440, -180] },
     },
     decorations: [ { type:'pillar', x:60, y:420, h:60 }, { type:'arch', x:440, y:200 }, { type:'pillar', x:900, y:420, h:60 } ],
   },
   15: {
     name: 'Galería de los Ecos',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 0,
     bg: ['#050810', '#0a1020'],
     floorColor: '#1a2238', platColor: '#243050', edgeColor: '#314068',
     particleColor: '#4060b0',
     platforms: [
-      { x: 0, y: 480, w: 260, h: 60 },
-      { x: 360, y: 480, w: 240, h: 60 },
-      { x: 700, y: 480, w: 260, h: 60 },
-      { x: 270, y: 410, w: 80, h: 18 },
-      { x: 610, y: 410, w: 80, h: 18 },
-      { x: 150, y: 320, w: 110, h: 18 },
-      { x: 440, y: 260, w: 110, h: 18 },
-      { x: 730, y: 320, w: 110, h: 18 },
+      { x: 0, y: -180, w: 900, h: 60 },
+      { x: 500, y: 160, w: 940, h: 60 },
+      { x: 0, y: 480, w: 1440, h: 60 },
+      { x: 0, y: -120, w: 20, h: 600 },
+      { x: 1420, y: -540, w: 20, h: 760 },
+      { x: 300, y: 380, w: 120, h: 18 },
+      { x: 150, y: 280, w: 120, h: 18 },
+      { x: 330, y: 190, w: 110, h: 18 },
+      { x: 1000, y: 60, w: 120, h: 18 },
+      { x: 880, y: -60, w: 100, h: 18 },
     ],
     exits: {
-      left: { room: 14, spawnX: 890, spawnY: 400 },
+      left: { room: 14, spawnX: 1390, spawnY: -260, band: [-440, -180] },
       right: { room: 1, spawnX: 30, spawnY: 400 },
     },
     decorations: [ { type:'pillar', x:60, y:420, h:60 }, { type:'arch', x:440, y:200 }, { type:'pillar', x:900, y:420, h:60 } ],
   },
   16: {
     name: 'Grieta de Cuarzo',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 1,
     bg: ['#05100a', '#0a1f14'],
     floorColor: '#1a3028', platColor: '#224038', edgeColor: '#2e5448',
     particleColor: '#30c090',
     platforms: [
-      { x: 0, y: 480, w: 960, h: 60 },
-      { x: 360, y: 400, w: 240, h: 80 },
-      { x: 150, y: 330, w: 120, h: 18 },
-      { x: 690, y: 330, w: 120, h: 18 },
-      { x: 420, y: 250, w: 120, h: 18 },
+      { x: 0, y: 480, w: 900, h: 60 },
+      { x: 900, y: 160, w: 540, h: 380 },
+      { x: 1420, y: -120, w: 20, h: 280 },
+      { x: 500, y: -180, w: 640, h: 60 },
+      { x: 1340, y: -180, w: 100, h: 60 },
+      { x: 640, y: 380, w: 120, h: 18 },
+      { x: 760, y: 280, w: 120, h: 18 },
+      { x: 1100, y: 60, w: 120, h: 18 },
+      { x: 1230, y: -50, w: 100, h: 18 },
+      { x: 180, y: 300, w: 130, h: 18 },
+      { x: 320, y: 140, w: 120, h: 18 },
     ],
     exits: {
       left: { room: 1, spawnX: 890, spawnY: 400 },
-      right: { room: 17, spawnX: 30, spawnY: 400 },
+      right: { room: 17, spawnX: 30, spawnY: -260, band: [-440, -180] },
     },
     decorations: [ { type:'crystal', x:240, y:0, h:H }, { type:'crystal', x:620, y:80, h:400 }, { type:'crystal', x:860, y:0, h:H } ],
   },
   17: {
     name: 'Cueva Luminosa',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 1,
     bg: ['#05100a', '#0a1f14'],
     floorColor: '#1a3028', platColor: '#224038', edgeColor: '#2e5448',
     particleColor: '#30c090',
     platforms: [
-      { x: 0, y: 480, w: 960, h: 60 },
-      { x: 600, y: 380, w: 60, h: 100 },
-      { x: 300, y: 330, w: 60, h: 150 },
-      { x: 720, y: 350, w: 120, h: 18 },
-      { x: 420, y: 260, w: 110, h: 18 },
-      { x: 80, y: 330, w: 120, h: 18 },
+      { x: 0, y: -180, w: 900, h: 60 },
+      { x: 500, y: 160, w: 940, h: 60 },
+      { x: 0, y: 480, w: 1440, h: 60 },
+      { x: 0, y: -120, w: 20, h: 600 },
+      { x: 1420, y: -540, w: 20, h: 760 },
+      { x: 300, y: 380, w: 120, h: 18 },
+      { x: 150, y: 280, w: 120, h: 18 },
+      { x: 330, y: 190, w: 110, h: 18 },
+      { x: 1000, y: 60, w: 120, h: 18 },
+      { x: 880, y: -60, w: 100, h: 18 },
     ],
     exits: {
-      left: { room: 16, spawnX: 890, spawnY: 400 },
+      left: { room: 16, spawnX: 1390, spawnY: -260, band: [-440, -180] },
       right: { room: 2, spawnX: 30, spawnY: 400 },
     },
     decorations: [ { type:'crystal', x:240, y:0, h:H }, { type:'crystal', x:620, y:80, h:400 }, { type:'crystal', x:860, y:0, h:H } ],
   },
   18: {
     name: 'Raíces Podridas',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 2,
     bg: ['#0a0805', '#1a1205'],
     floorColor: '#2a2010', platColor: '#3a2e18', edgeColor: '#4a3e28',
     particleColor: '#c08030',
     platforms: [
-      { x: 0, y: 480, w: 380, h: 60 },
-      { x: 560, y: 480, w: 400, h: 60 },
-      { x: 420, y: 400, w: 100, h: 18 },
-      { x: 170, y: 370, w: 120, h: 18 },
-      { x: 640, y: 360, w: 120, h: 18 },
-      { x: 400, y: 260, w: 160, h: 18 },
+      { x: 0, y: 480, w: 900, h: 60 },
+      { x: 900, y: 160, w: 540, h: 380 },
+      { x: 1420, y: -120, w: 20, h: 280 },
+      { x: 500, y: -180, w: 640, h: 60 },
+      { x: 1340, y: -180, w: 100, h: 60 },
+      { x: 640, y: 380, w: 120, h: 18 },
+      { x: 760, y: 280, w: 120, h: 18 },
+      { x: 1100, y: 60, w: 120, h: 18 },
+      { x: 1230, y: -50, w: 100, h: 18 },
+      { x: 180, y: 300, w: 130, h: 18 },
+      { x: 320, y: 140, w: 120, h: 18 },
     ],
     exits: {
       left: { room: 2, spawnX: 890, spawnY: 400 },
-      right: { room: 19, spawnX: 30, spawnY: 400 },
+      right: { room: 19, spawnX: 30, spawnY: -260, band: [-440, -180] },
     },
     decorations: [ { type:'mushroom', x:90, y:480 }, { type:'mushroom', x:520, y:480 }, { type:'mushroom', x:880, y:480 } ],
   },
   19: {
     name: 'Pantano de Esporas',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 2,
     bg: ['#0a0805', '#1a1205'],
     floorColor: '#2a2010', platColor: '#3a2e18', edgeColor: '#4a3e28',
     particleColor: '#c08030',
     platforms: [
-      { x: 0, y: 480, w: 960, h: 60 },
-      { x: 240, y: 420, w: 160, h: 60 },
-      { x: 460, y: 360, w: 200, h: 120 },
-      { x: 700, y: 420, w: 160, h: 60 },
-      { x: 520, y: 250, w: 120, h: 18 },
-      { x: 120, y: 330, w: 110, h: 18 },
+      { x: 0, y: -180, w: 900, h: 60 },
+      { x: 500, y: 160, w: 940, h: 60 },
+      { x: 0, y: 480, w: 1440, h: 60 },
+      { x: 0, y: -120, w: 20, h: 600 },
+      { x: 1420, y: -540, w: 20, h: 760 },
+      { x: 300, y: 380, w: 120, h: 18 },
+      { x: 150, y: 280, w: 120, h: 18 },
+      { x: 330, y: 190, w: 110, h: 18 },
+      { x: 1000, y: 60, w: 120, h: 18 },
+      { x: 880, y: -60, w: 100, h: 18 },
     ],
     exits: {
-      left: { room: 18, spawnX: 890, spawnY: 400 },
+      left: { room: 18, spawnX: 1390, spawnY: -260, band: [-440, -180] },
       right: { room: 20, spawnX: 30, spawnY: 400 },
     },
     decorations: [ { type:'mushroom', x:90, y:480 }, { type:'mushroom', x:520, y:480 }, { type:'mushroom', x:880, y:480 } ],
   },
   20: {
     name: 'Antesala Carmesí',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 4,
     bg: ['#100505', '#200808'],
     floorColor: '#301010', platColor: '#481818', edgeColor: '#602020',
     particleColor: '#ff4040',
     platforms: [
-      { x: 0, y: 480, w: 960, h: 60 },
-      { x: 300, y: 380, w: 60, h: 100 },
-      { x: 600, y: 330, w: 60, h: 150 },
-      { x: 120, y: 350, w: 120, h: 18 },
-      { x: 430, y: 260, w: 110, h: 18 },
-      { x: 760, y: 330, w: 120, h: 18 },
+      { x: 0, y: 480, w: 900, h: 60 },
+      { x: 900, y: 160, w: 540, h: 380 },
+      { x: 1420, y: -120, w: 20, h: 280 },
+      { x: 500, y: -180, w: 640, h: 60 },
+      { x: 1340, y: -180, w: 100, h: 60 },
+      { x: 640, y: 380, w: 120, h: 18 },
+      { x: 760, y: 280, w: 120, h: 18 },
+      { x: 1100, y: 60, w: 120, h: 18 },
+      { x: 1230, y: -50, w: 100, h: 18 },
+      { x: 180, y: 300, w: 130, h: 18 },
+      { x: 320, y: 140, w: 120, h: 18 },
     ],
     exits: {
-      left: { room: 19, spawnX: 890, spawnY: 400 },
-      right: { room: 21, spawnX: 30, spawnY: 400 },
+      left: { room: 19, spawnX: 1390, spawnY: 400 },
+      right: { room: 21, spawnX: 30, spawnY: -260, band: [-440, -180] },
     },
     decorations: [ { type:'pillar', x:100, y:420, h:60 }, { type:'pillar', x:480, y:420, h:60 }, { type:'pillar', x:860, y:420, h:60 } ],
   },
   21: {
     name: 'Corredor del Trono',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 4,
     bg: ['#100505', '#200808'],
     floorColor: '#301010', platColor: '#481818', edgeColor: '#602020',
     particleColor: '#ff4040',
     platforms: [
-      { x: 0, y: 480, w: 960, h: 60 },
-      { x: 680, y: 380, w: 130, h: 18 },
-      { x: 480, y: 300, w: 120, h: 18 },
-      { x: 270, y: 380, w: 130, h: 18 },
-      { x: 100, y: 290, w: 120, h: 18 },
-      { x: 420, y: 180, w: 120, h: 18 },
+      { x: 0, y: -180, w: 900, h: 60 },
+      { x: 500, y: 160, w: 940, h: 60 },
+      { x: 0, y: 480, w: 1440, h: 60 },
+      { x: 0, y: -120, w: 20, h: 600 },
+      { x: 1420, y: -540, w: 20, h: 760 },
+      { x: 300, y: 380, w: 120, h: 18 },
+      { x: 150, y: 280, w: 120, h: 18 },
+      { x: 330, y: 190, w: 110, h: 18 },
+      { x: 1000, y: 60, w: 120, h: 18 },
+      { x: 880, y: -60, w: 100, h: 18 },
     ],
     exits: {
-      left: { room: 20, spawnX: 890, spawnY: 400 },
+      left: { room: 20, spawnX: 1390, spawnY: -260, band: [-440, -180] },
       right: { room: 4, spawnX: 30, spawnY: 400 },
     },
     decorations: [ { type:'pillar', x:100, y:420, h:60 }, { type:'pillar', x:480, y:420, h:60 }, { type:'pillar', x:860, y:420, h:60 } ],
@@ -709,210 +752,263 @@ const ROOMS = {
   },
   26: {
     name: 'Puente Levadizo',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 6,
     bg: ['#0c0a10', '#18141e'],
     floorColor: '#2a2630', platColor: '#3a3542', edgeColor: '#55505e',
     particleColor: '#ff9a40',
     platforms: [
-      { x: 700, y: 480, w: 260, h: 60 },
-      { x: 360, y: 480, w: 240, h: 60 },
-      { x: 0, y: 480, w: 260, h: 60 },
-      { x: 610, y: 410, w: 80, h: 18 },
-      { x: 270, y: 410, w: 80, h: 18 },
-      { x: 700, y: 320, w: 110, h: 18 },
-      { x: 410, y: 260, w: 110, h: 18 },
-      { x: 120, y: 320, w: 110, h: 18 },
+      { x: 0, y: 480, w: 900, h: 60 },
+      { x: 900, y: 160, w: 540, h: 380 },
+      { x: 1420, y: -120, w: 20, h: 280 },
+      { x: 500, y: -180, w: 640, h: 60 },
+      { x: 1340, y: -180, w: 100, h: 60 },
+      { x: 640, y: 380, w: 120, h: 18 },
+      { x: 760, y: 280, w: 120, h: 18 },
+      { x: 1100, y: 60, w: 120, h: 18 },
+      { x: 1230, y: -50, w: 100, h: 18 },
+      { x: 180, y: 300, w: 130, h: 18 },
+      { x: 320, y: 140, w: 120, h: 18 },
     ],
     exits: {
       left: { room: 3, spawnX: 890, spawnY: 400 },
-      right: { room: 27, spawnX: 30, spawnY: 400 },
+      right: { room: 27, spawnX: 30, spawnY: -260, band: [-440, -180] },
     },
     decorations: [ { type:'bricks' }, { type:'window', x:200, y:120 }, { type:'window', x:760, y:120 }, { type:'torch', x:60, y:300 }, { type:'torch', x:900, y:300 } ],
   },
   27: {
     name: 'Patio de Armas',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 6,
     bg: ['#0c0a10', '#18141e'],
     floorColor: '#2a2630', platColor: '#3a3542', edgeColor: '#55505e',
     particleColor: '#ff9a40',
     platforms: [
-      { x: 0, y: 480, w: 960, h: 60 },
-      { x: 360, y: 400, w: 240, h: 80 },
-      { x: 150, y: 330, w: 120, h: 18 },
-      { x: 690, y: 330, w: 120, h: 18 },
-      { x: 420, y: 250, w: 120, h: 18 },
+      { x: 0, y: -180, w: 900, h: 60 },
+      { x: 500, y: 160, w: 940, h: 60 },
+      { x: 0, y: 480, w: 1440, h: 60 },
+      { x: 0, y: -120, w: 20, h: 600 },
+      { x: 1420, y: -540, w: 20, h: 760 },
+      { x: 300, y: 380, w: 120, h: 18 },
+      { x: 150, y: 280, w: 120, h: 18 },
+      { x: 330, y: 190, w: 110, h: 18 },
+      { x: 1000, y: 60, w: 120, h: 18 },
+      { x: 880, y: -60, w: 100, h: 18 },
     ],
     exits: {
-      left: { room: 26, spawnX: 890, spawnY: 400 },
+      left: { room: 26, spawnX: 1390, spawnY: -260, band: [-440, -180] },
       right: { room: 6, spawnX: 30, spawnY: 400 },
     },
     decorations: [ { type:'bricks' }, { type:'window', x:200, y:120 }, { type:'window', x:760, y:120 }, { type:'torch', x:60, y:300 }, { type:'torch', x:900, y:300 } ],
   },
   28: {
     name: 'Adarve Nevado',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 7,
     style: 'castleRock',
     bg: ['#6e5560', '#c08070'],
     floorColor: '#8a807e', platColor: '#9a908c', edgeColor: '#b4aaa4',
     particleColor: '#ffffff', noParticles: true,
     platforms: [
-      { x: 580, y: 480, w: 380, h: 60 },
-      { x: 0, y: 480, w: 400, h: 60 },
-      { x: 440, y: 400, w: 100, h: 18 },
-      { x: 670, y: 370, w: 120, h: 18 },
-      { x: 200, y: 360, w: 120, h: 18 },
-      { x: 400, y: 260, w: 160, h: 18 },
+      { x: 0, y: 480, w: 900, h: 60 },
+      { x: 900, y: 160, w: 540, h: 380 },
+      { x: 1420, y: -120, w: 20, h: 280 },
+      { x: 500, y: -180, w: 640, h: 60 },
+      { x: 1340, y: -180, w: 100, h: 60 },
+      { x: 640, y: 380, w: 120, h: 18 },
+      { x: 760, y: 280, w: 120, h: 18 },
+      { x: 1100, y: 60, w: 120, h: 18 },
+      { x: 1230, y: -50, w: 100, h: 18 },
+      { x: 180, y: 300, w: 130, h: 18 },
+      { x: 320, y: 140, w: 120, h: 18 },
     ],
     exits: {
       left: { room: 7, spawnX: 890, spawnY: 400 },
-      right: { room: 29, spawnX: 30, spawnY: 400 },
+      right: { room: 29, spawnX: 30, spawnY: -260, band: [-440, -180] },
     },
     decorations: [ { type:'nightRanges' } ],
   },
   29: {
     name: 'Torre del Vigía',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 7,
     style: 'castleRock',
     bg: ['#6e5560', '#c08070'],
     floorColor: '#8a807e', platColor: '#9a908c', edgeColor: '#b4aaa4',
     particleColor: '#ffffff', noParticles: true,
     platforms: [
-      { x: 0, y: 480, w: 960, h: 60 },
-      { x: 560, y: 420, w: 160, h: 60 },
-      { x: 300, y: 360, w: 200, h: 120 },
-      { x: 100, y: 420, w: 160, h: 60 },
-      { x: 320, y: 250, w: 120, h: 18 },
-      { x: 730, y: 330, w: 110, h: 18 },
+      { x: 0, y: -180, w: 900, h: 60 },
+      { x: 500, y: 160, w: 940, h: 60 },
+      { x: 0, y: 480, w: 1440, h: 60 },
+      { x: 0, y: -120, w: 20, h: 600 },
+      { x: 1420, y: -540, w: 20, h: 760 },
+      { x: 300, y: 380, w: 120, h: 18 },
+      { x: 150, y: 280, w: 120, h: 18 },
+      { x: 330, y: 190, w: 110, h: 18 },
+      { x: 1000, y: 60, w: 120, h: 18 },
+      { x: 880, y: -60, w: 100, h: 18 },
     ],
     exits: {
-      left: { room: 28, spawnX: 890, spawnY: 400 },
+      left: { room: 28, spawnX: 1390, spawnY: -260, band: [-440, -180] },
       right: { room: 8, spawnX: 30, spawnY: 400 },
     },
     decorations: [ { type:'nightRanges' } ],
   },
   30: {
     name: 'Ladera Blanca',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 8,
     style: 'mountain', night: 1.33,
     bg: ['#010208', '#0e1430'],
     floorColor: '#4a5068', platColor: '#4a5068', edgeColor: '#8a90a8',
     particleColor: '#ffffff', noParticles: true,
     platforms: [
-      { x: 0, y: 480, w: 960, h: 60 },
-      { x: 150, y: 380, w: 130, h: 18 },
-      { x: 360, y: 300, w: 120, h: 18 },
-      { x: 560, y: 380, w: 130, h: 18 },
-      { x: 740, y: 290, w: 120, h: 18 },
-      { x: 420, y: 180, w: 120, h: 18 },
+      { x: 0, y: 480, w: 900, h: 60 },
+      { x: 900, y: 160, w: 540, h: 380 },
+      { x: 1420, y: -120, w: 20, h: 280 },
+      { x: 500, y: -180, w: 640, h: 60 },
+      { x: 1340, y: -180, w: 100, h: 60 },
+      { x: 640, y: 380, w: 120, h: 18 },
+      { x: 760, y: 280, w: 120, h: 18 },
+      { x: 1100, y: 60, w: 120, h: 18 },
+      { x: 1230, y: -50, w: 100, h: 18 },
+      { x: 180, y: 300, w: 130, h: 18 },
+      { x: 320, y: 140, w: 120, h: 18 },
     ],
     exits: {
       left: { room: 8, spawnX: 890, spawnY: 340 },
-      right: { room: 31, spawnX: 30, spawnY: 400 },
+      right: { room: 31, spawnX: 30, spawnY: -260, band: [-440, -180] },
     },
     decorations: [ { type:'nightRanges', level: 1.33 } ],
   },
   31: {
     name: 'Cornisa Helada',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 8,
     style: 'mountain', night: 1.67,
     bg: ['#010208', '#0e1430'],
     floorColor: '#4a5068', platColor: '#4a5068', edgeColor: '#8a90a8',
     particleColor: '#ffffff', noParticles: true,
     platforms: [
-      { x: 0, y: 480, w: 260, h: 60 },
-      { x: 360, y: 480, w: 240, h: 60 },
-      { x: 700, y: 480, w: 260, h: 60 },
-      { x: 270, y: 410, w: 80, h: 18 },
-      { x: 610, y: 410, w: 80, h: 18 },
-      { x: 150, y: 320, w: 110, h: 18 },
-      { x: 440, y: 260, w: 110, h: 18 },
-      { x: 730, y: 320, w: 110, h: 18 },
+      { x: 0, y: -180, w: 900, h: 60 },
+      { x: 500, y: 160, w: 940, h: 60 },
+      { x: 0, y: 480, w: 1440, h: 60 },
+      { x: 0, y: -120, w: 20, h: 600 },
+      { x: 1420, y: -540, w: 20, h: 760 },
+      { x: 300, y: 380, w: 120, h: 18 },
+      { x: 150, y: 280, w: 120, h: 18 },
+      { x: 330, y: 190, w: 110, h: 18 },
+      { x: 1000, y: 60, w: 120, h: 18 },
+      { x: 880, y: -60, w: 100, h: 18 },
     ],
     exits: {
-      left: { room: 30, spawnX: 890, spawnY: 400 },
+      left: { room: 30, spawnX: 1390, spawnY: -260, band: [-440, -180] },
       right: { room: 9, spawnX: 30, spawnY: 400 },
     },
     decorations: [ { type:'nightRanges', level: 1.67 } ],
   },
   32: {
     name: 'Collado del Viento',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 9,
     style: 'mountain', night: 2.33,
     bg: ['#010208', '#0e1430'],
     floorColor: '#4a5068', platColor: '#4a5068', edgeColor: '#8a90a8',
     particleColor: '#ffffff', noParticles: true,
     platforms: [
-      { x: 0, y: 480, w: 960, h: 60 },
-      { x: 300, y: 380, w: 60, h: 100 },
-      { x: 600, y: 330, w: 60, h: 150 },
-      { x: 120, y: 350, w: 120, h: 18 },
-      { x: 430, y: 260, w: 110, h: 18 },
-      { x: 760, y: 330, w: 120, h: 18 },
+      { x: 0, y: 480, w: 900, h: 60 },
+      { x: 900, y: 160, w: 540, h: 380 },
+      { x: 1420, y: -120, w: 20, h: 280 },
+      { x: 500, y: -180, w: 640, h: 60 },
+      { x: 1340, y: -180, w: 100, h: 60 },
+      { x: 640, y: 380, w: 120, h: 18 },
+      { x: 760, y: 280, w: 120, h: 18 },
+      { x: 1100, y: 60, w: 120, h: 18 },
+      { x: 1230, y: -50, w: 100, h: 18 },
+      { x: 180, y: 300, w: 130, h: 18 },
+      { x: 320, y: 140, w: 120, h: 18 },
     ],
     exits: {
       left: { room: 9, spawnX: 890, spawnY: 350 },
-      right: { room: 33, spawnX: 30, spawnY: 400 },
+      right: { room: 33, spawnX: 30, spawnY: -260, band: [-440, -180] },
     },
     decorations: [ { type:'nightRanges', level: 2.33 } ],
   },
   33: {
     name: 'Puente de Hielo',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 9,
     style: 'mountain', night: 2.67,
     bg: ['#010208', '#0e1430'],
     floorColor: '#4a5068', platColor: '#4a5068', edgeColor: '#8a90a8',
     particleColor: '#ffffff', noParticles: true,
     platforms: [
-      { x: 0, y: 480, w: 380, h: 60 },
-      { x: 560, y: 480, w: 400, h: 60 },
-      { x: 420, y: 400, w: 100, h: 18 },
-      { x: 170, y: 370, w: 120, h: 18 },
-      { x: 640, y: 360, w: 120, h: 18 },
-      { x: 400, y: 260, w: 160, h: 18 },
+      { x: 0, y: -180, w: 900, h: 60 },
+      { x: 500, y: 160, w: 940, h: 60 },
+      { x: 0, y: 480, w: 1440, h: 60 },
+      { x: 0, y: -120, w: 20, h: 600 },
+      { x: 1420, y: -540, w: 20, h: 760 },
+      { x: 300, y: 380, w: 120, h: 18 },
+      { x: 150, y: 280, w: 120, h: 18 },
+      { x: 330, y: 190, w: 110, h: 18 },
+      { x: 1000, y: 60, w: 120, h: 18 },
+      { x: 880, y: -60, w: 100, h: 18 },
     ],
     exits: {
-      left: { room: 32, spawnX: 890, spawnY: 400 },
+      left: { room: 32, spawnX: 1390, spawnY: -260, band: [-440, -180] },
       right: { room: 10, spawnX: 30, spawnY: 400 },
     },
     decorations: [ { type:'nightRanges', level: 2.67 } ],
   },
   34: {
     name: 'Pared Negra',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 10,
     style: 'mountain', night: 3.33,
     bg: ['#010208', '#0e1430'],
     floorColor: '#4a5068', platColor: '#4a5068', edgeColor: '#8a90a8',
     particleColor: '#ffffff', noParticles: true,
     platforms: [
-      { x: 0, y: 480, w: 960, h: 60 },
-      { x: 360, y: 400, w: 240, h: 80 },
-      { x: 690, y: 330, w: 120, h: 18 },
-      { x: 150, y: 330, w: 120, h: 18 },
-      { x: 420, y: 250, w: 120, h: 18 },
+      { x: 0, y: 480, w: 900, h: 60 },
+      { x: 900, y: 160, w: 540, h: 380 },
+      { x: 1420, y: -120, w: 20, h: 280 },
+      { x: 500, y: -180, w: 640, h: 60 },
+      { x: 1340, y: -180, w: 100, h: 60 },
+      { x: 640, y: 380, w: 120, h: 18 },
+      { x: 760, y: 280, w: 120, h: 18 },
+      { x: 1100, y: 60, w: 120, h: 18 },
+      { x: 1230, y: -50, w: 100, h: 18 },
+      { x: 180, y: 300, w: 130, h: 18 },
+      { x: 320, y: 140, w: 120, h: 18 },
     ],
     exits: {
       left: { room: 10, spawnX: 890, spawnY: 300 },
-      right: { room: 35, spawnX: 30, spawnY: 400 },
+      right: { room: 35, spawnX: 30, spawnY: -260, band: [-440, -180] },
     },
     decorations: [ { type:'nightRanges', level: 3.33 } ],
   },
   35: {
     name: 'Último Refugio',
+    width: 1440, top: -540, // sala alta: el camino serpentea
     zone: 10,
     style: 'mountain', night: 3.67,
     bg: ['#010208', '#0e1430'],
     floorColor: '#4a5068', platColor: '#4a5068', edgeColor: '#8a90a8',
     particleColor: '#ffffff', noParticles: true,
     platforms: [
-      { x: 0, y: 480, w: 960, h: 60 },
-      { x: 240, y: 420, w: 160, h: 60 },
-      { x: 460, y: 360, w: 200, h: 120 },
-      { x: 700, y: 420, w: 160, h: 60 },
-      { x: 520, y: 250, w: 120, h: 18 },
-      { x: 120, y: 330, w: 110, h: 18 },
+      { x: 0, y: -180, w: 900, h: 60 },
+      { x: 500, y: 160, w: 940, h: 60 },
+      { x: 0, y: 480, w: 1440, h: 60 },
+      { x: 0, y: -120, w: 20, h: 600 },
+      { x: 1420, y: -540, w: 20, h: 760 },
+      { x: 300, y: 380, w: 120, h: 18 },
+      { x: 150, y: 280, w: 120, h: 18 },
+      { x: 330, y: 190, w: 110, h: 18 },
+      { x: 1000, y: 60, w: 120, h: 18 },
+      { x: 880, y: -60, w: 100, h: 18 },
     ],
     exits: {
-      left: { room: 34, spawnX: 890, spawnY: 400 },
+      left: { room: 34, spawnX: 1390, spawnY: -260, band: [-440, -180] },
       right: { room: 11, spawnX: 30, spawnY: 400 },
     },
     decorations: [ { type:'nightRanges', level: 3.67 } ],
@@ -1037,41 +1133,44 @@ const ENEMY_TEMPLATES = {
     { x: 800, y: 336, dir: -1, patrolMin: 630, patrolMax: 930, speed: 1.8 },
   ],
   14: [
-    { x: 60, y: 456, dir: 1, patrolMin: 30, patrolMax: 460, speed: 1.3 },
-    { x: 700, y: 456, dir: -1, patrolMin: 500, patrolMax: 930, speed: 1.3 },
+    { x: 300, y: 456, dir: 1, patrolMin: 20, patrolMax: 620, speed: 1.3 },
+    { x: 1100, y: 136, dir: -1, patrolMin: 920, patrolMax: 1410, speed: 1.4 },
+    { x: 700, y: -204, dir: 1, patrolMin: 520, patrolMax: 1120, speed: 1.4 },
   ],
   15: [
-    { x: 80, y: 456, dir: 1, patrolMin: 20, patrolMax: 230, speed: 1.3 },
-    { x: 450, y: 456, dir: 1, patrolMin: 370, patrolMax: 570, speed: 1.3 },
-    { x: 800, y: 456, dir: -1, patrolMin: 710, patrolMax: 930, speed: 1.3 },
+    { x: 400, y: -204, dir: 1, patrolMin: 30, patrolMax: 880, speed: 1.3 },
+    { x: 900, y: 136, dir: -1, patrolMin: 520, patrolMax: 1400, speed: 1.4 },
+    { x: 700, y: 456, dir: 1, patrolMin: 40, patrolMax: 1400, speed: 1.5 },
   ],
   16: [
-    { x: 80, y: 456, dir: 1, patrolMin: 20, patrolMax: 330, speed: 1.3 },
-    { x: 420, y: 376, dir: 1, patrolMin: 365, patrolMax: 570, speed: 1.2 },
-    { x: 800, y: 456, dir: -1, patrolMin: 620, patrolMax: 930, speed: 1.3 },
+    { x: 300, y: 456, dir: 1, patrolMin: 20, patrolMax: 620, speed: 1.3 },
+    { x: 1100, y: 136, dir: -1, patrolMin: 920, patrolMax: 1410, speed: 1.4 },
+    { x: 700, y: -204, dir: 1, patrolMin: 520, patrolMax: 1120, speed: 1.4 },
   ],
   17: [
-    { x: 812, y: 456, dir: -1, patrolMin: 652, patrolMax: 912, speed: 1.4 },
-    { x: 482, y: 456, dir: -1, patrolMin: 352, patrolMax: 562, speed: 1.4 },
-    { x: 152, y: 456, dir: 1, patrolMin: 2, patrolMax: 262, speed: 1.4 },
+    { x: 400, y: -204, dir: 1, patrolMin: 30, patrolMax: 880, speed: 1.3 },
+    { x: 900, y: 136, dir: -1, patrolMin: 520, patrolMax: 1400, speed: 1.4 },
+    { x: 700, y: 456, dir: 1, patrolMin: 40, patrolMax: 1400, speed: 1.5 },
   ],
   18: [
-    { x: 100, y: 456, dir: 1, patrolMin: 20, patrolMax: 350, speed: 1.4 },
-    { x: 750, y: 456, dir: -1, patrolMin: 580, patrolMax: 930, speed: 1.4 },
+    { x: 300, y: 456, dir: 1, patrolMin: 20, patrolMax: 620, speed: 1.3 },
+    { x: 1100, y: 136, dir: -1, patrolMin: 920, patrolMax: 1410, speed: 1.4 },
+    { x: 700, y: -204, dir: 1, patrolMin: 520, patrolMax: 1120, speed: 1.4 },
   ],
   19: [
-    { x: 500, y: 336, dir: 1, patrolMin: 465, patrolMax: 630, speed: 1.2 },
-    { x: 80, y: 456, dir: 1, patrolMin: 20, patrolMax: 220, speed: 1.4 },
-    { x: 880, y: 456, dir: -1, patrolMin: 870, patrolMax: 930, speed: 1.0 },
+    { x: 400, y: -204, dir: 1, patrolMin: 30, patrolMax: 880, speed: 1.3 },
+    { x: 900, y: 136, dir: -1, patrolMin: 520, patrolMax: 1400, speed: 1.4 },
+    { x: 700, y: 456, dir: 1, patrolMin: 40, patrolMax: 1400, speed: 1.5 },
   ],
   20: [
-    { x: 120, y: 456, dir: 1, patrolMin: 20, patrolMax: 280, speed: 1.4 },
-    { x: 450, y: 456, dir: 1, patrolMin: 370, patrolMax: 580, speed: 1.4 },
-    { x: 780, y: 456, dir: -1, patrolMin: 670, patrolMax: 930, speed: 1.4 },
+    { x: 300, y: 456, dir: 1, patrolMin: 20, patrolMax: 620, speed: 1.3 },
+    { x: 1100, y: 136, dir: -1, patrolMin: 920, patrolMax: 1410, speed: 1.4 },
+    { x: 700, y: -204, dir: 1, patrolMin: 520, patrolMax: 1120, speed: 1.4 },
   ],
   21: [
-    { x: 872, y: 456, dir: -1, patrolMin: 472, patrolMax: 902, speed: 1.3 },
-    { x: 232, y: 456, dir: 1, patrolMin: 2, patrolMax: 432, speed: 1.3 },
+    { x: 400, y: -204, dir: 1, patrolMin: 30, patrolMax: 880, speed: 1.3 },
+    { x: 900, y: 136, dir: -1, patrolMin: 520, patrolMax: 1400, speed: 1.4 },
+    { x: 700, y: 456, dir: 1, patrolMin: 40, patrolMax: 1400, speed: 1.5 },
   ],
   22: [
     { x: 100, y: 456, dir: 1, patrolMin: 20, patrolMax: 350, speed: 1.3 },
@@ -1092,51 +1191,54 @@ const ENEMY_TEMPLATES = {
     { x: 800, y: 456, dir: -1, patrolMin: 600, patrolMax: 930, speed: 1.3 },
   ],
   26: [
-    { x: 852, y: 456, dir: -1, patrolMin: 702, patrolMax: 912, speed: 1.3 },
-    { x: 482, y: 456, dir: -1, patrolMin: 362, patrolMax: 562, speed: 1.3 },
-    { x: 132, y: 456, dir: 1, patrolMin: 2, patrolMax: 222, speed: 1.3 },
+    { x: 300, y: 456, dir: 1, patrolMin: 20, patrolMax: 620, speed: 1.3 },
+    { x: 1100, y: 136, dir: -1, patrolMin: 920, patrolMax: 1410, speed: 1.4 },
+    { x: 700, y: -204, dir: 1, patrolMin: 520, patrolMax: 1120, speed: 1.4 },
   ],
   27: [
-    { x: 80, y: 456, dir: 1, patrolMin: 20, patrolMax: 330, speed: 1.3 },
-    { x: 420, y: 376, dir: 1, patrolMin: 365, patrolMax: 570, speed: 1.2 },
-    { x: 800, y: 456, dir: -1, patrolMin: 620, patrolMax: 930, speed: 1.3 },
+    { x: 400, y: -204, dir: 1, patrolMin: 30, patrolMax: 880, speed: 1.3 },
+    { x: 900, y: 136, dir: -1, patrolMin: 520, patrolMax: 1400, speed: 1.4 },
+    { x: 700, y: 456, dir: 1, patrolMin: 40, patrolMax: 1400, speed: 1.5 },
   ],
   28: [
-    { x: 832, y: 456, dir: -1, patrolMin: 582, patrolMax: 912, speed: 1.4 },
-    { x: 182, y: 456, dir: 1, patrolMin: 2, patrolMax: 352, speed: 1.4 },
+    { x: 300, y: 456, dir: 1, patrolMin: 20, patrolMax: 620, speed: 1.3 },
+    { x: 1100, y: 136, dir: -1, patrolMin: 920, patrolMax: 1410, speed: 1.4 },
+    { x: 700, y: -204, dir: 1, patrolMin: 520, patrolMax: 1120, speed: 1.4 },
   ],
   29: [
-    { x: 432, y: 336, dir: -1, patrolMin: 302, patrolMax: 467, speed: 1.2 },
-    { x: 852, y: 456, dir: -1, patrolMin: 712, patrolMax: 912, speed: 1.4 },
-    { x: 52, y: 456, dir: 1, patrolMin: 2, patrolMax: 62, speed: 1.0 },
+    { x: 400, y: -204, dir: 1, patrolMin: 30, patrolMax: 880, speed: 1.3 },
+    { x: 900, y: 136, dir: -1, patrolMin: 520, patrolMax: 1400, speed: 1.4 },
+    { x: 700, y: 456, dir: 1, patrolMin: 40, patrolMax: 1400, speed: 1.5 },
   ],
   30: [
-    { x: 60, y: 456, dir: 1, patrolMin: 30, patrolMax: 460, speed: 1.3 },
-    { x: 700, y: 456, dir: -1, patrolMin: 500, patrolMax: 930, speed: 1.3 },
+    { x: 300, y: 456, dir: 1, patrolMin: 20, patrolMax: 620, speed: 1.3 },
+    { x: 1100, y: 136, dir: -1, patrolMin: 920, patrolMax: 1410, speed: 1.4 },
+    { x: 700, y: -204, dir: 1, patrolMin: 520, patrolMax: 1120, speed: 1.4 },
   ],
   31: [
-    { x: 80, y: 456, dir: 1, patrolMin: 20, patrolMax: 230, speed: 1.3 },
-    { x: 450, y: 456, dir: 1, patrolMin: 370, patrolMax: 570, speed: 1.3 },
-    { x: 800, y: 456, dir: -1, patrolMin: 710, patrolMax: 930, speed: 1.3 },
+    { x: 400, y: -204, dir: 1, patrolMin: 30, patrolMax: 880, speed: 1.3 },
+    { x: 900, y: 136, dir: -1, patrolMin: 520, patrolMax: 1400, speed: 1.4 },
+    { x: 700, y: 456, dir: 1, patrolMin: 40, patrolMax: 1400, speed: 1.5 },
   ],
   32: [
-    { x: 120, y: 456, dir: 1, patrolMin: 20, patrolMax: 280, speed: 1.4 },
-    { x: 450, y: 456, dir: 1, patrolMin: 370, patrolMax: 580, speed: 1.4 },
-    { x: 780, y: 456, dir: -1, patrolMin: 670, patrolMax: 930, speed: 1.4 },
+    { x: 300, y: 456, dir: 1, patrolMin: 20, patrolMax: 620, speed: 1.3 },
+    { x: 1100, y: 136, dir: -1, patrolMin: 920, patrolMax: 1410, speed: 1.4 },
+    { x: 700, y: -204, dir: 1, patrolMin: 520, patrolMax: 1120, speed: 1.4 },
   ],
   33: [
-    { x: 100, y: 456, dir: 1, patrolMin: 20, patrolMax: 350, speed: 1.4 },
-    { x: 750, y: 456, dir: -1, patrolMin: 580, patrolMax: 930, speed: 1.4 },
+    { x: 400, y: -204, dir: 1, patrolMin: 30, patrolMax: 880, speed: 1.3 },
+    { x: 900, y: 136, dir: -1, patrolMin: 520, patrolMax: 1400, speed: 1.4 },
+    { x: 700, y: 456, dir: 1, patrolMin: 40, patrolMax: 1400, speed: 1.5 },
   ],
   34: [
-    { x: 852, y: 456, dir: -1, patrolMin: 602, patrolMax: 912, speed: 1.3 },
-    { x: 512, y: 376, dir: -1, patrolMin: 362, patrolMax: 567, speed: 1.2 },
-    { x: 132, y: 456, dir: 1, patrolMin: 2, patrolMax: 312, speed: 1.3 },
+    { x: 300, y: 456, dir: 1, patrolMin: 20, patrolMax: 620, speed: 1.3 },
+    { x: 1100, y: 136, dir: -1, patrolMin: 920, patrolMax: 1410, speed: 1.4 },
+    { x: 700, y: -204, dir: 1, patrolMin: 520, patrolMax: 1120, speed: 1.4 },
   ],
   35: [
-    { x: 500, y: 336, dir: 1, patrolMin: 465, patrolMax: 630, speed: 1.2 },
-    { x: 80, y: 456, dir: 1, patrolMin: 20, patrolMax: 220, speed: 1.4 },
-    { x: 880, y: 456, dir: -1, patrolMin: 870, patrolMax: 930, speed: 1.0 },
+    { x: 400, y: -204, dir: 1, patrolMin: 30, patrolMax: 880, speed: 1.3 },
+    { x: 900, y: 136, dir: -1, patrolMin: 520, patrolMax: 1400, speed: 1.4 },
+    { x: 700, y: 456, dir: 1, patrolMin: 40, patrolMax: 1400, speed: 1.5 },
   ],
   36: [
     { x: 100, y: 456, dir: 1, patrolMin: 20, patrolMax: 350, speed: 1.3 },
@@ -1159,7 +1261,7 @@ const ENEMY_TEMPLATES = {
 // Estas salas miden pantalla y media: se abre un tramo nuevo en medio (donde el
 // suelo es continuo) y la cámara sigue al mapache hacia los lados. Las salas de
 // jefe, la tienda y las que se recorren hacia arriba o abajo se quedan igual.
-const WIDE_ROOMS = [0, 14, 15, 16, 17, 2, 18, 19, 20, 21, 26, 27, 28, 29, 8, 30, 31, 9, 32, 33, 10, 34, 35, 11];
+const WIDE_ROOMS = [0, 2, 8, 9, 10, 11];
 const WIDE_EXTRA = 480;
 function widenRoom(id) {
   const R = ROOMS[id], X = WIDE_EXTRA;
@@ -4388,7 +4490,7 @@ function drawDecoration(room, d) {
       // muro de piedra del castillo
       ctx.strokeStyle = 'rgba(255,255,255,0.04)';
       ctx.lineWidth = 1;
-      for (let row = 0, y = 0; y < H - 60; row++, y += 30) {
+      for (let row = 0, y = room.top || 0; y < H - 60; row++, y += 30) {
         ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(room.width || W, y); ctx.stroke();
         for (let x = (row % 2) * 30; x < (room.width || W); x += 60) {
           ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 30); ctx.stroke();
@@ -4704,10 +4806,11 @@ function drawCastleRockStone(p) {
     ctx.beginPath(); ctx.roundRect(x + 4, y + 3, w - 8, 3, 2); ctx.fill();
   };
   ctx.save();
-  ctx.beginPath(); ctx.rect(p.x, p.y - 4, p.w, (ground ? H : p.y + p.h + 30) - p.y + 4); ctx.clip();
+  const bot = p.y + p.h;
+  ctx.beginPath(); ctx.rect(p.x, p.y - 4, p.w, (ground ? bot : p.y + p.h + 30) - p.y + 4); ctx.clip();
   if (ground) {
     // camino de ronda
-    ctx.fillStyle = '#2e2828'; ctx.fillRect(p.x, p.y, p.w, H - p.y);
+    ctx.fillStyle = '#2e2828'; ctx.fillRect(p.x, p.y, p.w, bot - p.y);
     const tg = ctx.createLinearGradient(0, p.y, 0, p.y + 12);
     tg.addColorStop(0, '#8a8480'); tg.addColorStop(1, '#625c5a');
     ctx.fillStyle = tg; ctx.beginPath(); ctx.roundRect(p.x, p.y, p.w, 12, 4); ctx.fill();
@@ -4716,7 +4819,8 @@ function drawCastleRockStone(p) {
     // arcos oscuros debajo
     for (let x = p.x + 10; x < p.x + p.w; x += 48) {
       ctx.fillStyle = '#2a2224';
-      ctx.beginPath(); ctx.moveTo(x, H); ctx.lineTo(x, p.y + 56); ctx.arc(x + 14, p.y + 56, 14, Math.PI, 0); ctx.lineTo(x + 28, H); ctx.closePath(); ctx.fill();
+      if (bot - p.y < 80) continue;
+      ctx.beginPath(); ctx.moveTo(x, bot); ctx.lineTo(x, p.y + 56); ctx.arc(x + 14, p.y + 56, 14, Math.PI, 0); ctx.lineTo(x + 28, bot); ctx.closePath(); ctx.fill();
     }
   } else {
     // repisa de piedra con ménsulas
@@ -4735,7 +4839,7 @@ function drawCastleRockStone(p) {
 // Roca de montaña con nieve encima (más oscura cuanto más de noche)
 function drawMountainRock(p, night) {
   const ground = p.h >= 40, k = night * 0.1;
-  const bottom = ground ? H : p.y + p.h;
+  const bottom = p.y + p.h;
   const g = ctx.createLinearGradient(0, p.y, 0, bottom);
   g.addColorStop(0, shadeHex('#4a5068', -k)); g.addColorStop(1, shadeHex('#1a1e2e', -k));
   ctx.fillStyle = g;
@@ -4792,14 +4896,16 @@ function drawExitGlow(room) {
     g.addColorStop(0, 'rgba(0,0,0,0)');
     g.addColorStop(1, hexAlpha(pc, pulse));
     ctx.fillStyle = g;
-    ctx.fillRect(RW - 60, 100, 60, H - 200);
+    const [b0, b1] = exits.right.band || [100, H - 100];
+    ctx.fillRect(RW - 60, b0, 60, b1 - b0);
   }
   if (exits.left) {
+    const [b0, b1] = exits.left.band || [100, H - 100];
     const g = ctx.createLinearGradient(0, 0, 60, 0);
     g.addColorStop(0, hexAlpha(pc, pulse));
     g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = g;
-    ctx.fillRect(0, 100, 60, H - 200);
+    ctx.fillRect(0, b0, 60, b1 - b0);
   }
   if (exits.up && !(currentRoom === 3 && !boss2Defeated) && currentRoom !== 4 && !(currentRoom === 13 && !guardsDefeated)) {
     const g = ctx.createLinearGradient(0, 0, 0, 60);
