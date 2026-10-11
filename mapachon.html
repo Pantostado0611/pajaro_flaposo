@@ -484,6 +484,9 @@ let cheatCode  = '';
 let cheatError = 0;
 let godMode    = false;
 let money      = 0;
+let richMode   = false; // código 0614: invencible + mapesos infinitos
+let moneyBeforeRich = 0;
+const fmtMoney = m => m === Infinity ? '∞' : m;
 const moneyPops = []; // textos flotantes "+N"
 
 const MONEY_ENEMY = 3, MONEY_BOSS = 20;
@@ -753,7 +756,7 @@ function updateTransition() {
 
 // ─── ALMA ─────────────────────────────────────────────────────────────────────
 function spawnShade() {
-  if (money <= 0) { shade = null; return; }
+  if (money <= 0 || richMode) { shade = null; return; }
   // Si caíste al vacío, el alma aparece en el último suelo que pisaste
   let x = player.x, y = player.y - 10;
   if (player.y > H - 40 && lastGround && lastGround.room === currentRoom) {
@@ -3136,7 +3139,7 @@ function drawHUD() {
   ctx.font = 'bold 14px monospace';
   ctx.textAlign = 'left';
   ctx.fillStyle = '#ffd040';
-  ctx.fillText('💰 ' + money + ' mapesos', 16, 90);
+  ctx.fillText('💰 ' + fmtMoney(money) + ' mapesos', 16, 90);
   if (shade) {
     ctx.font = '11px monospace';
     ctx.fillStyle = 'rgba(200,170,255,0.8)';
@@ -3225,7 +3228,7 @@ function drawInventory() {
   const rows = [
     ['⚔  ' + weaponName, weaponColor, 'x' + playerDmg],
     ['🏹  ' + (ranged ? ranged.name : 'Sin arma'), ranged ? ranged.color : '#777', ranged ? 'x' + ranged.damage : '—'],
-    ['💰  Mapesos', '#ffd040', money],
+    ['💰  Mapesos', '#ffd040', fmtMoney(money)],
   ];
   rows.forEach(([label, color, value], i) => {
     const ry = py + 106 + i * 28;
@@ -3349,6 +3352,13 @@ function cheatAppend(digit) {
   if (cheatCode.length === 4) {
     if      (cheatCode === '0611') { cheatState = 'map'; cheatCode = ''; updateCheatUI(); }
     else if (cheatCode === '9748') { godMode = !godMode; cheatState = 'closed'; cheatCode = ''; updateCheatUI(); }
+    else if (cheatCode === '0614') {
+      richMode = !richMode;
+      godMode = richMode;
+      if (richMode) { moneyBeforeRich = money; money = Infinity; }
+      else money = moneyBeforeRich;
+      cheatState = 'closed'; cheatCode = ''; updateCheatUI();
+    }
     else { cheatError = 50; cheatCode = ''; }
   }
 }
