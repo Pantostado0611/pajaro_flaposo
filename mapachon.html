@@ -386,7 +386,7 @@ const ROOMS = {
     exits: {
       left: { room: 10, spawnX: 890, spawnY: 300 },
     },
-    decorations: [ { type:'nightRanges', level: 4 }, { type:'cabin' } ],
+    decorations: [ { type:'nightRanges', level: 4 } ],
   },
   12: {
     name: 'Cámara Ingrávida',
@@ -412,23 +412,6 @@ const ROOMS = {
       left: { room: 4, spawnX: 900, spawnY: 340 },
     },
     decorations: [ { type:'floatStones' } ],
-  },
-  13: {
-    name: 'Cabaña de la Bruja',
-    style: 'cabin',
-    bg: ['#1a0e08', '#2a180c'],
-    floorColor: '#5a3a1e', platColor: '#5a3a1e', edgeColor: '#8a6040',
-    particleColor: '#ffaa50',
-    platforms: [
-      { x:   0, y: 480, w: 960, h: 60 },
-      { x: 230, y: 370, w: 140, h: 16 },
-      { x: 590, y: 370, w: 140, h: 16 },
-      { x: 390, y: 280, w: 180, h: 16 },
-    ],
-    exits: {
-      left: { room: 11, spawnX: 750, spawnY: 300 }, // sale por la puerta
-    },
-    decorations: [ { type:'cabinInside' } ],
   },
 };
 
@@ -579,7 +562,6 @@ document.addEventListener('keyup', e => { keys[e.code] = false; });
 
 function left()     { return keys['ArrowLeft']  || keys['KeyA'] || touch.left; }
 function right()    { return keys['ArrowRight'] || keys['KeyD'] || touch.right; }
-function down()     { return keys['ArrowDown'] || keys['KeyS']; }
 function jumpHeld() { return keys['Space'] || keys['ArrowUp'] || keys['KeyW'] || touch.jump; }
 
 // ─── TÁCTIL ───────────────────────────────────────────────────────────────────
@@ -826,17 +808,9 @@ function updatePlayer() {
   }
 }
 
-let doorTimer = 0;
 function checkExits() {
   const exits = ROOMS[currentRoom].exits;
   if (!exits) return;
-
-  // Puerta de la cabaña del pico
-  if (currentRoom === 11) {
-    const atDoor = player.onGround && Math.abs(player.x + player.w / 2 - (CABIN.doorX + CABIN.doorW / 2)) < 16;
-    doorTimer = atDoor && Math.abs(player.vx) < 0.5 ? doorTimer + 1 : 0;
-    if (atDoor && (down() || doorTimer >= 45)) { doorTimer = 0; startTransition(13, 40, 400); return; }
-  }
 
   if (exits.right && player.x + player.w >= W) {
     if (currentRoom === 3 && !boss2Defeated) return; // castillo cerrado
@@ -891,7 +865,6 @@ function updateTransition() {
       if (pendingRoom === 4 && !bossDefeated) initBoss();
       if (pendingRoom === 3 && !boss2Defeated) initBoss2();
       if (pendingRoom === 12 && !boss3Defeated) initBoss3();
-      if (pendingRoom === 13 && !boss4Defeated) initBoss4();
       playerShots.length = 0;
       if (pendingRoom === 7 && !chapterShown) { chapterShown = true; showChapter(2, 'La Ruptura'); }
       if (isDeath) {
@@ -2207,608 +2180,6 @@ function drawFloatStones(room) {
   }
 }
 
-// ─── JEFE: LA BRUJA DEL PICO (dentro de la cabaña) ───────────────────────────
-let boss4Defeated = false;
-let boss4AttackIdx = 0;
-const boss4 = {
-  x: 620, y: 150, w: 60, h: 76, vx: 0, vy: 0, hp: 20, maxHp: 20,
-  state: 'intro', stateTimer: 80, phase: 1, invFrames: 0, facing: -1,
-  dead: false, deathTimer: 0, projectiles: [], alpha: 1, cackled: false,
-  windNext: null, tx: 620, ty: 150,
-};
-const CABIN_FLOOR = 480;
-
-function initBoss4() {
-  Object.assign(boss4, {
-    x: 620, y: 150, vx: 0, vy: 0, hp: 20, state: 'intro', stateTimer: 80,
-    phase: 1, invFrames: 0, facing: -1, dead: false, deathTimer: 0,
-    projectiles: [], alpha: 1, cackled: false, windNext: null, tx: 620, ty: 150,
-  });
-  boss4AttackIdx = 0;
-}
-
-function boss4Hit(dmg, inv) {
-  boss4.hp -= dmg; boss4.invFrames = inv;
-  if (boss4.hp <= 0) { boss4.hp = 0; boss4.dead = true; boss4.deathTimer = 150; boss4.projectiles = []; shake(24, 5); }
-}
-
-function boss4PickSpot() {
-  boss4.tx = 120 + Math.random() * (W - 300);
-  boss4.ty = 110 + Math.random() * 90;
-}
-
-function updateBoss4() {
-  if (currentRoom !== 13) return;
-  const pcx = player.x + player.w / 2, pcy = player.y + player.h / 2;
-
-  // Proyectiles: rayos que te persiguen un poco, pociones, charcos y estrellas
-  for (const p of boss4.projectiles) {
-    p.life--;
-    if (p.type === 'bolt') {
-      const want = Math.atan2(pcy - p.y, pcx - p.x);
-      let d = want - p.a; d = Math.atan2(Math.sin(d), Math.cos(d));
-      p.a += Math.max(-0.028, Math.min(0.028, d));
-      p.vx = Math.cos(p.a) * 3.6; p.vy = Math.sin(p.a) * 3.6;
-      p.x += p.vx; p.y += p.vy;
-    } else if (p.type === 'potion') {
-      p.x += p.vx; p.y += p.vy; p.vy += 0.25; p.spin += 0.2;
-      if (p.y >= CABIN_FLOOR - 6) {
-        p.life = 0;
-        boss4.projectiles.push({ type: 'puddle', x: p.x, y: CABIN_FLOOR - 2, r: 36, life: 170 });
-      }
-    } else if (p.type === 'star') {
-      p.x += p.vx; p.y += p.vy;
-    }
-  }
-  boss4.projectiles = boss4.projectiles.filter(p => p.life > 0 && p.x > -30 && p.x < W + 30 && p.y < H + 30 && p.y > -60);
-
-  if (boss4.dead) {
-    if (boss4.deathTimer > 0) boss4.deathTimer--;
-    else if (!boss4Defeated) {
-      boss4Defeated = true;
-      addMoney(MONEY_BOSS * 2, boss4.x + boss4.w / 2, boss4.y);
-    }
-    return;
-  }
-
-  if (boss4.invFrames > 0) boss4.invFrames--;
-  boss4.facing = pcx > boss4.x + boss4.w / 2 ? 1 : -1;
-  const p2 = boss4.hp <= boss4.maxHp / 2;
-  // Carcajada al llegar a media vida
-  if (p2 && !boss4.cackled && boss4.state !== 'sweep' && boss4.state !== 'sweepPrep') {
-    boss4.cackled = true; boss4.phase = 2;
-    boss4.state = 'cackle'; boss4.stateTimer = 70; boss4.alpha = 1;
-    boss4.projectiles = boss4.projectiles.filter(p => p.type === 'puddle');
-    shake(30, 5);
-  }
-
-  const bob = Math.sin(Date.now() * 0.004) * 6;
-  const glide = () => {
-    boss4.x += (boss4.tx - boss4.x) * 0.035;
-    boss4.y += (boss4.ty + bob - boss4.y) * 0.08;
-  };
-
-  boss4.stateTimer--;
-  switch (boss4.state) {
-    case 'intro':
-    case 'cackle':
-      if (boss4.stateTimer <= 0) { boss4.state = 'hover'; boss4.stateTimer = 50; boss4PickSpot(); }
-      break;
-    case 'hover':
-      glide();
-      if (boss4.stateTimer <= 0) {
-        const pattern = boss4.phase === 2
-          ? ['bolts', 'ring', 'potions', 'sweep', 'blink', 'ring', 'potions']
-          : ['bolts', 'potions', 'sweep', 'blink', 'bolts', 'potions'];
-        boss4.windNext = pattern[boss4AttackIdx++ % pattern.length];
-        boss4.state = 'windup';
-        boss4.stateTimer = boss4.phase === 2 ? 22 : 30;
-      }
-      break;
-    case 'windup':
-      glide();
-      if (boss4.stateTimer <= 0) startBoss4Attack(boss4.windNext);
-      break;
-    case 'cast':
-      glide();
-      if (boss4.stateTimer <= 0) { boss4.state = 'hover'; boss4.stateTimer = boss4.phase === 2 ? 45 : 65; boss4PickSpot(); }
-      break;
-    case 'sweepPrep':
-      // baja a ras de suelo en un lado de la cabaña
-      boss4.x += (boss4.tx - boss4.x) * 0.08;
-      boss4.y += (CABIN_FLOOR - boss4.h - 6 - boss4.y) * 0.08;
-      if (boss4.stateTimer <= 0) {
-        boss4.state = 'sweep';
-        boss4.vx = (boss4.x < W / 2 ? 1 : -1) * (boss4.phase === 2 ? 8.5 : 7);
-      }
-      break;
-    case 'sweep':
-      boss4.x += boss4.vx;
-      if (boss4.x < 10 || boss4.x + boss4.w > W - 10) {
-        boss4.x = Math.max(10, Math.min(W - 10 - boss4.w, boss4.x));
-        boss4.vx = 0; boss4.state = 'hover'; boss4.stateTimer = 60; boss4PickSpot();
-      }
-      break;
-    case 'blink':
-      if (boss4.stateTimer > 20) boss4.alpha = Math.max(0, boss4.alpha - 0.06);
-      else {
-        if (boss4.alpha === 0) { boss4PickSpot(); boss4.x = boss4.tx; boss4.y = boss4.ty; }
-        boss4.alpha = Math.min(1, boss4.alpha + 0.06);
-      }
-      if (boss4.stateTimer <= 0) { boss4.alpha = 1; startBoss4Attack('bolts'); }
-      break;
-  }
-}
-
-function startBoss4Attack(next) {
-  const p2 = boss4.phase === 2;
-  const wx = boss4.x + boss4.w / 2 + boss4.facing * 34, wy = boss4.y + 30;
-  const pcx = player.x + player.w / 2, pcy = player.y + player.h / 2;
-  boss4.state = 'cast'; boss4.stateTimer = 40;
-  if (next === 'bolts') {
-    const base = Math.atan2(pcy - wy, pcx - wx), n = p2 ? 4 : 3;
-    for (let i = 0; i < n; i++) {
-      const a = base + (i - (n - 1) / 2) * 0.45;
-      boss4.projectiles.push({ type: 'bolt', x: wx, y: wy, a, vx: 0, vy: 0, r: 8, life: 190 });
-    }
-  } else if (next === 'potions') {
-    const n = p2 ? 3 : 2;
-    for (let i = 0; i < n; i++) {
-      const tx = pcx + (i - (n - 1) / 2) * 110, t = 50;
-      boss4.projectiles.push({ type: 'potion', x: wx, y: wy, vx: (tx - wx) / t,
-        vy: ((CABIN_FLOOR - wy) - 0.5 * 0.25 * t * t) / t, r: 9, life: 200, spin: 0 });
-    }
-    boss4.stateTimer = 50;
-  } else if (next === 'ring') {
-    const cx = boss4.x + boss4.w / 2, cy = boss4.y + boss4.h / 2;
-    for (let i = 0; i < 12; i++) {
-      const a = i / 12 * Math.PI * 2 + Math.random() * 0.2;
-      boss4.projectiles.push({ type: 'star', x: cx, y: cy, vx: Math.cos(a) * 2.8, vy: Math.sin(a) * 2.8, r: 7, life: 260 });
-    }
-    boss4.stateTimer = 50;
-  } else if (next === 'sweep') {
-    boss4.state = 'sweepPrep'; boss4.stateTimer = 45;
-    boss4.tx = pcx < W / 2 ? W - 20 - boss4.w : 20; // al lado contrario del jugador
-  } else if (next === 'blink') {
-    boss4.state = 'blink'; boss4.stateTimer = 50;
-  }
-}
-
-function checkBoss4Collisions() {
-  if (currentRoom !== 13 || boss4.dead) return;
-  const atkW = 52, atkH = 30;
-  const atkX = player.facing === 1 ? player.x + player.w : player.x - atkW;
-  const atkY = player.y + 6;
-  const solid = boss4.alpha > 0.5 && boss4.state !== 'cackle' && boss4.state !== 'intro';
-  const vuln = solid && boss4.invFrames === 0;
-
-  if (player.attackActive > 0 && vuln &&
-      collideRect(atkX, atkY, atkW, atkH, boss4.x, boss4.y, boss4.w, boss4.h)) {
-    boss4Hit(playerDmg, 26); if (boss4.dead) return;
-  }
-  const onBoss  = collideRect(player.x, player.y, player.w, player.h, boss4.x, boss4.y, boss4.w, boss4.h);
-  const fromTop = player.vy > 1 && (player.y + player.h) < (boss4.y + boss4.h * 0.5);
-  if (onBoss && fromTop && vuln) { boss4Hit(playerDmg, 26); player.vy = -11; if (boss4.dead) return; }
-
-  const hurt = (kx, inv) => {
-    if (!godMode) {
-      player.hp--;
-      if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return true; }
-    }
-    player.invFrames = inv; player.vx = kx; player.vy = -6;
-    return false;
-  };
-  if (player.invFrames === 0 && !fromTop && solid &&
-      collideRect(player.x + 3, player.y + 3, player.w - 6, player.h - 3, boss4.x + 6, boss4.y + 6, boss4.w - 12, boss4.h - 10)) {
-    if (hurt((player.x + player.w / 2) < (boss4.x + boss4.w / 2) ? -7 : 7, 90)) return;
-  }
-  for (let i = boss4.projectiles.length - 1; i >= 0; i--) {
-    const p = boss4.projectiles[i];
-    if (p.type === 'puddle') {
-      if (player.invFrames === 0 && p.life > 20 && player.y + player.h >= p.y - 6 &&
-          Math.abs(player.x + player.w / 2 - p.x) < p.r) {
-        if (hurt(player.x + player.w / 2 < p.x ? -5 : 5, 70)) return;
-      }
-      continue;
-    }
-    if (player.attackActive > 0 &&
-        collideRect(atkX, atkY, atkW, atkH, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2)) {
-      boss4.projectiles.splice(i, 1); continue;
-    }
-    const dist = Math.hypot((player.x + player.w / 2) - p.x, (player.y + player.h / 2) - p.y);
-    if (dist < p.r + 12 && player.invFrames === 0) {
-      boss4.projectiles.splice(i, 1);
-      if (hurt(player.x < p.x ? -5 : 5, 70)) return;
-    }
-  }
-}
-
-function drawBoss4() {
-  if (currentRoom !== 13) return;
-  const now = Date.now();
-  for (const p of boss4.projectiles) {
-    if (p.type === 'bolt') drawOrb(p, '120,255,120', '#40c050');
-    else if (p.type === 'star') {
-      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(now * 0.008);
-      const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 16);
-      g.addColorStop(0, 'rgba(230,150,255,0.6)'); g.addColorStop(1, 'rgba(230,150,255,0)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#f4d0ff';
-      ctx.beginPath();
-      for (let k = 0; k < 10; k++) {
-        const r = k % 2 ? 3.5 : 9, a = k / 10 * Math.PI * 2;
-        k ? ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r) : ctx.moveTo(r, 0);
-      }
-      ctx.closePath(); ctx.fill();
-      ctx.restore();
-    } else if (p.type === 'potion') {
-      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.spin);
-      ctx.fillStyle = vol(0, 2, 8, '#a0ff90', '#2a8a30');
-      ctx.beginPath(); ctx.arc(0, 3, 7, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#c8e8d0'; ctx.fillRect(-2.5, -8, 5, 6);
-      ctx.fillStyle = '#8a5a30'; ctx.fillRect(-3, -11, 6, 3);
-      ctx.fillStyle = 'rgba(255,255,255,0.6)';
-      ctx.beginPath(); ctx.arc(-2.5, 1, 1.8, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
-    } else if (p.type === 'puddle') {
-      const a = Math.min(1, p.life / 30) * (p.life > 150 ? (170 - p.life) / 20 : 1);
-      ctx.save(); ctx.globalAlpha = a;
-      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
-      g.addColorStop(0, 'rgba(140,255,110,0.75)'); g.addColorStop(1, 'rgba(60,180,60,0.1)');
-      ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r, 7, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = 'rgba(200,255,180,0.8)';
-      for (let k = 0; k < 3; k++) {
-        const ph = (now * 0.003 + k * 0.33 + p.x) % 1;
-        ctx.globalAlpha = a * (1 - ph);
-        ctx.beginPath(); ctx.arc(p.x - 18 + k * 18, p.y - 4 - ph * 22, 2.5 + ph * 2, 0, Math.PI * 2); ctx.fill();
-      }
-      ctx.restore();
-    }
-  }
-
-  if (boss4.dead) {
-    if (boss4.deathTimer <= 0) return;
-    drawBossDeath(boss4.x + boss4.w / 2, boss4.y + boss4.h / 2, boss4.deathTimer / 150,
-      ['#80ff80', '#c080ff', '#ffffff', '#ffe060', '#40ffa0'], 130);
-    return;
-  }
-
-  const cx = Math.round(boss4.x + boss4.w / 2), cy = Math.round(boss4.y + boss4.h / 2);
-  const t = now * 0.004, p2 = boss4.phase === 2;
-  const flicker = boss4.invFrames > 0 && Math.floor(boss4.invFrames / 4) % 2 === 0;
-
-  ctx.save();
-  // sombra en el suelo
-  const air = CABIN_FLOOR - (boss4.y + boss4.h);
-  ctx.fillStyle = `rgba(0,0,0,${Math.max(0.1, 0.4 - air / 900).toFixed(2)})`;
-  ctx.beginPath(); ctx.ellipse(cx, CABIN_FLOOR + 2, Math.max(14, 34 - air / 15), 5, 0, 0, Math.PI * 2); ctx.fill();
-
-  ctx.globalAlpha = boss4.alpha * (flicker ? 0.45 : 1);
-  ctx.translate(cx, cy);
-  ctx.scale(boss4.facing, 1);
-  ctx.rotate(boss4.state === 'sweep' ? 0.12 : Math.sin(t * 0.7) * 0.05);
-
-  // estela de chispas detrás de la escoba
-  for (let i = 0; i < 5; i++) {
-    const k = ((t * 0.6 + i / 5) % 1);
-    ctx.fillStyle = `rgba(${p2 ? '255,140,220' : '170,255,150'},${(0.6 * (1 - k)).toFixed(2)})`;
-    ctx.beginPath(); ctx.arc(-52 - k * 40, 26 + Math.sin(i * 2 + t) * 6, 3 * (1 - k) + 1, 0, Math.PI * 2); ctx.fill();
-  }
-  // capa ondeando
-  const fl = Math.sin(t * 2.2) * 5;
-  ctx.fillStyle = '#1a0a26';
-  ctx.beginPath(); ctx.moveTo(-6, -14);
-  ctx.quadraticCurveTo(-30, -4 + fl, -40, 14 + fl);
-  ctx.lineTo(-30, 12 + fl * 0.6); ctx.lineTo(-34, 24 + fl);
-  ctx.quadraticCurveTo(-18, 20, -4, 14); ctx.closePath(); ctx.fill();
-  // escoba
-  ctx.strokeStyle = '#6a4424'; ctx.lineWidth = 4; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(-42, 26); ctx.lineTo(38, 20); ctx.stroke();
-  ctx.strokeStyle = '#8a6034'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(-40, 25); ctx.lineTo(36, 19); ctx.stroke();
-  ctx.fillStyle = '#c8a050';
-  ctx.beginPath(); ctx.moveTo(-40, 22); ctx.lineTo(-64, 14); ctx.lineTo(-68, 26); ctx.lineTo(-64, 38); ctx.lineTo(-40, 31); ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = 'rgba(120,80,30,0.7)'; ctx.lineWidth = 1;
-  for (let k = 0; k < 5; k++) { ctx.beginPath(); ctx.moveTo(-42, 24 + k * 1.6); ctx.lineTo(-66, 16 + k * 5); ctx.stroke(); }
-  ctx.fillStyle = '#5a2a6a'; ctx.fillRect(-42, 21, 5, 11);
-  // vestido (sentada en la escoba)
-  const rg = ctx.createLinearGradient(0, -20, 0, 34);
-  rg.addColorStop(0, p2 ? '#6a1a4a' : '#4a2070'); rg.addColorStop(1, '#1a0828');
-  ctx.fillStyle = rg;
-  ctx.beginPath(); ctx.moveTo(-10, -16); ctx.lineTo(10, -16);
-  ctx.quadraticCurveTo(16, 4, 20, 22);
-  ctx.lineTo(14, 34); ctx.lineTo(8, 28); ctx.lineTo(2, 36); ctx.lineTo(-4, 28); ctx.lineTo(-12, 34); ctx.lineTo(-18, 24);
-  ctx.quadraticCurveTo(-16, 2, -10, -16); ctx.closePath(); ctx.fill();
-  // cinturón
-  ctx.fillStyle = '#1a0a10'; ctx.fillRect(-13, 2, 27, 4);
-  ctx.fillStyle = '#e0b040'; ctx.fillRect(-1, 1.5, 5, 5);
-  // botas
-  ctx.fillStyle = '#1a1010';
-  ctx.beginPath(); ctx.ellipse(10, 34, 7, 3.5, 0.2, 0, Math.PI * 2); ctx.fill();
-  // pelo negro largo
-  ctx.fillStyle = '#120a14';
-  ctx.beginPath(); ctx.moveTo(-6, -32);
-  ctx.quadraticCurveTo(-24, -20 + fl * 0.5, -22, 2 + fl);
-  ctx.quadraticCurveTo(-14, -6, -4, -14); ctx.closePath(); ctx.fill();
-  // cara verde
-  ctx.fillStyle = vol(2, -26, 11, '#a8d890', '#4a7a40');
-  ctx.beginPath(); ctx.arc(2, -26, 10, 0, Math.PI * 2); ctx.fill();
-  // nariz ganchuda con verruga
-  ctx.fillStyle = '#7aa868';
-  ctx.beginPath(); ctx.moveTo(9, -29); ctx.quadraticCurveTo(20, -24, 15, -18); ctx.quadraticCurveTo(14, -22, 9, -23); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#5a7a48'; ctx.beginPath(); ctx.arc(14, -22, 1.4, 0, Math.PI * 2); ctx.fill();
-  // ojo brillante
-  ctx.fillStyle = p2 ? '#ff5090' : '#f0ff60';
-  ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 8;
-  ctx.beginPath(); ctx.ellipse(6, -29, 2.6, 1.8, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.shadowBlur = 0;
-  // sonrisa malvada
-  ctx.strokeStyle = '#2a3a20'; ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  if (boss4.state === 'cackle') ctx.ellipse(7, -20, 3.5, 2.5, 0, 0, Math.PI * 2);
-  else { ctx.moveTo(3, -20); ctx.quadraticCurveTo(7, -17, 11, -21); }
-  ctx.stroke();
-  // sombrero puntiagudo
-  ctx.fillStyle = '#1e0e2c';
-  ctx.beginPath(); ctx.ellipse(1, -35, 19, 4.5, -0.08, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.moveTo(-10, -36); ctx.lineTo(12, -38);
-  ctx.quadraticCurveTo(6, -54, -2, -64);
-  ctx.quadraticCurveTo(-12, -70 + fl * 0.4, -20, -62 + fl * 0.6);
-  ctx.quadraticCurveTo(-10, -60, -6, -52);
-  ctx.closePath(); ctx.fill();
-  ctx.fillStyle = p2 ? '#a02060' : '#6a3a9a'; ctx.fillRect(-9, -42, 20, 4);
-  ctx.strokeStyle = '#e0b040'; ctx.lineWidth = 1.4; ctx.strokeRect(-1, -42.5, 5, 5);
-  // brazo con varita (la alza al lanzar)
-  const up = boss4.state === 'windup' || boss4.state === 'cast' ? -0.9 : -0.2;
-  ctx.save(); ctx.translate(8, -12); ctx.rotate(up);
-  ctx.fillStyle = '#3a1858'; ctx.beginPath(); ctx.roundRect(0, -3, 16, 7, 3); ctx.fill();
-  ctx.fillStyle = '#8ab878'; ctx.beginPath(); ctx.arc(17, 0.5, 3, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#3a2414'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(17, 0); ctx.lineTo(34, -6); ctx.stroke();
-  const wg = ctx.createRadialGradient(35, -6, 0, 35, -6, 12);
-  wg.addColorStop(0, p2 ? 'rgba(255,140,220,0.95)' : 'rgba(170,255,140,0.95)'); wg.addColorStop(1, 'rgba(170,255,140,0)');
-  ctx.fillStyle = wg; ctx.beginPath(); ctx.arc(35, -6, 12, 0, Math.PI * 2); ctx.fill();
-  ctx.restore();
-  ctx.restore();
-
-  if (boss4.state === 'windup' || boss4.state === 'sweepPrep') drawWarning(cx, boss4.y - 44, p2 ? '#ff60b0' : '#90ff70');
-  if (boss4.state === 'cackle') drawRoarRings(cx, cy, (now * 0.0018) % 1, '200,90,255');
-}
-
-function drawBoss4UI() {
-  if (currentRoom !== 13) return;
-  if (!boss4.dead) {
-    const barW = 420, barH = 18, bx = (W - barW) / 2, by = H - 44;
-    ctx.fillStyle = 'rgba(0,0,0,0.72)';
-    ctx.fillRect(bx - 6, by - 26, barW + 12, barH + 36);
-    ctx.fillStyle = boss4.phase === 2 ? '#ff70c0' : '#90ff70';
-    ctx.font = 'bold 14px serif'; ctx.textAlign = 'center';
-    ctx.fillText('✦  LA BRUJA DEL PICO  ✦', W / 2, by - 8);
-    ctx.fillStyle = '#1a1a1a'; ctx.fillRect(bx, by, barW, barH);
-    const fill = (boss4.hp / boss4.maxHp) * barW;
-    ctx.fillStyle = boss4.phase === 2 ? '#c03080' : '#40a040';
-    ctx.fillRect(bx, by, fill, barH);
-    ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(bx, by, fill, barH / 2);
-    ctx.strokeStyle = boss4.phase === 2 ? '#ff80c8' : '#a0ff80';
-    ctx.lineWidth = 1.5; ctx.strokeRect(bx, by, barW, barH);
-  } else if (boss4Defeated) {
-    ctx.save();
-    ctx.globalAlpha = 0.9; ctx.textAlign = 'center';
-    ctx.fillStyle = '#b0ff90'; ctx.font = 'bold 34px serif';
-    ctx.fillText('¡La bruja ha caído!', W / 2, 110);
-    ctx.fillStyle = '#ffffff'; ctx.font = '18px serif';
-    ctx.fillText('La puerta está a la izquierda', W / 2, 144);
-    ctx.restore();
-  }
-}
-
-// Cabaña de troncos en el pico (por fuera)
-const CABIN = { x: 740, w: 200, base: 360, doorX: 822, doorW: 40, doorH: 62 };
-function drawCabinOutside() {
-  const { x, w, base, doorX, doorW, doorH } = CABIN, top = base - 110;
-  ctx.save();
-  // chimenea y humo
-  ctx.fillStyle = '#3a3a44'; ctx.fillRect(x + w - 56, top - 66, 24, 50);
-  ctx.fillStyle = '#4a4a56'; ctx.fillRect(x + w - 60, top - 70, 32, 8);
-  const tt = Date.now() * 0.001;
-  for (let i = 0; i < 5; i++) {
-    const k = (tt * 0.25 + i / 5) % 1;
-    ctx.fillStyle = `rgba(150,150,170,${(0.28 * (1 - k)).toFixed(2)})`;
-    ctx.beginPath(); ctx.arc(x + w - 44 + Math.sin(k * 6 + i) * 8 - k * 20, top - 76 - k * 90, 8 + k * 16, 0, Math.PI * 2); ctx.fill();
-  }
-  // troncos apilados
-  for (let y = top, i = 0; y < base; y += 13.75, i++) {
-    const lg = ctx.createLinearGradient(0, y, 0, y + 13.75);
-    lg.addColorStop(0, '#6a4428'); lg.addColorStop(0.5, '#4e3018'); lg.addColorStop(1, '#2e1a0c');
-    ctx.fillStyle = lg;
-    ctx.beginPath(); ctx.roundRect(x - 6, y, w + 12, 13, 6); ctx.fill();
-    // cortes de los troncos en las esquinas
-    for (const ex of [x - 4, x + w + 4]) {
-      ctx.fillStyle = '#8a6440'; ctx.beginPath(); ctx.arc(ex, y + 6.5, 6, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = '#5a3a20'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(ex, y + 6.5, 3, 0, Math.PI * 2); ctx.stroke();
-    }
-  }
-  // tejado con nieve
-  ctx.fillStyle = '#2a1a10';
-  ctx.beginPath(); ctx.moveTo(x - 24, top + 4); ctx.lineTo(x + w / 2, top - 62); ctx.lineTo(x + w + 24, top + 4); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#e4eaf8';
-  ctx.beginPath(); ctx.moveTo(x - 28, top + 2); ctx.lineTo(x + w / 2, top - 66); ctx.lineTo(x + w + 28, top + 2);
-  for (let k = 0; k <= 12; k++) {
-    const px = x + w + 28 - k * (w + 56) / 12;
-    ctx.lineTo(px, top + 2 + (k % 2 ? 7 : 2));
-  }
-  ctx.closePath(); ctx.fill();
-  // carámbanos
-  ctx.fillStyle = 'rgba(200,220,255,0.8)';
-  for (let k = 0; k < 9; k++) {
-    const px = x - 16 + k * 28;
-    ctx.beginPath(); ctx.moveTo(px, top + 6); ctx.lineTo(px + 5, top + 6); ctx.lineTo(px + 2.5, top + 14 + (k % 3) * 5); ctx.closePath(); ctx.fill();
-  }
-  // ventana con luz cálida
-  const wx = x + 26, wy = top + 30;
-  const glow = 0.75 + 0.15 * Math.sin(tt * 7) + 0.1 * Math.sin(tt * 13);
-  const wg = ctx.createRadialGradient(wx + 18, wy + 18, 0, wx + 18, wy + 18, 70);
-  wg.addColorStop(0, `rgba(255,170,70,${(0.35 * glow).toFixed(2)})`); wg.addColorStop(1, 'rgba(255,170,70,0)');
-  ctx.fillStyle = wg; ctx.beginPath(); ctx.arc(wx + 18, wy + 18, 70, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = `rgba(255,${Math.round(170 + 40 * glow)},90,1)`; ctx.fillRect(wx, wy, 36, 36);
-  ctx.strokeStyle = '#2a1a0c'; ctx.lineWidth = 4; ctx.strokeRect(wx, wy, 36, 36);
-  ctx.beginPath(); ctx.moveTo(wx + 18, wy); ctx.lineTo(wx + 18, wy + 36); ctx.moveTo(wx, wy + 18); ctx.lineTo(wx + 36, wy + 18); ctx.stroke();
-  // silueta de la bruja en la ventana (si sigue viva)
-  if (!boss4Defeated) {
-    ctx.fillStyle = 'rgba(30,10,30,0.8)';
-    ctx.beginPath(); ctx.moveTo(wx + 24, wy + 4); ctx.lineTo(wx + 30, wy + 20); ctx.lineTo(wx + 18, wy + 20); ctx.closePath(); ctx.fill();
-    ctx.beginPath(); ctx.arc(wx + 25, wy + 24, 5, 0, Math.PI * 2); ctx.fill();
-    ctx.fillRect(wx + 20, wy + 28, 10, 8);
-  }
-  // puerta
-  const dy = base - doorH;
-  ctx.fillStyle = '#1a0e06'; ctx.beginPath(); ctx.roundRect(doorX - 4, dy - 4, doorW + 8, doorH + 4, [12, 12, 0, 0]); ctx.fill();
-  const dg = ctx.createLinearGradient(doorX, 0, doorX + doorW, 0);
-  dg.addColorStop(0, '#5a3418'); dg.addColorStop(1, '#3a2010');
-  ctx.fillStyle = dg; ctx.beginPath(); ctx.roundRect(doorX, dy, doorW, doorH, [10, 10, 0, 0]); ctx.fill();
-  ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1;
-  for (let k = 1; k < 4; k++) { ctx.beginPath(); ctx.moveTo(doorX + k * 10, dy + 3); ctx.lineTo(doorX + k * 10, base); ctx.stroke(); }
-  ctx.fillStyle = '#d0a040'; ctx.beginPath(); ctx.arc(doorX + doorW - 9, dy + doorH / 2 + 4, 2.5, 0, Math.PI * 2); ctx.fill();
-  // luz que sale por debajo de la puerta
-  ctx.fillStyle = `rgba(255,170,70,${(0.6 * glow).toFixed(2)})`; ctx.fillRect(doorX + 2, base - 2, doorW - 4, 2);
-  ctx.restore();
-}
-
-// Texto "Entrar" sobre la puerta cuando te acercas
-function drawCabinHint() {
-  const d = Math.abs(player.x + player.w / 2 - (CABIN.doorX + CABIN.doorW / 2));
-  if (d > 90 || player.y + player.h < CABIN.base - 80) return;
-  ctx.save();
-  ctx.globalAlpha = Math.min(1, (90 - d) / 40);
-  ctx.fillStyle = '#ffe0b0'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
-  ctx.fillText('↓ entrar', CABIN.doorX + CABIN.doorW / 2, CABIN.base - CABIN.doorH - 12);
-  ctx.restore();
-}
-
-// Interior de la cabaña: paredes de madera (fijo) + fuego y caldero (animado)
-function drawCabinInside() {
-  ctx.drawImage(cachedLayer('cabin|13', c => {
-    // pared de tablones
-    for (let x = 0, i = 0; x < W; x += 48, i++) {
-      const g = c.createLinearGradient(x, 0, x + 48, 0);
-      const base = i % 3 === 0 ? '#3a2416' : i % 3 === 1 ? '#34200f' : '#3e2818';
-      g.addColorStop(0, shadeHex(base, 0.06)); g.addColorStop(1, shadeHex(base, -0.25));
-      c.fillStyle = g; c.fillRect(x, 0, 48, H);
-      c.fillStyle = 'rgba(0,0,0,0.45)'; c.fillRect(x + 47, 0, 1.5, H);
-      // vetas y nudos
-      c.strokeStyle = 'rgba(0,0,0,0.12)'; c.lineWidth = 1;
-      for (let k = 0; k < 3; k++) {
-        c.beginPath(); c.moveTo(x + 10 + k * 12, 0);
-        c.bezierCurveTo(x + 14 + k * 12, H * 0.3, x + 6 + k * 12, H * 0.6, x + 12 + k * 12, H); c.stroke();
-      }
-      c.fillStyle = 'rgba(0,0,0,0.25)';
-      c.beginPath(); c.ellipse(x + 24, 140 + (i * 97) % 260, 4, 6, 0, 0, Math.PI * 2); c.fill();
-    }
-    // vigas del techo
-    c.fillStyle = '#22140a'; c.fillRect(0, 0, W, 34);
-    for (let x = 30; x < W; x += 180) {
-      c.fillStyle = '#2e1c0e'; c.fillRect(x, 0, 26, 70);
-      c.fillStyle = 'rgba(255,255,255,0.05)'; c.fillRect(x + 2, 0, 4, 70);
-    }
-    c.fillStyle = '#4a2e18'; c.fillRect(0, 30, W, 14);
-    c.fillStyle = 'rgba(0,0,0,0.35)'; c.fillRect(0, 44, W, 4);
-    // ventana con la noche y la luna
-    const wx = 430, wy = 110, ww = 100, wh = 110;
-    c.fillStyle = '#04050e'; c.fillRect(wx, wy, ww, wh);
-    c.fillStyle = '#dde4ff'; c.beginPath(); c.arc(wx + 70, wy + 30, 13, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#04050e'; c.beginPath(); c.arc(wx + 76, wy + 26, 11, 0, Math.PI * 2); c.fill();
-    c.fillStyle = 'rgba(255,255,255,0.8)';
-    for (let k = 0; k < 9; k++) { c.fillRect(wx + (k * 37) % ww, wy + (k * 23) % wh, 1.5, 1.5); }
-    c.fillStyle = '#c8d2f0';
-    c.beginPath(); c.moveTo(wx, wy + wh); c.lineTo(wx + 30, wy + 80); c.lineTo(wx + 55, wy + 96); c.lineTo(wx + 80, wy + 74); c.lineTo(wx + ww, wy + 90); c.lineTo(wx + ww, wy + wh); c.closePath(); c.fill();
-    c.strokeStyle = '#2a1a0c'; c.lineWidth = 7; c.strokeRect(wx, wy, ww, wh);
-    c.lineWidth = 4;
-    c.beginPath(); c.moveTo(wx + ww / 2, wy); c.lineTo(wx + ww / 2, wy + wh); c.moveTo(wx, wy + wh / 2); c.lineTo(wx + ww, wy + wh / 2); c.stroke();
-    c.fillStyle = '#4a2e18'; c.fillRect(wx - 10, wy + wh + 2, ww + 20, 8);
-    // estantes con frascos
-    const shelf = (sx, sy, sw) => {
-      c.fillStyle = '#5a3a1e'; c.fillRect(sx, sy, sw, 7);
-      c.fillStyle = '#2a1a0c'; c.fillRect(sx + 8, sy + 7, 5, 12); c.fillRect(sx + sw - 13, sy + 7, 5, 12);
-      const cols = ['#60d060', '#c060e0', '#e05050', '#50a0e0', '#e0c040'];
-      for (let k = 0, x = sx + 8; x < sx + sw - 16; k++, x += 22) {
-        const col = cols[(k + sx) % cols.length], h = 14 + (k * 7) % 10;
-        c.fillStyle = col; c.globalAlpha = 0.85;
-        c.beginPath(); c.roundRect(x, sy - h, 13, h, [3, 3, 4, 4]); c.fill();
-        c.globalAlpha = 1;
-        c.fillStyle = '#d8d0c0'; c.fillRect(x + 4, sy - h - 5, 5, 5);
-        c.fillStyle = 'rgba(255,255,255,0.35)'; c.fillRect(x + 2, sy - h + 3, 2, h - 6);
-      }
-    };
-    shelf(80, 210, 180); shelf(700, 210, 180); shelf(700, 290, 120);
-    // hierbas colgando
-    for (const hx of [300, 340, 600, 640]) {
-      c.strokeStyle = '#2a1a0c'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(hx, 44); c.lineTo(hx, 70); c.stroke();
-      c.fillStyle = '#4a6a30';
-      for (let k = 0; k < 5; k++) { c.beginPath(); c.ellipse(hx + (k - 2) * 3, 80 + Math.abs(k - 2) * 2, 2.5, 10, (k - 2) * 0.2, 0, Math.PI * 2); c.fill(); }
-    }
-    // chimenea de piedra
-    c.fillStyle = '#4a4650'; c.fillRect(20, 300, 150, 180);
-    for (let y = 300, r = 0; y < 480; y += 22, r++) {
-      for (let x = 20 + (r % 2) * 18; x < 170; x += 36) {
-        c.fillStyle = r % 3 ? '#57535e' : '#4e4a56';
-        c.beginPath(); c.roundRect(x + 1, y + 1, 34, 20, 4); c.fill();
-      }
-    }
-    c.fillStyle = '#5e5a66'; c.fillRect(10, 292, 170, 12);
-    c.fillStyle = '#0c0606'; c.beginPath(); c.roundRect(48, 380, 94, 100, [40, 40, 0, 0]); c.fill();
-    // caldero (cuerpo)
-    c.fillStyle = '#1a1a1e';
-    c.beginPath(); c.ellipse(850, 444, 52, 38, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#2a2a30'; c.beginPath(); c.ellipse(850, 410, 52, 9, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#1a1a1e'; c.fillRect(812, 470, 10, 10); c.fillRect(878, 470, 10, 10);
-  }), 0, 0, W, H);
-
-  const tt = Date.now() * 0.001;
-  // fuego de la chimenea
-  const f = 0.85 + 0.15 * Math.sin(tt * 17) + 0.08 * Math.sin(tt * 29);
-  const fg = ctx.createRadialGradient(95, 450, 0, 95, 450, 260 * f);
-  fg.addColorStop(0, 'rgba(255,150,60,0.30)'); fg.addColorStop(1, 'rgba(255,150,60,0)');
-  ctx.fillStyle = fg; ctx.fillRect(0, 200, 360, 280);
-  for (let i = 0; i < 4; i++) {
-    const fx = 70 + i * 16, fh = (30 + (i % 2) * 14) * (0.8 + 0.25 * Math.sin(tt * 12 + i * 2));
-    const flame = ctx.createLinearGradient(0, 478, 0, 478 - fh);
-    flame.addColorStop(0, '#ffe080'); flame.addColorStop(0.5, '#ff9030'); flame.addColorStop(1, 'rgba(255,60,20,0)');
-    ctx.fillStyle = flame;
-    ctx.beginPath(); ctx.moveTo(fx - 10, 478);
-    ctx.quadraticCurveTo(fx - 8 + Math.sin(tt * 9 + i) * 3, 478 - fh * 0.6, fx + Math.sin(tt * 7 + i) * 4, 478 - fh);
-    ctx.quadraticCurveTo(fx + 8, 478 - fh * 0.5, fx + 10, 478); ctx.closePath(); ctx.fill();
-  }
-  ctx.fillStyle = '#3a2010'; ctx.fillRect(62, 472, 70, 6);
-  // brebaje del caldero
-  const cg = ctx.createRadialGradient(850, 400, 0, 850, 400, 120);
-  cg.addColorStop(0, 'rgba(120,255,110,0.25)'); cg.addColorStop(1, 'rgba(120,255,110,0)');
-  ctx.fillStyle = cg; ctx.fillRect(730, 280, 240, 200);
-  ctx.fillStyle = '#58d050'; ctx.beginPath(); ctx.ellipse(850, 411, 46, 6.5, 0, 0, Math.PI * 2); ctx.fill();
-  for (let i = 0; i < 5; i++) {
-    const k = (tt * 0.6 + i / 5) % 1;
-    ctx.fillStyle = `rgba(170,255,150,${(0.8 * (1 - k)).toFixed(2)})`;
-    ctx.beginPath(); ctx.arc(820 + i * 15 + Math.sin(k * 8 + i) * 4, 408 - k * 70, 3 + k * 4, 0, Math.PI * 2); ctx.fill();
-  }
-}
-
-// Suelos y repisas de madera dentro de la cabaña
-function drawWoodPlank(p) {
-  const ground = p.h >= 40;
-  const g = ctx.createLinearGradient(0, p.y, 0, p.y + p.h);
-  g.addColorStop(0, '#7a5030'); g.addColorStop(1, '#3a2010');
-  ctx.fillStyle = g;
-  ctx.beginPath(); ctx.roundRect(p.x, p.y, p.w, p.h, ground ? 0 : 3); ctx.fill();
-  ctx.fillStyle = 'rgba(255,220,170,0.18)'; ctx.fillRect(p.x, p.y, p.w, 2);
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  if (ground) {
-    for (let y = p.y + 16; y < p.y + p.h; y += 16) ctx.fillRect(p.x, y, p.w, 1.5);
-    for (let x = p.x + 70, r = 0; x < p.x + p.w; x += 110, r++) ctx.fillRect(x + (r % 2) * 40, p.y, 1.5, 16);
-  } else {
-    for (let x = p.x + 40; x < p.x + p.w; x += 50) ctx.fillRect(x, p.y, 1.5, p.h);
-    ctx.fillStyle = '#2a1a0c';
-    ctx.fillRect(p.x + 10, p.y + p.h, 5, 12); ctx.fillRect(p.x + p.w - 15, p.y + p.h, 5, 12);
-  }
-}
-
 // ─── LLAVE ────────────────────────────────────────────────────────────────────
 function updateKey() {
   if (!keyItem.active || hasKey) return;
@@ -3531,8 +2902,6 @@ function drawDecorations(room) {
       ctx.beginPath(); ctx.ellipse(d.x, d.y - 9, 2.5, 5, 0, 0, Math.PI * 2); ctx.fill();
     }
     if (d.type === 'floatStones') drawFloatStones(room);
-    if (d.type === 'cabin') drawCabinOutside();
-    if (d.type === 'cabinInside') drawCabinInside();
     if (d.type === 'nightRanges') {
       // level 0 = La Cumbre; cada nivel más es más de noche y estás más alto
       const L = d.level || 0, dk = hex => L ? shadeHex(hex, -L * 0.17) : hex;
@@ -3711,7 +3080,6 @@ function drawPlatforms(room) {
     if (p.secretStair) { if (bossDefeated) drawSecretStair(p); continue; }
     if (room.width) { drawSlab(ctx, p, room); continue; } // sala ancha: sin caché
     if (room.style === 'castleRock') { drawCastleRockStone(p); continue; }
-    if (room.style === 'cabin') { drawWoodPlank(p); continue; }
     if (room.style === 'mountain') { drawMountainRock(p, room.night); continue; }
     // las losas normales se dibujan una vez y se guardan (ver slabLayer)
   }
@@ -4518,9 +3886,8 @@ const CHEAT_NODES = [
   { id:10, x:765, y:140, name:'Risco',   boss:false,   secret:false },
   { id:11, x:860, y:140, name:'Pico',    boss:false,   secret:false },
   { id:12, x:680, y:270, name:'Coloso',  boss:true,    secret:true  },
-  { id:13, x:860, y:270, name:'Cabaña',  boss:true,    secret:false },
 ];
-const CHEAT_EDGES = [[0,1],[1,2],[2,4],[1,3],[3,5],[3,6],[6,7],[7,8],[8,9],[9,10],[10,11],[4,12],[11,13]];
+const CHEAT_EDGES = [[0,1],[1,2],[2,4],[1,3],[3,5],[3,6],[6,7],[7,8],[8,9],[9,10],[10,11],[4,12]];
 
 function updateCheatUI() {
   const np = document.getElementById('cheat-numpad');
@@ -4550,7 +3917,6 @@ function cheatTeleport(roomId) {
   if (roomId === 4) bossDefeated  = false;
   if (roomId === 3) boss2Defeated = false;
   if (roomId === 12) boss3Defeated = false;
-  if (roomId === 13) boss4Defeated = false;
   startTransition(roomId, 80, 400);
 }
 
@@ -4885,11 +4251,6 @@ function updatePlayerShots() {
         collideRect(sx, sy, sd, sd, boss3.x, boss3.y, boss3.w, boss3.h)) {
       hit = true;
       if (boss3.invFrames === 0 && boss3.state !== 'roar') boss3Hit(s.dmg, 12);
-    }
-    if (!hit && currentRoom === 13 && !boss4.dead && boss4.alpha > 0.5 &&
-        collideRect(sx, sy, sd, sd, boss4.x, boss4.y, boss4.w, boss4.h)) {
-      hit = true;
-      if (boss4.invFrames === 0 && boss4.state !== 'cackle' && boss4.state !== 'intro') boss4Hit(s.dmg, 12);
     }
     if (hit || s.life <= 0 || s.x < -20 || s.x > (ROOMS[currentRoom].width || W) + 20) playerShots.splice(i, 1);
   }
@@ -5333,7 +4694,6 @@ const Music = (() => {
     let name = 'ruinas';
     if (currentRoom === 4 && !bossDefeated && !boss.dead) name = 'rey';
     else if (currentRoom === 3 && !boss2Defeated && !boss2.dead) name = 'guardian';
-    else if (currentRoom === 13) name = !boss4Defeated && !boss4.dead ? 'guardian' : 'cumbre';
     else if (currentRoom === 12) name = !boss3Defeated && !boss3.dead ? 'rey' : 'ruinas';
     else if (currentRoom >= 6) name = 'cumbre';
     play(name);
@@ -5392,8 +4752,6 @@ function step() {
     checkBoss2Collisions();
     updateBoss3();
     checkBoss3Collisions();
-    updateBoss4();
-    checkBoss4Collisions();
     updateKey();
     updatePlayerShots();
     updateShade();
@@ -5420,7 +4778,6 @@ function step() {
   drawBoss();
   drawBoss2();
   drawBoss3();
-  drawBoss4();
   drawKey();
   drawShop();
   drawPlayerShots();
@@ -5428,14 +4785,12 @@ function step() {
   drawPlayer();
   ctx.restore();
   drawNightDark(room);
-  if (currentRoom === 11) drawCabinHint();
   drawVignette(room);
   ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
   drawRoomLabel();
   drawBossUI();
   drawBoss2UI();
   drawBoss3UI();
-  drawBoss4UI();
   drawKeyGate();
   drawHUD();
   drawKeyHUD();
