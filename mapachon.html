@@ -430,6 +430,8 @@ const ROOMS = {
     particleColor: '#ff9a40',
     platforms: [
       { x:   0, y: 480, w: 960, h: 60 },
+      { x: 936, y:   0, w: 24, h: 360 },             // muro sobre la puerta
+      { x: 936, y: 360, w: 24, h: 120, door: true },  // puerta de las dos llaves
       { x:  90, y: 380, w: 150, h: 18 },
       { x: 720, y: 380, w: 150, h: 18 },
       { x: 290, y: 280, w: 130, h: 18 },
@@ -438,7 +440,8 @@ const ROOMS = {
     ],
     // Se entra cayendo por la trampilla del pico; se sale por arriba al vencer a los guardias
     exits: {
-      up: { room: 11, spawnX: 780, spawnY: 300 },
+      up:    { room: 11, spawnX: 780, spawnY: 300 },
+      right: { room: 38, spawnX: 30, spawnY: 400 }, // capítulo III (con las dos llaves)
     },
     decorations: [
       { type:'bricks' },
@@ -959,12 +962,39 @@ const ROOMS = {
     },
     decorations: [ { type:'bricks' }, { type:'torch', x:60, y:300 }, { type:'torch', x:900, y:300 }, { type:'window', x:180, y:110 } ],
   },
+  // ── Capítulo III: El Castillo de las Ruinas
+  38: {
+    name: 'Ruinas Mortales',
+    width: 1440,
+    bg: ['#05060c', '#121420'],
+    floorColor: '#34303c',
+    platColor:  '#3e3a48',
+    edgeColor:  '#5a5666',
+    particleColor: '#a0a8c0',
+    platforms: [
+      { x:    0, y: 480, w: 520, h: 60 },
+      { x:  620, y: 480, w: 820, h: 60 },
+      { x:  540, y: 410, w:  60, h: 18 },  // puente sobre el derrumbe
+      { x:  300, y: 420, w: 120, h: 60 },  // bloque caído
+      { x:  900, y: 400, w: 160, h: 80 },  // muro derrumbado
+      { x:  120, y: 360, w: 120, h: 18 },
+      { x:  440, y: 300, w: 110, h: 18 },
+      { x:  700, y: 330, w: 130, h: 18 },
+      { x:  960, y: 280, w: 120, h: 18 },
+      { x: 1200, y: 350, w: 140, h: 18 },
+      { x: 1100, y: 200, w: 120, h: 18 },
+    ],
+    exits: {
+      left: { room: 13, spawnX: 860, spawnY: 400 },
+    },
+    decorations: [ { type:'ruinedWalls' } ],
+  },
 };
 
 // ─── ENEMIGOS — plantillas por sala ──────────────────────────────────────────
 // y = superficie de plataforma - 24 (altura enemigo)
 // Orden de las salas al recorrer el juego (para el contador "Sala X / N")
-const ROOM_ORDER = [0,  14,  15,  1,  16,  17,  2,  18,  19,  20,  21,  4,  22,  23,  3,  24,  25,  5,  26,  27,  6,  7,  28,  29,  8,  30,  31,  9,  32,  33,  10,  34,  35,  11,  36,  37,  13];
+const ROOM_ORDER = [0,  14,  15,  1,  16,  17,  2,  18,  19,  20,  21,  4,  22,  23,  3,  24,  25,  5,  26,  27,  6,  7,  28,  29,  8,  30,  31,  9,  32,  33,  10,  34,  35,  11,  36,  37,  13,  38];
 
 const ENEMY_TEMPLATES = {
   0: [
@@ -1117,7 +1147,55 @@ const ENEMY_TEMPLATES = {
     { x: 780, y: 456, dir: -1, patrolMin: 600, patrolMax: 930, speed: 1.4 },
     { x: 440, y: 286, dir: 1, patrolMin: 425, patrolMax: 515, speed: 1.0 },
   ],
+  38: [
+    { x:  100, y: 456, dir:  1, patrolMin:  20, patrolMax: 480, speed: 1.8 },
+    { x:  320, y: 396, dir:  1, patrolMin: 305, patrolMax: 390, speed: 1.2 },
+    { x:  800, y: 456, dir: -1, patrolMin: 640, patrolMax: 880, speed: 1.9 },
+    { x: 1200, y: 456, dir: -1, patrolMin: 1070, patrolMax: 1400, speed: 2.0 },
+  ],
 };
+
+// ─── SALAS ANCHAS ────────────────────────────────────────────────────────────
+// Estas salas miden pantalla y media: se abre un tramo nuevo en medio (donde el
+// suelo es continuo) y la cámara sigue al mapache hacia los lados. Las salas de
+// jefe, la tienda y las que se recorren hacia arriba o abajo se quedan igual.
+const WIDE_ROOMS = [0, 14, 15, 16, 17, 2, 18, 19, 20, 21, 26, 27, 28, 29, 8, 30, 31, 9, 32, 33, 10, 34, 35, 11];
+const WIDE_EXTRA = 480;
+function widenRoom(id) {
+  const R = ROOMS[id], X = WIDE_EXTRA;
+  const grounds = R.platforms.filter(p => p.h >= 40 && p.y >= 300);
+  // punto de corte: con suelo debajo y sin cortar ninguna plataforma fina
+  const split = [480, 420, 540, 360, 600, 300, 660, 240, 720, 820, 140, 320, 800, 860, 180].find(c =>
+    grounds.some(g => g.x < c - 40 && g.x + g.w > c + 40) &&
+    !R.platforms.some(p => p.h < 40 && p.x < c + 20 && p.x + p.w > c - 20));
+  if (split === undefined) return;
+  const ground = grounds.find(g => g.x < split && g.x + g.w > split);
+  for (const p of R.platforms) {
+    if (p.x >= split) p.x += X;
+    else if (p.x + p.w > split) p.w += X;
+  }
+  // tramo nuevo: escalones para subir y un bicho patrullando
+  const gy = ground.y, S = split;
+  R.platforms.push(
+    { x: S + 60,  y: gy - 110, w: 130, h: 18 },
+    { x: S + 280, y: gy - 180, w: 130, h: 18 },
+    { x: S + 140, y: gy - 270, w: 120, h: 18 },
+  );
+  for (const d of R.decorations || []) if (d.x !== undefined && d.x >= split) d.x += X;
+  if (R.hatch && R.hatch.x >= split) R.hatch.x += X;
+  const ens = ENEMY_TEMPLATES[id] || (ENEMY_TEMPLATES[id] = []);
+  for (const e of ens) {
+    if (e.patrolMin >= split) { e.x += X; e.patrolMin += X; e.patrolMax += X; }
+    else if (e.patrolMax > split) { e.patrolMax += X; if (e.x >= split) e.x += X; }
+  }
+  const sp = ens.length ? ens[0].speed : 1.3;
+  ens.push({ x: S + 200, y: gy - 24, dir: 1, patrolMin: S + 20, patrolMax: S + X - 40, speed: sp });
+  R.width = W + X;
+  // quien entra por la derecha aparece en el nuevo borde
+  for (const r of Object.values(ROOMS)) for (const e of Object.values(r.exits || {}))
+    if (e.room === id && e.spawnX >= split) e.spawnX += X;
+}
+WIDE_ROOMS.forEach(widenRoom);
 
 // ─── PARTÍCULAS ───────────────────────────────────────────────────────────────
 const MAX_PARTICLES = 35;
@@ -1203,7 +1281,12 @@ document.addEventListener('keydown', e => {
     e.preventDefault(); return;
   }
   if (cheatState !== 'closed') {
-    if (e.code === 'Escape') { cheatState = 'closed'; cheatCode = ''; updateCheatUI(); }
+    if (e.code === 'Escape' && cheatState === 'zone') cheatState = 'map';
+    else if (e.code === 'Escape') { cheatState = 'closed'; cheatCode = ''; updateCheatUI(); }
+    else if (cheatState === 'zone') {
+      const k = parseInt(e.key, 10), list = zoneRooms(cheatZone);
+      if (k >= 1 && k <= list.length) cheatTeleport(list[k - 1]);
+    }
     else if (cheatState === 'input') {
       if (e.key >= '0' && e.key <= '9') cheatAppend(e.key);
       else if (e.code === 'Backspace')  cheatCode = cheatCode.slice(0, -1);
@@ -1268,7 +1351,8 @@ let roomLabelAlpha = 0;
 let roomLabelTimer = 0;
 let isDeath = false;
 let showInventory = false;
-let cheatState = 'closed'; // 'closed' | 'input' | 'map'
+let cheatState = 'closed'; // 'closed' | 'input' | 'map' | 'zone' (lista de salas de una zona)
+let cheatZone = 0;
 let cheatCode  = '';
 let cheatError = 0;
 let godMode    = false;
@@ -1382,6 +1466,7 @@ function resolveCollisions() {
   player.x += player.vx;
   for (const p of plats) {
     if (p.trapdoor && boss2Defeated) continue;
+    if (p.door && castleDoorOpen) continue;
     if (oneWay(p)) continue;
     if (collideRect(player.x, player.y, player.w, player.h, p.x, p.y, p.w, p.h)) {
       if (player.vx > 0) player.x = p.x - player.w;
@@ -1395,6 +1480,7 @@ function resolveCollisions() {
   player.y += player.vy;
   for (const p of plats) {
     if (p.trapdoor && boss2Defeated) continue;
+    if (p.door && castleDoorOpen) continue;
     if (p.secretStair && !bossDefeated) continue;
     // Escalón: solo se apoya si caes y venías desde encima
     if (oneWay(p) && (player.vy < 0 || prevBottom > p.y)) continue;
@@ -1498,7 +1584,13 @@ function checkExits() {
     if (on && (down() || hatchTimer >= 45)) { hatchTimer = 0; startTransition(hatch.room, 460, 40); return; }
   }
 
-  if (exits.right && player.x + player.w >= W) {
+  if (currentRoom === 13 && !castleDoorOpen && keysHeld.blue && keysHeld.red &&
+      player.x + player.w >= CASTLE_DOOR.x + 30) {
+    castleDoorOpen = true; shake(14, 3);
+    moneyPops.push({ x: CASTLE_DOOR.x, y: CASTLE_DOOR.y - 20, text: '¡Puerta abierta!', t: 90, color: '#c8d4ff' });
+  }
+  if (exits.right && player.x + player.w >= (ROOMS[currentRoom].width || W)) {
+    if (currentRoom === 13 && !castleDoorOpen) return;
     if (currentRoom === 3 && !boss2Defeated) return; // castillo cerrado
     const e = exits.right;
     startTransition(e.room, e.spawnX, e.spawnY);
@@ -1555,6 +1647,7 @@ function updateTransition() {
       if (pendingRoom === 13 && !guardsDefeated) initGuards();
       playerShots.length = 0;
       if (pendingRoom === 7 && !chapterShown) { chapterShown = true; showChapter(2, 'La Ruptura'); }
+      if (pendingRoom === 38 && !chapter3Shown) { chapter3Shown = true; showChapter(3, 'El Castillo de las Ruinas'); }
       if (isDeath) {
         // Se conserva el progreso: jefes vencidos, llave, puerta abierta y armas compradas.
         // Los jefes no vencidos se reinician al volver a entrar en su sala.
@@ -1646,12 +1739,51 @@ function drawShade() {
 // ─── ENEMIGOS ─────────────────────────────────────────────────────────────────
 function initEnemies(roomId) {
   const templates = ENEMY_TEMPLATES[roomId] || [];
-  currentEnemies = templates.map(t => ({ ...t, w: 28, h: 24, vy: 0, dead: false, deathTimer: 0 }));
+  // De La Cumbre al Pico los bichos se esconden como piedras nevadas
+  const rock = ROCK_ZONES.includes(zoneOf(roomId));
+  // En la zona de los guardias son de metal al rojo y explotan si te acercas mucho
+  const hot = HOT_ZONES.includes(zoneOf(roomId));
+  currentEnemies = templates.map(t => ({ ...t, w: 28, h: 24, vy: 0, dead: false, deathTimer: 0,
+    rock, awake: !rock, wake: 0, hot, fuse: 0, exploded: false }));
 }
 
+const ROCK_ZONES = [7, 8, 9, 10, 11];
+const HOT_ZONES = [13];
+const HOT_FUSE = 45, HOT_TRIGGER = 64, HOT_BLAST = 88;
+function explodeEnemy(e) {
+  e.dead = true; e.exploded = true; e.deathTimer = 34;
+  shake(12, 4);
+  const pcx = player.x + player.w / 2, pcy = player.y + player.h / 2;
+  const ex = e.x + e.w / 2, ey = e.y + e.h / 2;
+  if (Math.hypot(pcx - ex, pcy - ey) < HOT_BLAST && player.invFrames === 0) {
+    if (!godMode) {
+      player.hp--;
+      if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+    }
+    player.invFrames = 90; player.knockbackTimer = 14;
+    player.vx = (pcx < ex ? -1 : 1) * 8; player.vy = -9;
+  }
+}
+const ROCK_WAKE_DIST = 150;
 function updateEnemies() {
   for (const e of currentEnemies) {
     if (e.dead) { if (e.deathTimer > 0) e.deathTimer--; continue; }
+    if (!e.awake) {
+      // piedra quieta hasta que te acercas: entonces se sacude la nieve
+      const d = Math.hypot(player.x + player.w / 2 - (e.x + e.w / 2), player.y + player.h / 2 - (e.y + e.h / 2));
+      if (d < ROCK_WAKE_DIST) {
+        e.awake = true; e.wake = 30;
+        e.dir = player.x + player.w / 2 < e.x + e.w / 2 ? -1 : 1;
+      }
+      continue;
+    }
+    if (e.wake > 0) { e.wake--; continue; }
+    if (e.hot) {
+      // mecha: se para, se hincha y parpadea… y explota
+      if (e.fuse > 0) { if (--e.fuse === 0) explodeEnemy(e); continue; }
+      const d = Math.hypot(player.x + player.w / 2 - (e.x + e.w / 2), player.y + player.h / 2 - (e.y + e.h / 2));
+      if (d < HOT_TRIGGER) { e.fuse = HOT_FUSE; continue; }
+    }
     e.x += e.dir * e.speed;
     if (e.x <= e.patrolMin)       { e.x = e.patrolMin; e.dir =  1; }
     if (e.x + e.w >= e.patrolMax) { e.x = e.patrolMax - e.w; e.dir = -1; }
@@ -1689,8 +1821,8 @@ function checkEnemyCollisions() {
       continue;
     }
 
-    // Contacto lateral/desde abajo → daño al jugador
-    if (player.invFrames === 0 &&
+    // Contacto lateral/desde abajo → daño al jugador (una piedra dormida no hace daño)
+    if (player.invFrames === 0 && e.awake && e.wake === 0 && !e.fuse &&
         collideRect(player.x + 3, player.y + 3, player.w - 6, player.h - 3, e.x, e.y, e.w, e.h)) {
       if (!godMode) {
         player.hp--;
@@ -1710,11 +1842,69 @@ function checkEnemyCollisions() {
   }
 }
 
+// Bicho escondido: una piedra con nieve encima; al despertar tiembla y suelta nieve
+function drawSnowRock(e, cx, cy) {
+  const k = e.wake > 0 ? e.wake / 30 : 0;
+  const shakeX = e.wake > 0 ? Math.sin(e.wake * 2.3) * 2.5 : 0;
+  const by = cy + e.h / 2;
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath(); ctx.ellipse(cx, by + 1, 16, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.translate(cx + shakeX, by);
+  ctx.fillStyle = vol(-3, -10, 15, '#8a90a0', '#3a3e4a');
+  ctx.beginPath(); ctx.moveTo(-16, 0); ctx.quadraticCurveTo(-17, -12, -7, -17);
+  ctx.quadraticCurveTo(4, -21, 12, -13); ctx.quadraticCurveTo(17, -6, 16, 0); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(-4, -16); ctx.lineTo(-1, -9); ctx.lineTo(-5, -4); ctx.stroke();
+  // capa de nieve (se va cayendo al despertar)
+  ctx.globalAlpha = e.wake > 0 ? k : 1;
+  ctx.fillStyle = '#eef2fc';
+  ctx.beginPath(); ctx.moveTo(-14, -9); ctx.quadraticCurveTo(-12, -17, -5, -18.5);
+  ctx.quadraticCurveTo(5, -21.5, 12, -13); ctx.quadraticCurveTo(6, -12, 1, -13);
+  ctx.quadraticCurveTo(-6, -11, -14, -9); ctx.closePath(); ctx.fill();
+  ctx.globalAlpha = 1;
+  if (e.wake > 0) {
+    // copos que salen disparados y ojos que se abren
+    ctx.fillStyle = '#ffffff';
+    for (let i = 0; i < 6; i++) {
+      const a = -Math.PI * (0.15 + i * 0.14), d = (1 - k) * 22;
+      ctx.globalAlpha = k;
+      ctx.beginPath(); ctx.arc(Math.cos(a) * d, -14 + Math.sin(a) * d, 1.6, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1 - k;
+    ctx.fillStyle = '#ff4040';
+    ctx.beginPath(); ctx.arc(e.dir * 9, -7, 1.6, 0, Math.PI * 2); ctx.arc(e.dir * 5, -8, 1.4, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
 function drawEnemy(e) {
   const cx = Math.round(e.x + e.w / 2);
   const cy = Math.round(e.y + e.h / 2);
 
   // Animación de muerte: anillo de humo, nubecitas y chispas
+  if (e.dead && e.exploded) {
+    if (e.deathTimer <= 0) return;
+    const k = e.deathTimer / 34, p = 1 - k;
+    ctx.save();
+    const r = 18 + p * (HOT_BLAST - 10);
+    const fg = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    fg.addColorStop(0, `rgba(255,250,210,${k.toFixed(2)})`);
+    fg.addColorStop(0.4, `rgba(255,160,40,${(0.85 * k).toFixed(2)})`);
+    fg.addColorStop(1, 'rgba(200,40,10,0)');
+    ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = `rgba(255,200,120,${(0.7 * k).toFixed(2)})`; ctx.lineWidth = 3 * k + 1;
+    ctx.beginPath(); ctx.arc(cx, cy, r * 0.95, 0, Math.PI * 2); ctx.stroke();
+    // trozos de metal incandescente
+    for (let i = 0; i < 9; i++) {
+      const a = (i / 9) * Math.PI * 2 + 0.3, d = p * 60;
+      ctx.fillStyle = i % 2 ? '#ffb040' : '#ff5020';
+      ctx.globalAlpha = k;
+      ctx.beginPath(); ctx.arc(cx + Math.cos(a) * d, cy + Math.sin(a) * d - p * 10 + p * p * 30, 2.6 * k + 0.8, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+    return;
+  }
   if (e.dead) {
     if (e.deathTimer <= 0) return;
     const k = e.deathTimer / 22, p = 1 - k;
@@ -1741,6 +1931,8 @@ function drawEnemy(e) {
     return;
   }
 
+  if (e.rock && (!e.awake || e.wake > 0)) { drawSnowRock(e, cx, cy); return; }
+
   const t = Date.now() * 0.003;
   const ph = t * 7 + e.x * 0.05;                 // fase del paso
   const bounce = Math.abs(Math.sin(ph)) * 1.2;
@@ -1750,7 +1942,24 @@ function drawEnemy(e) {
   ctx.fillStyle = 'rgba(0,0,0,0.28)';
   ctx.beginPath(); ctx.ellipse(cx, cy + e.h / 2 + 2, e.w * 0.45 - bounce, 3, 0, 0, Math.PI * 2); ctx.fill();
 
+  if (e.hot) {
+    const f = e.fuse > 0 ? 1 - e.fuse / HOT_FUSE : 0;
+    const hg = ctx.createRadialGradient(cx, cy, 0, cx, cy, 30 + f * 20);
+    hg.addColorStop(0, `rgba(255,120,30,${(0.3 + f * 0.4).toFixed(2)})`); hg.addColorStop(1, 'rgba(255,80,20,0)');
+    ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(cx, cy, 30 + f * 20, 0, Math.PI * 2); ctx.fill();
+    // chispas que suben
+    for (let i = 0; i < 3; i++) {
+      const k = (t * 0.8 + i / 3 + e.x * 0.01) % 1;
+      ctx.fillStyle = `rgba(255,${180 - i * 40},60,${(1 - k).toFixed(2)})`;
+      ctx.beginPath(); ctx.arc(cx - 6 + i * 6 + Math.sin(k * 9 + i) * 3, cy - 8 - k * 22, 1.3, 0, Math.PI * 2); ctx.fill();
+    }
+  }
   ctx.translate(cx, cy - bounce);
+  if (e.hot && e.fuse > 0) {
+    const f = 1 - e.fuse / HOT_FUSE;
+    ctx.translate(Math.sin(e.fuse * 1.7) * 1.5 * f, 0);
+    ctx.scale(1 + f * 0.3, 1 + f * 0.3);
+  }
   ctx.scale(e.dir, 1);
 
   // Patas: tres por lado, caminan en trípode (como los insectos de verdad)
@@ -1774,11 +1983,12 @@ function drawEnemy(e) {
 
   // Élitros (caparazón) con brillo tornasolado
   const shell = ctx.createLinearGradient(-14, -11, 6, 6);
-  shell.addColorStop(0,    '#7a3ab0');
-  shell.addColorStop(0.35, '#4a1c78');
-  shell.addColorStop(0.55, '#2c6a8a');   // reflejo azul verdoso
-  shell.addColorStop(0.7,  '#3a1460');
-  shell.addColorStop(1,    '#1a0830');
+  const blink = e.hot && e.fuse > 0 && Math.floor(e.fuse / (e.fuse < 15 ? 2 : 5)) % 2 === 0;
+  const stops = blink ? ['#ffffff', '#fff0c0', '#ffd080', '#ff9040', '#ff5020']   // a punto de explotar
+    : e.hot  ? ['#ffe080', '#ff8a30', '#d04010', '#7a1a08', '#2a0804']   // metal al rojo
+    : e.rock ? ['#a8aebc', '#767c8c', '#5e6a80', '#4a505e', '#2a2e38']   // caparazón de piedra
+    : ['#7a3ab0', '#4a1c78', '#2c6a8a', '#3a1460', '#1a0830'];          // tornasolado (reflejo azul verdoso)
+  [0, 0.35, 0.55, 0.7, 1].forEach((o, i) => shell.addColorStop(o, stops[i]));
   ctx.fillStyle = shell;
   ctx.beginPath();
   ctx.moveTo(-14, 4);
@@ -1803,6 +2013,13 @@ function drawEnemy(e) {
   ctx.beginPath(); ctx.ellipse(-5 + sh, -8.5, 5, 1.6, -0.25, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
   ctx.beginPath(); ctx.arc(-7 + sh, -8.5, 0.9, 0, Math.PI * 2); ctx.fill();
+  if (e.rock) {
+    // nieve que le queda encima del caparazón
+    ctx.fillStyle = '#eef2fc';
+    ctx.beginPath(); ctx.moveTo(-12, -4); ctx.quadraticCurveTo(-9, -12.5, -1, -11.5);
+    ctx.quadraticCurveTo(4, -11, 5, -7); ctx.quadraticCurveTo(0, -8, -4, -6.5);
+    ctx.quadraticCurveTo(-8, -6, -12, -4); ctx.closePath(); ctx.fill();
+  }
 
   // Tórax (pronoto)
   ctx.fillStyle = vol(8.5, -2, 5, '#5a2a88', '#160828');
@@ -2935,7 +3152,7 @@ function updateGuards() {
     const other = guards[0] === g ? guards[1] : guards[0];
     if (g.dead) {
       if (g.deathTimer > 0) g.deathTimer--;
-      else if (!g.paid) { g.paid = true; addMoney(MONEY_BOSS, g.x + g.w / 2, g.y); }
+      else if (!g.paid) { g.paid = true; addMoney(MONEY_BOSS, g.x + g.w / 2, g.y); dropGuardKey(g); }
       continue;
     }
     if (g.invFrames > 0) g.invFrames--;
@@ -3269,7 +3486,8 @@ function drawGuardsUI() {
     ctx.fillStyle = '#ffe060'; ctx.font = 'bold 32px serif';
     ctx.fillText('¡Los guardias han caído!', W / 2, 110);
     ctx.fillStyle = '#ffffff'; ctx.font = '18px serif';
-    ctx.fillText('Sube por arriba para volver a la cima', W / 2, 144);
+    ctx.fillText(guardKeys.length ? 'Recoge las llaves que han soltado' :
+      castleDoorOpen ? 'La puerta de la derecha está abierta' : 'Abre la puerta de la derecha con las dos llaves', W / 2, 144);
     ctx.restore();
   }
 }
@@ -3305,6 +3523,183 @@ function drawHatchHint(h) {
   ctx.fillStyle = '#ffe0b0'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
   ctx.fillText('↓ bajar', h.x + h.w / 2, h.y - 50);
   ctx.restore();
+}
+
+// ─── LLAVES DE LOS GUARDIAS Y PUERTA AL CAPÍTULO III ─────────────────────────
+// Cada guardia suelta una llave (azul el del escudo, roja el de la alabarda);
+// con las dos se abre la puerta de la derecha del Salón de la Guardia.
+const guardKeys = [];          // { color, x, y, bob } tiradas en el suelo
+const keysHeld = { blue: false, red: false };
+let castleDoorOpen = false;
+let chapter3Shown = false;
+const KEY_COLORS = {
+  blue: { light: '#d0e4ff', mid: '#4a8aff', dark: '#1a3a90', glow: '80,140,255' },
+  red:  { light: '#ffd8d0', mid: '#ff4a3a', dark: '#901a14', glow: '255,90,70' },
+};
+
+function dropGuardKey(g) {
+  guardKeys.push({ color: g.kind === 'shield' ? 'blue' : 'red', x: g.x + g.w / 2, y: GUARD_FLOOR - 34, bob: 0 });
+}
+
+function updateGuardKeys() {
+  if (currentRoom !== 13) return;
+  for (let i = guardKeys.length - 1; i >= 0; i--) {
+    const k = guardKeys[i];
+    k.bob += 0.055;
+    if (collideRect(player.x, player.y, player.w, player.h, k.x - 16, k.y - 14, 32, 28)) {
+      keysHeld[k.color] = true;
+      moneyPops.push({ x: k.x, y: k.y - 20, text: k.color === 'blue' ? 'Llave azul' : 'Llave roja', t: 80,
+        color: KEY_COLORS[k.color].mid });
+      guardKeys.splice(i, 1);
+    }
+  }
+}
+
+// Llave de color (en el suelo, en la puerta o en el HUD)
+function drawColorKey(x, y, color, scale = 1, rot = 0) {
+  const c = KEY_COLORS[color];
+  ctx.save();
+  ctx.translate(x, y); ctx.rotate(rot); ctx.scale(scale, scale);
+  const g = ctx.createLinearGradient(0, -10, 0, 10);
+  g.addColorStop(0, c.light); g.addColorStop(0.45, c.mid); g.addColorStop(1, c.dark);
+  ctx.strokeStyle = g; ctx.lineWidth = 4.5;
+  ctx.beginPath(); ctx.arc(-8, 0, 8.5, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.roundRect(-1, -3, 22, 6, 2); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(12, 2, 4, 8, 1); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(18, 2, 3, 6, 1); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.fillRect(1, -2.4, 18, 1.2);
+  ctx.fillStyle = c.light; ctx.beginPath(); ctx.arc(-8, 0, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+function drawGuardKeys() {
+  if (currentRoom !== 13) return;
+  for (const k of guardKeys) {
+    const y = k.y + Math.sin(k.bob) * 6, c = KEY_COLORS[k.color];
+    const g = ctx.createRadialGradient(k.x, y, 0, k.x, y, 32);
+    g.addColorStop(0, `rgba(${c.glow},0.55)`); g.addColorStop(1, `rgba(${c.glow},0)`);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(k.x, y, 32, 0, Math.PI * 2); ctx.fill();
+    drawColorKey(k.x, y, k.color, 1, Math.sin(k.bob * 0.7) * 0.15);
+  }
+}
+
+// Puerta doble de hierro con dos cerraduras (azul y roja)
+const CASTLE_DOOR = { x: 900, y: 360, w: 60, h: 120 };
+function drawCastleDoor() {
+  if (currentRoom !== 13) return;
+  const d = CASTLE_DOOR, t = Date.now() * 0.003;
+  ctx.save();
+  // arco de piedra
+  ctx.fillStyle = '#4a4552';
+  ctx.beginPath(); ctx.moveTo(d.x - 10, d.y + d.h); ctx.lineTo(d.x - 10, d.y + 10);
+  ctx.quadraticCurveTo(d.x + d.w / 2, d.y - 34, d.x + d.w + 10, d.y + 10); ctx.lineTo(d.x + d.w + 10, d.y + d.h); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#05040a';
+  ctx.beginPath(); ctx.moveTo(d.x, d.y + d.h); ctx.lineTo(d.x, d.y + 12);
+  ctx.quadraticCurveTo(d.x + d.w / 2, d.y - 20, d.x + d.w, d.y + 12); ctx.lineTo(d.x + d.w, d.y + d.h); ctx.closePath(); ctx.fill();
+  if (castleDoorOpen) {
+    // puerta abierta: luz de luna del otro lado
+    const lg = ctx.createLinearGradient(d.x, 0, d.x + d.w, 0);
+    lg.addColorStop(0, 'rgba(170,190,255,0.08)'); lg.addColorStop(1, `rgba(170,190,255,${(0.35 + 0.1 * Math.sin(t)).toFixed(2)})`);
+    ctx.fillStyle = lg;
+    ctx.beginPath(); ctx.moveTo(d.x, d.y + d.h); ctx.lineTo(d.x, d.y + 12);
+    ctx.quadraticCurveTo(d.x + d.w / 2, d.y - 20, d.x + d.w, d.y + 12); ctx.lineTo(d.x + d.w, d.y + d.h); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#2a2030'; ctx.fillRect(d.x - 2, d.y + 14, 8, d.h - 14); // hoja abierta
+  } else {
+    const ig = ctx.createLinearGradient(d.x, 0, d.x + d.w, 0);
+    ig.addColorStop(0, '#2e2a36'); ig.addColorStop(0.5, '#4a4656'); ig.addColorStop(1, '#2a2632');
+    ctx.fillStyle = ig;
+    ctx.beginPath(); ctx.moveTo(d.x + 3, d.y + d.h); ctx.lineTo(d.x + 3, d.y + 14);
+    ctx.quadraticCurveTo(d.x + d.w / 2, d.y - 16, d.x + d.w - 3, d.y + 14); ctx.lineTo(d.x + d.w - 3, d.y + d.h); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(d.x + d.w / 2, d.y + 2); ctx.lineTo(d.x + d.w / 2, d.y + d.h); ctx.stroke();
+    // remaches
+    ctx.fillStyle = '#7a7686';
+    for (let y = d.y + 26; y < d.y + d.h; y += 22) for (const x of [d.x + 9, d.x + d.w - 9]) {
+      ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
+    }
+    // cerraduras: brillan si ya tienes esa llave
+    for (const [col, cx] of [['blue', d.x + d.w / 2 - 12], ['red', d.x + d.w / 2 + 12]]) {
+      const c = KEY_COLORS[col], cy = d.y + 64, on = keysHeld[col];
+      if (on) {
+        const gl = ctx.createRadialGradient(cx, cy, 0, cx, cy, 18);
+        gl.addColorStop(0, `rgba(${c.glow},${(0.5 + 0.3 * Math.sin(t * 2)).toFixed(2)})`); gl.addColorStop(1, `rgba(${c.glow},0)`);
+        ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(cx, cy, 18, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.fillStyle = c.mid; ctx.beginPath(); ctx.roundRect(cx - 7, cy - 9, 14, 18, 4); ctx.fill();
+      ctx.fillStyle = '#0a0a10'; ctx.beginPath(); ctx.arc(cx, cy - 2, 2.6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillRect(cx - 1.2, cy - 1, 2.4, 6);
+    }
+  }
+  ctx.restore();
+}
+
+// Mensaje junto a la puerta
+function drawCastleDoorHint() {
+  if (currentRoom !== 13 || castleDoorOpen || !guardsDefeated) return;
+  const d = CASTLE_DOOR;
+  if (player.x + player.w < d.x - 120) return;
+  const both = keysHeld.blue && keysHeld.red;
+  ctx.save();
+  ctx.font = 'bold 12px monospace'; ctx.textAlign = 'center';
+  ctx.fillStyle = both ? '#ffe0b0' : '#ff9a8a';
+  ctx.fillText(both ? 'Toca la puerta para abrirla' : 'Necesitas la llave azul y la roja', W - 170, d.y - 44);
+  ctx.restore();
+}
+
+// Llaves que llevas, junto a los mapesos
+function drawKeysHUD() {
+  let x = 210;
+  for (const col of ['blue', 'red']) if (keysHeld[col] && !castleDoorOpen) { drawColorKey(x, 85, col, 0.7); x += 30; }
+}
+
+// Ruinas del castillo: muros rotos, ventanas sin cristal y luz de luna
+function drawRuinedWalls(room) {
+  const RW = room.width || W, t = Date.now() * 0.001;
+  // luna (fija en pantalla)
+  ctx.save(); ctx.translate(Math.round(camX), Math.round(camY));
+  const mg = ctx.createRadialGradient(780, 80, 0, 780, 80, 140);
+  mg.addColorStop(0, 'rgba(210,220,255,0.22)'); mg.addColorStop(1, 'rgba(210,220,255,0)');
+  ctx.fillStyle = mg; ctx.beginPath(); ctx.arc(780, 80, 140, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#e8ecff'; ctx.beginPath(); ctx.arc(780, 80, 26, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(160,170,210,0.35)'; ctx.beginPath(); ctx.arc(772, 74, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  // muro del fondo con el borde superior roto
+  ctx.fillStyle = '#1c1a22';
+  ctx.beginPath(); ctx.moveTo(0, 480);
+  for (let x = 0; x <= RW; x += 40) {
+    const top = 90 + ((x * 37) % 70) + (Math.floor(x / 280) % 2) * 50;
+    ctx.lineTo(x, top);
+  }
+  ctx.lineTo(RW, 480); ctx.closePath(); ctx.fill();
+  // ladrillos del muro
+  ctx.strokeStyle = 'rgba(255,255,255,0.035)'; ctx.lineWidth = 1;
+  for (let row = 0, y = 200; y < 480; row++, y += 28) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(RW, y); ctx.stroke();
+    for (let x = (row % 2) * 32; x < RW; x += 64) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 28); ctx.stroke(); }
+  }
+  // ventanas rotas con rayos de luna
+  for (let x = 180; x < RW; x += 360) {
+    ctx.fillStyle = '#06070e';
+    ctx.beginPath(); ctx.moveTo(x - 26, 330); ctx.lineTo(x - 26, 230); ctx.arc(x, 230, 26, Math.PI, 0); ctx.lineTo(x + 26, 330); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    for (let k = 0; k < 4; k++) ctx.fillRect(x - 18 + ((k * 13) % 34), 220 + ((k * 29) % 90), 1.4, 1.4);
+    const a = 0.10 + 0.03 * Math.sin(t + x);
+    const lg = ctx.createLinearGradient(x, 230, x + 90, 480);
+    lg.addColorStop(0, `rgba(190,205,255,${a.toFixed(3)})`); lg.addColorStop(1, 'rgba(190,205,255,0)');
+    ctx.fillStyle = lg;
+    ctx.beginPath(); ctx.moveTo(x - 26, 240); ctx.lineTo(x + 26, 240); ctx.lineTo(x + 140, 480); ctx.lineTo(x + 40, 480); ctx.closePath(); ctx.fill();
+  }
+  // columnas partidas y escombros
+  for (let x = 90, k = 0; x < RW; x += 300, k++) {
+    const h = 70 + (k % 3) * 45;
+    ctx.fillStyle = '#2c2934';
+    ctx.fillRect(x - 14, 480 - h, 28, h);
+    ctx.fillStyle = '#3a3644'; ctx.fillRect(x - 18, 470, 36, 10);
+    ctx.beginPath(); ctx.moveTo(x - 14, 480 - h); ctx.lineTo(x - 4, 480 - h - 14); ctx.lineTo(x + 6, 480 - h - 4); ctx.lineTo(x + 14, 480 - h - 10); ctx.lineTo(x + 14, 480 - h); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#34303e';
+    for (let r = 0; r < 4; r++) { ctx.beginPath(); ctx.ellipse(x + 30 + r * 12, 478 - (r % 2) * 4, 9 - r, 5, 0, 0, Math.PI * 2); ctx.fill(); }
+  }
 }
 
 // ─── LLAVE ────────────────────────────────────────────────────────────────────
@@ -3979,13 +4374,23 @@ function cachedLayer(key, draw) {
 
 function drawDecorations(room) {
   for (const d of (room.decorations || [])) {
+    if (d.type === 'nightRanges') {
+      ctx.save(); ctx.translate(Math.round(camX), Math.round(camY));
+      drawDecoration(room, d);
+      ctx.restore();
+    } else drawDecoration(room, d);
+  }
+}
+
+function drawDecoration(room, d) {
+  {
     if (d.type === 'bricks') {
       // muro de piedra del castillo
       ctx.strokeStyle = 'rgba(255,255,255,0.04)';
       ctx.lineWidth = 1;
       for (let row = 0, y = 0; y < H - 60; row++, y += 30) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-        for (let x = (row % 2) * 30; x < W; x += 60) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(room.width || W, y); ctx.stroke();
+        for (let x = (row % 2) * 30; x < (room.width || W); x += 60) {
           ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 30); ctx.stroke();
         }
       }
@@ -4029,6 +4434,7 @@ function drawDecorations(room) {
       ctx.beginPath(); ctx.ellipse(d.x, d.y - 9, 2.5, 5, 0, 0, Math.PI * 2); ctx.fill();
     }
     if (d.type === 'floatStones') drawFloatStones(room);
+    if (d.type === 'ruinedWalls') drawRuinedWalls(room);
     if (d.type === 'nightRanges') {
       // level 0 = La Cumbre; cada nivel más es más de noche y estás más alto
       const L = d.level || 0, dk = hex => L ? shadeHex(hex, -L * 0.17) : hex;
@@ -4205,9 +4611,9 @@ function drawPlatforms(room) {
       continue;
     }
     if (p.secretStair) { if (bossDefeated) drawSecretStair(p); continue; }
-    if (room.width) { // sala grande: sin caché y solo lo que se ve
+    if (room.width) { // sala grande: solo lo que se ve
       if (p.x + p.w < camX - 10 || p.x > camX + W / camZ + 10 || p.y > camY + H / camZ + 10 || p.y + p.h < camY - 10) continue;
-      drawSlab(ctx, p, room); continue;
+      if (!room.style) { drawSlab(ctx, p, room); continue; }
     }
     if (room.style === 'castleRock') { drawCastleRockStone(p); continue; }
     if (room.style === 'mountain') { drawMountainRock(p, room.night); continue; }
@@ -4218,7 +4624,7 @@ function drawPlatforms(room) {
 function slabLayer(room) {
   return cachedLayer('slabs|' + currentRoom + '|' + boss2Defeated, c => {
     for (const p of room.platforms) {
-      if ((p.trapdoor && boss2Defeated) || p.secretStair) continue;
+      if ((p.trapdoor && boss2Defeated) || p.secretStair || p.door) continue;
       drawSlab(c, p, room);
     }
   });
@@ -4367,7 +4773,7 @@ function drawMountainRock(p, night) {
 // Oscuridad alrededor del mapache en lo alto de la montaña
 function drawNightDark(room) {
   if (!room.night) return;
-  const cx = player.x + player.w / 2, cy = player.y + player.h / 2;
+  const cx = player.x + player.w / 2 - camX, cy = player.y + player.h / 2 - camY;
   const g = ctx.createRadialGradient(cx, cy, 70, cx, cy, 460 - room.night * 50);
   g.addColorStop(0, 'rgba(0,0,6,0)');
   g.addColorStop(1, `rgba(0,0,6,${(room.night * 0.16).toFixed(2)})`);
@@ -4380,12 +4786,13 @@ function drawExitGlow(room) {
   const pc = room.particleColor;
   const pulse = 0.2 + 0.1 * Math.sin(Date.now() * 0.003);
 
-  if (exits.right && !(currentRoom === 3 && !boss2Defeated)) {
-    const g = ctx.createLinearGradient(W - 60, 0, W, 0);
+  if (exits.right && !(currentRoom === 3 && !boss2Defeated) && !(currentRoom === 13 && !castleDoorOpen)) {
+    const RW = room.width || W;
+    const g = ctx.createLinearGradient(RW - 60, 0, RW, 0);
     g.addColorStop(0, 'rgba(0,0,0,0)');
     g.addColorStop(1, hexAlpha(pc, pulse));
     ctx.fillStyle = g;
-    ctx.fillRect(W - 60, 100, 60, H - 200);
+    ctx.fillRect(RW - 60, 100, 60, H - 200);
   }
   if (exits.left) {
     const g = ctx.createLinearGradient(0, 0, 60, 0);
@@ -4833,6 +5240,7 @@ function drawHUD() {
   ctx.textAlign = 'left';
   ctx.fillStyle = '#ffd040';
   ctx.fillText('💰 ' + fmtMoney(money) + ' mapesos', 16, 90);
+  drawKeysHUD();
   if (shade) {
     ctx.font = '11px monospace';
     ctx.fillStyle = 'rgba(200,170,255,0.8)';
@@ -5036,8 +5444,9 @@ const CHEAT_NODES = [
   { id:10, x:765, y:140, name:'Risco',   boss:false,   secret:false },
   { id:11, x:860, y:140, name:'Pico',    boss:false,   secret:false },
   { id:13, x:860, y:270, name:'Guardia', boss:true,    secret:false },
+  { id:38, x:860, y:400, name:'Ruinas M.', boss:false,  secret:false },
 ];
-const CHEAT_EDGES = [[0,1],[1,2],[2,4],[1,3],[3,5],[3,6],[6,7],[7,8],[8,9],[9,10],[10,11],[11,13]];
+const CHEAT_EDGES = [[0,1],[1,2],[2,4],[1,3],[3,5],[3,6],[6,7],[7,8],[8,9],[9,10],[10,11],[11,13],[13,38]];
 
 function updateCheatUI() {
   const np = document.getElementById('cheat-numpad');
@@ -5074,7 +5483,65 @@ function cheatTeleport(roomId) {
 function drawCheat() {
   if (cheatState === 'closed') return;
   if (cheatState === 'input') drawCheatInput();
+  else if (cheatState === 'zone') drawCheatZone();
   else drawCheatMap();
+}
+
+// Salas de una zona en el orden del recorrido (la principal incluida)
+function zoneRooms(zone) {
+  return ROOM_ORDER.filter(r => zoneOf(r) === zone);
+}
+
+// Menú con las salas de la zona elegida en el mapa secreto
+const ZONE_MENU = { w: 420, rowH: 46 };
+function zoneMenuRect() {
+  const n = zoneRooms(cheatZone).length, h = 96 + (n + 1) * ZONE_MENU.rowH;
+  return { x: (W - ZONE_MENU.w) / 2, y: (H - h) / 2, w: ZONE_MENU.w, h };
+}
+function drawCheatZone() {
+  drawCheatMap();
+  ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(0, 0, W, H);
+  const list = zoneRooms(cheatZone), R = zoneMenuRect();
+  ctx.fillStyle = 'rgba(8,6,24,0.98)'; ctx.fillRect(R.x, R.y, R.w, R.h);
+  ctx.strokeStyle = '#9a6aff'; ctx.lineWidth = 3; ctx.strokeRect(R.x, R.y, R.w, R.h);
+  ctx.fillStyle = '#c8a0ff'; ctx.font = 'bold 15px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('🗺  ' + ROOMS[cheatZone].name, W / 2, R.y + 32);
+  ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '11px monospace';
+  ctx.fillText('Elige una sala (o pulsa su número)', W / 2, R.y + 52);
+  list.forEach((id, i) => {
+    const ry = R.y + 70 + i * ZONE_MENU.rowH, here = id === currentRoom;
+    ctx.fillStyle = here ? 'rgba(64,255,144,0.12)' : 'rgba(154,106,255,0.10)';
+    ctx.fillRect(R.x + 18, ry, R.w - 36, ZONE_MENU.rowH - 8);
+    ctx.strokeStyle = here ? '#40ff90' : 'rgba(154,106,255,0.5)'; ctx.lineWidth = 1.5;
+    ctx.strokeRect(R.x + 18, ry, R.w - 36, ZONE_MENU.rowH - 8);
+    ctx.textAlign = 'left'; ctx.font = 'bold 14px monospace';
+    ctx.fillStyle = '#ffffff'; ctx.fillText((i + 1) + '.', R.x + 32, ry + 24);
+    ctx.fillStyle = id === cheatZone ? '#ffd060' : '#e0d0ff';
+    ctx.fillText(ROOMS[id].name, R.x + 60, ry + 24);
+    ctx.textAlign = 'right'; ctx.font = '10px monospace';
+    ctx.fillStyle = here ? '#40ff90' : 'rgba(255,255,255,0.4)';
+    ctx.fillText(here ? 'ESTÁS AQUÍ' : id === cheatZone ? 'principal' : '', R.x + R.w - 30, ry + 23);
+  });
+  const by = R.y + 70 + list.length * ZONE_MENU.rowH;
+  ctx.textAlign = 'center'; ctx.font = '12px monospace'; ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.fillText('← Volver al mapa  (ESC)', W / 2, by + 24);
+}
+
+// Clic o toque en el mapa secreto o en el menú de la zona
+function cheatClick(mx, my) {
+  if (cheatState === 'map') {
+    for (const n of CHEAT_NODES) if ((mx - n.x) ** 2 + (my - n.y) ** 2 < 44 ** 2) {
+      if (zoneRooms(n.id).length > 1) { cheatZone = n.id; cheatState = 'zone'; }
+      else cheatTeleport(n.id);
+      return;
+    }
+  } else if (cheatState === 'zone') {
+    const list = zoneRooms(cheatZone), R = zoneMenuRect();
+    const i = Math.floor((my - (R.y + 70)) / ZONE_MENU.rowH);
+    if (mx < R.x || mx > R.x + R.w || my < R.y || my > R.y + R.h) { cheatState = 'map'; return; }
+    if (i >= 0 && i < list.length) cheatTeleport(list[i]);
+    else if (i === list.length) cheatState = 'map';
+  }
 }
 
 function drawCheatInput() {
@@ -5128,7 +5595,7 @@ function drawCheatMap() {
   ctx.strokeStyle='#3a1a6a'; ctx.lineWidth=1; ctx.strokeRect(px+5,py+5,pw-10,ph-10);
 
   ctx.fillStyle='#c8a0ff'; ctx.font='bold 14px monospace'; ctx.textAlign='center';
-  ctx.fillText('🗺  MAPA SECRETO  —  Toca una sala', W/2, py+30);
+  ctx.fillText('🗺  MAPA SECRETO  —  Toca una zona', W/2, py+30);
   ctx.strokeStyle='#3a1a6a'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(px+18,py+42); ctx.lineTo(px+pw-18,py+42); ctx.stroke();
 
@@ -5189,18 +5656,17 @@ function drawRoomGraph(showSecret, hereId) {
 
 // Canvas click/touch para el mapa
 canvas.addEventListener('click', e => {
-  if (cheatState !== 'map') return;
+  if (cheatState !== 'map' && cheatState !== 'zone') return;
   const r=canvas.getBoundingClientRect(), sc=W/r.width;
-  const mx=(e.clientX-r.left)*sc, my=(e.clientY-r.top)*sc;
-  for (const n of CHEAT_NODES) { if ((mx-n.x)**2+(my-n.y)**2<44**2) { cheatTeleport(n.id); return; } }
+  cheatClick((e.clientX-r.left)*sc, (e.clientY-r.top)*sc);
 });
 canvas.addEventListener('touchend', e => {
   if (chapterTimer > 0 && chapterTimer < chapterDur - 90) { chapterTimer = Math.min(chapterTimer, 50); return; }
-  if (cheatState !== 'map') return;
+  if (cheatState !== 'map' && cheatState !== 'zone') return;
   e.preventDefault();
   const r=canvas.getBoundingClientRect(), sc=W/r.width;
-  const t=e.changedTouches[0], mx=(t.clientX-r.left)*sc, my=(t.clientY-r.top)*sc;
-  for (const n of CHEAT_NODES) { if ((mx-n.x)**2+(my-n.y)**2<44**2) { cheatTeleport(n.id); return; } }
+  const t=e.changedTouches[0];
+  cheatClick((t.clientX-r.left)*sc, (t.clientY-r.top)*sc);
 }, { passive:false });
 
 // Numpad bindings
@@ -5878,6 +6344,7 @@ const Music = (() => {
     else if (currentRoom === 3 && !boss2Defeated && !boss2.dead) name = 'guardian';
     else if (currentRoom === 13) name = !guardsDefeated ? 'guardias' : 'cumbre';
     else if (currentRoom === 12) name = !boss3Defeated && !boss3.dead ? 'coloso' : 'ruinas';
+    else if (zoneOf(currentRoom) === 38) name = 'ruinas';
     else if (zoneOf(currentRoom) >= 6) name = 'cumbre';
     play(name);
   }
@@ -5937,6 +6404,7 @@ function step() {
     checkBoss3Collisions();
     updateGuards();
     checkGuardCollisions();
+    updateGuardKeys();
     updateKey();
     updatePlayerShots();
     updateShade();
@@ -5972,7 +6440,9 @@ function step() {
   drawBoss();
   drawBoss2();
   drawBoss3();
+  drawCastleDoor();
   drawGuards();
+  drawGuardKeys();
   drawKey();
   drawShop();
   drawPlayerShots();
@@ -5980,7 +6450,8 @@ function step() {
   drawPlayer();
   ctx.restore();
   drawNightDark(room);
-  if (room.hatch) drawHatchHint(room.hatch);
+  if (currentRoom === 13) { ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY)); drawCastleDoorHint(); ctx.restore(); }
+  if (room.hatch) { ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY)); drawHatchHint(room.hatch); ctx.restore(); }
   drawVignette(room);
   ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
   drawRoomLabel();
