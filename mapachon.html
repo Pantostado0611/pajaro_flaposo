@@ -111,8 +111,12 @@ const ROOMS = {
       { x: 400, y: 300, w: 110, h: 18 },
       { x: 620, y: 370, w: 130, h: 18 },
       { x: 820, y: 290, w: 100, h: 18 },
+      { x:   0, y: 150, w:  20, h: 330 }, // muro: arriba hay un hueco al que solo se llega con doble salto
     ],
-    exits: { right: { room: 14, spawnX: 30, spawnY: 400 } },
+    exits: {
+      right: { room: 14, spawnX: 30, spawnY: 400 },
+      left:  { room: 39, spawnX: 890, spawnY: 400, band: [30, 150] }, // sala de la broma
+    },
     decorations: [
       { type:'pillar', x:100,  y:420, h:60 },
       { type:'pillar', x:830,  y:420, h:60 },
@@ -1120,6 +1124,24 @@ const ROOMS = {
       left: { room: 13, spawnX: 860, spawnY: 400 },
     },
     decorations: [ { type:'ruinedWalls' } ],
+  },
+  // Sala de la broma: a la izquierda de la Entrada, solo con doble salto. Está vacía.
+  39: {
+    name: '¿?',
+    secret: true, zone: 0,
+    bg: ['#050810', '#0a1020'],
+    floorColor: '#1a2238',
+    platColor:  '#243050',
+    edgeColor:  '#314068',
+    particleColor: '#4060b0',
+    noParticles: true,
+    platforms: [
+      { x: 0, y: 480, w: 960, h: 60 },
+    ],
+    exits: {
+      right: { room: 0, spawnX: 40, spawnY: 80 },
+    },
+    decorations: [ { type:'jokeText', text: 'JAJA Q PNDJ' } ],
   },
 };
 
@@ -4675,6 +4697,15 @@ function drawDecoration(room, d) {
     }
     if (d.type === 'floatStones') drawFloatStones(room);
     if (d.type === 'ruinedWalls') drawRuinedWalls(room);
+    if (d.type === 'jokeText') {
+      const wob = Math.sin(Date.now() * 0.004) * 0.04;
+      ctx.save();
+      ctx.translate(W / 2, H / 2 - 30); ctx.rotate(wob);
+      ctx.font = 'bold 72px Georgia, serif'; ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillText(d.text, 4, 6);
+      ctx.fillStyle = '#ffe060'; ctx.fillText(d.text, 0, 0);
+      ctx.restore();
+    }
     if (d.type === 'nightRanges') {
       // level 0 = La Cumbre; cada nivel más es más de noche y estás más alto
       const L = d.level || 0, dk = hex => L ? shadeHex(hex, -L * 0.17) : hex;
