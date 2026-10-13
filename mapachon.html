@@ -1509,6 +1509,11 @@ document.addEventListener('keydown', e => {
     if (chapterTimer < chapterDur - 90) chapterTimer = Math.min(chapterTimer, 50);
     e.preventDefault(); return;
   }
+  // Con el código 0614 la I abre el mapa de teletransporte (Tab sigue abriendo el inventario)
+  if (e.code === 'KeyI' && richMode) {
+    cheatState = cheatState === 'map' ? 'closed' : 'map'; cheatCode = ''; showInventory = false; updateCheatUI();
+    e.preventDefault(); return;
+  }
   if (e.code === 'Tab' || e.code === 'KeyI') { showInventory = !showInventory; e.preventDefault(); return; }
   if (e.code === 'KeyL') {
     cheatState = cheatState === 'closed' ? 'input' : 'closed';
@@ -1759,7 +1764,7 @@ function updatePlayer() {
     player.vy = JUMP_V;
     player.coyoteTime = 0;
     player.jumpBuffered = false;
-  } else if (player.jumpBuffered && boss3Defeated && !player.usedDouble) {
+  } else if (player.jumpBuffered && (boss3Defeated || richMode) && !player.usedDouble) {
     player.vy = JUMP_V * 0.92;
     player.usedDouble = true;
     jumpPuffs.push({ x: player.x + player.w / 2, y: player.y + player.h, t: 22 });
@@ -5572,7 +5577,7 @@ function drawInventory() {
     ['🏹  ' + (ranged ? ranged.name : 'Sin arma'), ranged ? ranged.color : '#777', ranged ? 'x' + ranged.damage : '—'],
     ['💰  Mapesos', '#ffd040', fmtMoney(money)],
   ];
-  if (boss3Defeated) rows.push(['🪶  Doble salto', '#bfe4ff', '✓']);
+  if (boss3Defeated || richMode) rows.push(['🪶  Doble salto', '#bfe4ff', '✓']);
   rows.forEach(([label, color, value], i) => {
     const ry = py + 106 + i * 28;
     ctx.textAlign = 'left';
