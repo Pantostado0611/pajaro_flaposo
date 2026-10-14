@@ -7080,10 +7080,18 @@ function drawCoordGrid(room) {
     const py = sy(y);
     if (j > 0 && py >= -2 && py <= H + 2) label(String(j), 4, Math.min(H - 10, Math.max(10, py)));
   }
-  // Posición del mapache, en cuadros
-  const px = (player.x + player.w / 2) / GRID_CELL, py = (H - (player.y + player.h)) / GRID_CELL;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-  label(`mapache (${px.toFixed(1)}, ${py.toFixed(1)})`, W / 2, 8);
+  // Posición del ratón, en cuadros (con una crucecita donde apunta)
+  if (gridMouse) {
+    const { x: mx, y: my } = gridMouse;
+    const gx = (mx / camZ + cx) / GRID_CELL, gy = (H - (my / camZ + cy)) / GRID_CELL;
+    ctx.strokeStyle = 'rgba(0,0,0,0.85)'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(mx - 8, my); ctx.lineTo(mx + 8, my); ctx.moveTo(mx, my - 8); ctx.lineTo(mx, my + 8); ctx.stroke();
+    ctx.strokeStyle = '#ffe650'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(mx - 8, my); ctx.lineTo(mx + 8, my); ctx.moveTo(mx, my - 8); ctx.lineTo(mx, my + 8); ctx.stroke();
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    label(`ratón (${gx.toFixed(1)}, ${gy.toFixed(1)})`, W / 2, 8);
+  }
   ctx.restore();
 }
 
@@ -7257,6 +7265,14 @@ function drawRoomGraph(showSecret, hereId) {
     }
   }
 }
+
+// Posición del ratón sobre el lienzo (para la rejilla del código 1111)
+let gridMouse = null;
+canvas.addEventListener('mousemove', e => {
+  const r = canvas.getBoundingClientRect(), sc = W / r.width;
+  gridMouse = { x: (e.clientX - r.left) * sc, y: (e.clientY - r.top) * sc };
+});
+canvas.addEventListener('mouseleave', () => { gridMouse = null; });
 
 // Canvas click/touch para el mapa
 canvas.addEventListener('click', e => {
