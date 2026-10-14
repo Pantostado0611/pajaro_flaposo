@@ -483,8 +483,10 @@ const ROOMS = {
       { x: 640, y: -170, w: 160, h: 18 },
       { x: 0, y: -270, w: 90, h: 180 },
       { x: 1350, y: -270, w: 90, h: 150 },
+      { x: 1410, y: -270, w: 30, h: 650 },   // pared
+      { x: 1410, y: 380, w: 30, h: 100, breakable: 'w14' }, // parece pared: se rompe a golpes
     ],
-    exits: {}, // las pone el recorrido (ROUTE)
+    exits: { right: { room: 43, spawnX: 30, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
     decorations: [ { type:'pillar', x:60, y:420, h:60 }, { type:'arch', x:440, y:200 }, { type:'pillar', x:900, y:420, h:60 } ],
   },
   15: {
@@ -566,8 +568,10 @@ const ROOMS = {
       { x: 640, y: -170, w: 160, h: 18 },
       { x: 0, y: -270, w: 90, h: 180 },
       { x: 1350, y: -270, w: 90, h: 150 },
+      { x: 1410, y: -270, w: 30, h: 650 },   // pared
+      { x: 1410, y: 380, w: 30, h: 100, breakable: 'w17' }, // parece pared: se rompe a golpes
     ],
-    exits: {}, // las pone el recorrido (ROUTE)
+    exits: { right: { room: 40, spawnX: 30, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
     decorations: [ { type:'crystal', x:240, y:0, h:H }, { type:'crystal', x:620, y:80, h:400 }, { type:'crystal', x:860, y:0, h:H } ],
   },
   18: {
@@ -821,8 +825,10 @@ const ROOMS = {
       { x: 640, y: -170, w: 160, h: 18 },
       { x: 0, y: -270, w: 90, h: 180 },
       { x: 1350, y: -270, w: 90, h: 150 },
+      { x: 0, y: -270, w: 30, h: 650 },   // pared
+      { x: 0, y: 380, w: 30, h: 100, breakable: 'w27' }, // parece pared: se rompe a golpes
     ],
-    exits: {}, // las pone el recorrido (ROUTE)
+    exits: { left: { room: 41, spawnX: 890, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
     decorations: [ { type:'bricks' }, { type:'window', x:200, y:120 }, { type:'window', x:760, y:120 }, { type:'torch', x:60, y:300 }, { type:'torch', x:900, y:300 } ],
   },
   28: {
@@ -906,8 +912,10 @@ const ROOMS = {
       { x: 640, y: -170, w: 160, h: 18 },
       { x: 0, y: -270, w: 90, h: 180 },
       { x: 1350, y: -270, w: 90, h: 150 },
+      { x: 0, y: -270, w: 30, h: 650 },   // pared
+      { x: 0, y: 380, w: 30, h: 100, breakable: 'w30' }, // parece pared: se rompe a golpes
     ],
-    exits: {}, // las pone el recorrido (ROUTE)
+    exits: { left: { room: 42, spawnX: 890, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
     decorations: [ { type:'nightRanges', level: 1.33 } ],
   },
   31: {
@@ -1142,6 +1150,39 @@ const ROOMS = {
       right: { room: 0, spawnX: 40, spawnY: 80 },
     },
     decorations: [ { type:'jokeText', text: 'JAJA Q PNDJ' } ],
+  },
+  // ── Salas secretas tras muros que se rompen (sin brillo en la entrada)
+  40: {
+    name: 'Gruta de Cuarzo Oculta', secret: true, zone: 1,
+    bg: ['#05100a', '#0a1f14'], floorColor: '#1a3028', platColor: '#224038', edgeColor: '#2e5448', particleColor: '#30c090',
+    platforms: [ { x: 0, y: 480, w: 960, h: 60 }, { x: 300, y: 380, w: 140, h: 18 }, { x: 560, y: 300, w: 140, h: 18 } ],
+    exits: { left: { room: 17, spawnX: 1370, spawnY: 400, hidden: true } },
+    chest: { id: 'c40', x: 820, y: 480, money: 50 },
+    decorations: [ { type:'crystal', x:200, y:0, h:H }, { type:'crystal', x:480, y:60, h:420 }, { type:'crystal', x:900, y:0, h:H } ],
+  },
+  41: {
+    name: 'Bodega del Castillo', secret: true, zone: 6,
+    bg: ['#0c0a10', '#18141e'], floorColor: '#2a2630', platColor: '#3a3542', edgeColor: '#55505e', particleColor: '#ff9a40',
+    platforms: [ { x: 0, y: 480, w: 960, h: 60 }, { x: 500, y: 380, w: 140, h: 18 }, { x: 260, y: 300, w: 140, h: 18 } ],
+    exits: { right: { room: 27, spawnX: 50, spawnY: 400, hidden: true } },
+    chest: { id: 'c41', x: 110, y: 480, heart: 1 },
+    decorations: [ { type:'bricks' }, { type:'torch', x:60, y:300 }, { type:'torch', x:900, y:300 } ],
+  },
+  42: {
+    name: 'Cueva del Ermitaño', secret: true, zone: 8,
+    bg: ['#04050a', '#0c0e16'], floorColor: '#3a3e4c', platColor: '#3a3e4c', edgeColor: '#6a7088', particleColor: '#c8d0e8',
+    platforms: [ { x: 0, y: 480, w: 960, h: 60 }, { x: 420, y: 380, w: 140, h: 18 }, { x: 650, y: 300, w: 140, h: 18 } ],
+    exits: { right: { room: 30, spawnX: 50, spawnY: 400, hidden: true } },
+    chest: { id: 'c42', x: 120, y: 480, money: 80 },
+    decorations: [ { type:'pillar', x:300, y:480, h:90 }, { type:'pillar', x:880, y:480, h:140 } ],
+  },
+  43: {
+    name: 'Rincón Olvidado', secret: true, zone: 0,
+    bg: ['#050810', '#0a1020'], floorColor: '#1a2238', platColor: '#243050', edgeColor: '#314068', particleColor: '#4060b0',
+    platforms: [ { x: 0, y: 480, w: 960, h: 60 }, { x: 380, y: 380, w: 140, h: 18 } ],
+    exits: { left: { room: 14, spawnX: 1370, spawnY: 400, hidden: true } },
+    chest: { id: 'c43', x: 820, y: 480, money: 30 },
+    decorations: [ { type:'pillar', x:120, y:420, h:60 }, { type:'arch', x:600, y:200 } ],
   },
 };
 
@@ -1729,6 +1770,7 @@ function resolveCollisions() {
   for (const p of plats) {
     if (p.trapdoor && boss2Defeated) continue;
     if (p.door && castleDoorOpen) continue;
+    if (p.breakable && brokenWalls.has(p.breakable)) continue;
     if (oneWay(p)) continue;
     if (collideRect(player.x, player.y, player.w, player.h, p.x, p.y, p.w, p.h)) {
       if (player.vx > 0) player.x = p.x - player.w;
@@ -1743,6 +1785,7 @@ function resolveCollisions() {
   for (const p of plats) {
     if (p.trapdoor && boss2Defeated) continue;
     if (p.door && castleDoorOpen) continue;
+    if (p.breakable && brokenWalls.has(p.breakable)) continue;
     if (p.secretStair && !bossDefeated) continue;
     // Escalón: solo se apoya si caes y venías desde encima
     if (oneWay(p) && (player.vy < 0 || prevBottom > p.y)) continue;
@@ -4856,6 +4899,7 @@ function drawParticles() {
 function drawPlatforms(room) {
   if (!room.style && !room.width) ctx.drawImage(slabLayer(room), 0, 0, W, H);
   for (const p of room.platforms) {
+    if (p.breakable && brokenWalls.has(p.breakable)) continue;
     if (p.trapdoor && boss2Defeated) {
       // Portal abierto: vacío oscuro con bordes que brillan en púrpura
       const pulse = 0.45 + 0.25 * Math.sin(Date.now() * 0.004);
@@ -4882,6 +4926,7 @@ function drawPlatforms(room) {
       continue;
     }
     if (p.secretStair) { if (bossDefeated) drawSecretStair(p); continue; }
+    if (p.breakable && !room.style && !room.width) { drawSlab(ctx, p, room); drawWallCracks(p); continue; }
     if (room.width) { // sala grande: solo lo que se ve
       if (p.x + p.w < camX - 10 || p.x > camX + W / camZ + 10 || p.y > camY + H / camZ + 10 || p.y + p.h < camY - 10) continue;
       if (!room.style) { drawSlab(ctx, p, room); continue; }
@@ -4895,7 +4940,7 @@ function drawPlatforms(room) {
 function slabLayer(room) {
   return cachedLayer('slabs|' + currentRoom + '|' + boss2Defeated, c => {
     for (const p of room.platforms) {
-      if ((p.trapdoor && boss2Defeated) || p.secretStair || p.door) continue;
+      if ((p.trapdoor && boss2Defeated) || p.secretStair || p.door || p.breakable) continue;
       drawSlab(c, p, room);
     }
   });
@@ -5028,6 +5073,7 @@ function drawMountainRock(p, night) {
     }
   }
   ctx.restore();
+  if (p.breakable) return; // un muro falso no lleva nieve encima: sería una pista
   // capa de nieve con borde ondulado
   const sg = ctx.createLinearGradient(0, p.y - 3, 0, p.y + 10);
   sg.addColorStop(0, shadeHex('#eef2ff', -k)); sg.addColorStop(1, shadeHex('#b8c2dc', -k));
@@ -5054,12 +5100,14 @@ function drawNightDark(room) {
 }
 
 function drawExitGlow(room) {
+  for (const p of room.platforms) if (p.breakable && !brokenWalls.has(p.breakable)) drawWallCracks(p);
+  drawWallDebris();
   if (room.hatch) drawHatch(room.hatch);
   const exits = room.exits || {};
   const pc = room.particleColor;
   const pulse = 0.2 + 0.1 * Math.sin(Date.now() * 0.003);
 
-  if (exits.right && !(currentRoom === 3 && !boss2Defeated) && !(currentRoom === 13 && !castleDoorOpen)) {
+  if (exits.right && !exits.right.hidden && !(currentRoom === 3 && !boss2Defeated) && !(currentRoom === 13 && !castleDoorOpen)) {
     const RW = room.width || W;
     const g = ctx.createLinearGradient(RW - 60, 0, RW, 0);
     g.addColorStop(0, 'rgba(0,0,0,0)');
@@ -5068,7 +5116,7 @@ function drawExitGlow(room) {
     const [b0, b1] = exits.right.band || [100, H - 100];
     ctx.fillRect(RW - 60, b0, 60, b1 - b0);
   }
-  if (exits.left) {
+  if (exits.left && !exits.left.hidden) {
     const [b0, b1] = exits.left.band || [100, H - 100];
     const g = ctx.createLinearGradient(0, 0, 60, 0);
     g.addColorStop(0, hexAlpha(pc, pulse));
@@ -5781,6 +5829,123 @@ function worldMapRoomAt(mx, my) {
   return null;
 }
 
+// ─── MUROS QUE SE ROMPEN Y SALAS SECRETAS ────────────────────────────────────
+// Algunos trozos de pared (breakable) son iguales que el resto, pero se rompen
+// con 3 golpes o disparos y dejan pasar a una sala secreta. Esas salidas no brillan.
+const brokenWalls = new Set();      // muros rotos (se quedan rotos aunque mueras)
+const wallHits = {};                // golpes recibidos por cada muro
+const wallInv = {};                 // pausa entre golpes
+const wallDebris = [];              // cascotes al romperse
+const WALL_HITS = 3;
+
+function hitWall(p) {
+  if (brokenWalls.has(p.breakable) || (wallInv[p.breakable] || 0) > 0) return;
+  wallHits[p.breakable] = (wallHits[p.breakable] || 0) + 1;
+  wallInv[p.breakable] = 18;
+  shake(6, 2);
+  if (wallHits[p.breakable] >= WALL_HITS) {
+    brokenWalls.add(p.breakable);
+    shake(14, 4);
+    for (let i = 0; i < 16; i++) wallDebris.push({
+      x: p.x + Math.random() * p.w, y: p.y + Math.random() * p.h,
+      vx: (Math.random() - 0.5) * 6, vy: -Math.random() * 6 - 1, r: 2 + Math.random() * 4, t: 50 + Math.random() * 20,
+    });
+  }
+}
+
+function updateBreakables() {
+  for (const k in wallInv) if (wallInv[k] > 0) wallInv[k]--;
+  for (let i = wallDebris.length - 1; i >= 0; i--) {
+    const d = wallDebris[i];
+    d.x += d.vx; d.y += d.vy; d.vy += 0.35;
+    if (--d.t <= 0) wallDebris.splice(i, 1);
+  }
+  if (player.attackActive <= 0) return;
+  const atkW = 52, atkH = 30;
+  const atkX = player.facing === 1 ? player.x + player.w : player.x - atkW, atkY = player.y + 6;
+  for (const p of ROOMS[currentRoom].platforms)
+    if (p.breakable && !brokenWalls.has(p.breakable) && collideRect(atkX, atkY, atkW, atkH, p.x, p.y, p.w, p.h)) hitWall(p);
+}
+
+// Grietas que aparecen al golpear (el muro, por lo demás, es igual que la pared)
+function drawWallCracks(p) {
+  const n = wallHits[p.breakable] || 0;
+  if (!n) return;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.lineWidth = 1.5;
+  const cx = p.x + p.w / 2, cy = p.y + p.h / 2;
+  for (let i = 0; i < n * 2; i++) {
+    const a = i * 2.1;
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(a) * 9, cy + Math.sin(a) * 18);
+    ctx.lineTo(cx + Math.cos(a + 0.5) * 14, cy + Math.sin(a + 0.4) * 36);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawWallDebris() {
+  for (const d of wallDebris) {
+    ctx.globalAlpha = Math.min(1, d.t / 20);
+    ctx.fillStyle = vol(d.x, d.y, d.r, '#8a8a98', '#2a2a34');
+    ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ─── COFRES DE LAS SALAS SECRETAS ───────────────────────────────────────────
+const openedChests = new Set();
+let chestAnim = {};                 // id → frames desde que se abrió
+function updateChest() {
+  const c = ROOMS[currentRoom].chest;
+  if (!c) return;
+  if (chestAnim[c.id] !== undefined) chestAnim[c.id]++;
+  if (openedChests.has(c.id)) return;
+  if (collideRect(player.x, player.y, player.w, player.h, c.x - 22, c.y - 30, 44, 30)) {
+    openedChests.add(c.id); chestAnim[c.id] = 0;
+    if (c.money) addMoney(c.money, c.x, c.y - 30);
+    if (c.heart) {
+      player.maxHp += c.heart; player.hp = player.maxHp;
+      moneyPops.push({ x: c.x, y: c.y - 50, text: '+1 ❤ vida máxima', t: 120, color: '#ff6688' });
+    }
+  }
+}
+
+function drawChest() {
+  const c = ROOMS[currentRoom].chest;
+  if (!c) return;
+  const open = openedChests.has(c.id), t = Date.now() * 0.003;
+  ctx.save();
+  ctx.translate(c.x, c.y);
+  if (!open) {
+    const g = ctx.createRadialGradient(0, -14, 0, 0, -14, 50);
+    g.addColorStop(0, `rgba(255,210,90,${(0.25 + 0.1 * Math.sin(t)).toFixed(2)})`); g.addColorStop(1, 'rgba(255,210,90,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, -14, 50, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(0, 1, 24, 4, 0, 0, Math.PI * 2); ctx.fill();
+  // caja
+  const wood = ctx.createLinearGradient(0, -22, 0, 0);
+  wood.addColorStop(0, '#8a5a2a'); wood.addColorStop(1, '#4a2a10');
+  ctx.fillStyle = wood; ctx.fillRect(-20, -20, 40, 20);
+  ctx.fillStyle = '#d0a040'; ctx.fillRect(-20, -20, 40, 3); ctx.fillRect(-20, -3, 40, 3);
+  ctx.fillRect(-20, -20, 3, 20); ctx.fillRect(17, -20, 3, 20);
+  // tapa (abierta hacia atrás si ya lo abriste)
+  ctx.save();
+  ctx.translate(0, -20);
+  if (open) ctx.rotate(-1.9 * Math.min(1, (chestAnim[c.id] ?? 30) / 12));
+  ctx.fillStyle = wood; ctx.beginPath(); ctx.roundRect(-20, -12, 40, 12, [8, 8, 0, 0]); ctx.fill();
+  ctx.fillStyle = '#d0a040'; ctx.fillRect(-20, -3, 40, 3); ctx.fillRect(-3, -12, 6, 12);
+  ctx.restore();
+  if (!open) { ctx.fillStyle = '#ffe080'; ctx.fillRect(-3, -16, 6, 7); ctx.fillStyle = '#2a1a08'; ctx.fillRect(-1, -13, 2, 3); }
+  else {
+    // brillo que sale del cofre abierto
+    const k = Math.min(1, (chestAnim[c.id] ?? 60) / 40);
+    ctx.fillStyle = `rgba(255,230,140,${(0.5 * (1 - k) + 0.1).toFixed(2)})`;
+    ctx.beginPath(); ctx.moveTo(-16, -20); ctx.lineTo(16, -20); ctx.lineTo(28, -70); ctx.lineTo(-28, -70); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+
 // ─── CHEAT MENU ───────────────────────────────────────────────────────────────
 const CHEAT_NODES = [
   { id:0, x: 80, y:400, name:'Entrada',  boss:false,   secret:false },
@@ -6219,6 +6384,8 @@ function updatePlayerShots() {
       if (boss3.invFrames === 0 && boss3.state !== 'roar') boss3Hit(s.dmg, 12);
     }
     if (!hit && currentRoom === 13) hit = guardShot(sx, sy, sd, s);
+    if (!hit) for (const p of ROOMS[currentRoom].platforms)
+      if (p.breakable && !brokenWalls.has(p.breakable) && collideRect(sx, sy, sd, sd, p.x, p.y, p.w, p.h)) { hitWall(p); hit = true; break; }
     if (hit || s.life <= 0 || s.x < -20 || s.x > (ROOMS[currentRoom].width || W) + 20) playerShots.splice(i, 1);
   }
 }
@@ -6754,6 +6921,8 @@ function step() {
     updateGuards();
     checkGuardCollisions();
     updateGuardKeys();
+    updateBreakables();
+    updateChest();
     updateKey();
     updatePlayerShots();
     updateShade();
@@ -6789,6 +6958,7 @@ function step() {
   drawBoss();
   drawBoss2();
   drawBoss3();
+  drawChest();
   drawCastleDoor();
   drawGuards();
   drawGuardKeys();
