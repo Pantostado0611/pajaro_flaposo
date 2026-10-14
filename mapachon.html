@@ -2164,6 +2164,7 @@ let cheatZone = 0;
 let cheatCode  = '';
 let cheatError = 0;
 let godMode    = false;
+let gridMode   = false; // código 1111: rejilla de coordenadas sobre la sala
 let money      = 0;
 let richMode   = false; // código 0614: invencible + mapesos infinitos
 let moneyBeforeRich = 0;
@@ -7016,6 +7017,7 @@ function cheatAppend(digit) {
   cheatCode += digit;
   if (cheatCode.length === 4) {
     if      (cheatCode === '0611') { cheatState = 'map'; cheatCode = ''; updateCheatUI(); }
+    else if (cheatCode === '1111') { gridMode = !gridMode; cheatState = 'closed'; cheatCode = ''; updateCheatUI(); }
     else if (cheatCode === '9748') { godMode = !godMode; cheatState = 'closed'; cheatCode = ''; updateCheatUI(); }
     else if (cheatCode === '0614') {
       richMode = !richMode;
@@ -7035,6 +7037,54 @@ function cheatTeleport(roomId) {
   if (roomId === 12) boss3Defeated = false;
   if (roomId === 13) guardsDefeated = false;
   startTransition(roomId, 80, 400);
+}
+
+// Rejilla de coordenadas (código 1111): 8 cuadros por pantalla (120 px),
+// (0,0) en la esquina inferior izquierda de la sala; y crece hacia arriba.
+const GRID_CELL = W / 8;
+function drawCoordGrid(room) {
+  if (!gridMode) return;
+  const cx = Math.round(camX), cy = Math.round(camY);
+  const sx = wx => (wx - cx) * camZ, sy = wy => (wy - cy) * camZ;
+  const RW = room.width || W, top = room.top || 0;
+  const half = GRID_CELL / 2;
+  ctx.save();
+  ctx.lineWidth = 1;
+  // Medios cuadros (tenues, punteados)
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.setLineDash([4, 6]);
+  ctx.beginPath();
+  for (let x = half; x < RW; x += GRID_CELL) { ctx.moveTo(sx(x), sy(top)); ctx.lineTo(sx(x), sy(H)); }
+  for (let y = H - half; y > top; y -= GRID_CELL) { ctx.moveTo(sx(0), sy(y)); ctx.lineTo(sx(RW), sy(y)); }
+  ctx.stroke();
+  // Cuadros enteros
+  ctx.setLineDash([]);
+  ctx.strokeStyle = 'rgba(255,230,80,0.55)';
+  ctx.beginPath();
+  for (let x = 0; x <= RW + 0.5; x += GRID_CELL) { ctx.moveTo(sx(x), sy(top)); ctx.lineTo(sx(x), sy(H)); }
+  for (let y = H; y >= top - 0.5; y -= GRID_CELL) { ctx.moveTo(sx(0), sy(y)); ctx.lineTo(sx(RW), sy(y)); }
+  ctx.stroke();
+  // Números en los bordes de la pantalla (siempre visibles al mover la cámara)
+  ctx.font = 'bold 13px monospace';
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+  ctx.fillStyle = '#ffe650';
+  const label = (t, x, y) => { ctx.strokeText(t, x, y); ctx.fillText(t, x, y); };
+  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+  for (let i = 0, x = 0; x <= RW + 0.5; i++, x += GRID_CELL) {
+    const px = sx(x);
+    if (px >= -2 && px <= W + 2) label(String(i), Math.min(W - 8, Math.max(8, px)), H - 4);
+  }
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  for (let j = 0, y = H; y >= top - 0.5; j++, y -= GRID_CELL) {
+    const py = sy(y);
+    if (j > 0 && py >= -2 && py <= H + 2) label(String(j), 4, Math.min(H - 10, Math.max(10, py)));
+  }
+  // Posición del mapache, en cuadros
+  const px = (player.x + player.w / 2) / GRID_CELL, py = (H - (player.y + player.h)) / GRID_CELL;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  label(`mapache (${px.toFixed(1)}, ${py.toFixed(1)})`, W / 2, 8);
+  ctx.restore();
 }
 
 function drawCheat() {
@@ -8012,6 +8062,7 @@ function step() {
   if (currentRoom === 13) { ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY)); drawCastleDoorHint(); ctx.restore(); }
   if (room.hatch) { ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY)); drawHatchHint(room.hatch); ctx.restore(); }
   drawVignette(room);
+  drawCoordGrid(room);
   ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
   drawRoomLabel();
   drawBossUI();
