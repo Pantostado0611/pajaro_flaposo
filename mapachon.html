@@ -576,35 +576,43 @@ const ROOMS = {
   },
   18: {
     name: 'Raíces Podridas',
-    width: 1440, top: -270, // torre: se entra y se sale por cualquier lado
+    width: 2880, top: -540, // cueva grande en forma de L, con pasillos
+    upSpawnX: 2380,         // al bajar desde arriba caes por el hueco del techo
+    mapCells: [[0, 0], [-1, 0], [-2, 0], [-1, 1], [-2, 1]], // forma en el mapa
     zone: 2,
     style: 'organic', // sala amorfa: todo es tierra con raíces, sin losas rectas
     bg: ['#0a0805', '#1a1205'],
     floorColor: '#2a2010', platColor: '#3a2e18', edgeColor: '#4a3e28',
     particleColor: '#c08030',
     platforms: [
-      { x: 0, y: 480, w: 300, h: 60 },
-      { x: 300, y: 450, w: 220, h: 90 },
-      { x: 520, y: 480, w: 260, h: 60 },
-      { x: 780, y: 430, w: 200, h: 110 },
-      { x: 980, y: 480, w: 460, h: 60 },
-      { x: 0, y: -270, w: 560, h: 40 },
-      { x: 880, y: -270, w: 560, h: 40 },
-      { x: 0, y: -230, w: 120, h: 170 },
-      { x: 0, y: 110, w: 70, h: 150 },
-      { x: 1340, y: -230, w: 100, h: 310 },
-      { x: 140, y: 370, w: 120, h: 18 },
-      { x: 380, y: 330, w: 110, h: 18 },
-      { x: 600, y: 360, w: 130, h: 18 },
-      { x: 820, y: 300, w: 120, h: 18 },
-      { x: 1060, y: 350, w: 140, h: 18 },
-      { x: 1250, y: 260, w: 120, h: 18 },
-      { x: 1020, y: 190, w: 110, h: 18 },
-      { x: 760, y: 150, w: 130, h: 18 },
-      { x: 520, y: 90, w: 120, h: 18 },
-      { x: 700, y: 0, w: 140, h: 18 },
-      { x: 880, y: -60, w: 120, h: 18 },
-      { x: 650, y: -150, w: 140, h: 18 },
+      { x: 0, y: -540, w: 2300, h: 40 },
+      { x: 2500, y: -540, w: 380, h: 40 },
+      { x: 300, y: -330, w: 2580, h: 60 },
+      { x: 2840, y: -500, w: 40, h: 170 },
+      { x: 900, y: -270, w: 100, h: 210 },
+      { x: 0, y: -60, w: 100, h: 60 },
+      { x: 240, y: -60, w: 860, h: 60 },
+      { x: 1240, y: -60, w: 680, h: 60 },
+      { x: 1920, y: -60, w: 960, h: 600 },
+      { x: 0, y: 480, w: 1920, h: 60 },
+      { x: 500, y: 420, w: 200, h: 60 },
+      { x: 1500, y: 400, w: 250, h: 80 },
+      { x: 1200, y: -370, w: 180, h: 40 },
+      { x: 1500, y: -270, w: 200, h: 40 },
+      { x: 600, y: 0, w: 120, h: 50 },
+      { x: 0, y: -500, w: 100, h: 90 },
+      { x: 300, y: 380, w: 120, h: 18 },
+      { x: 120, y: 280, w: 120, h: 18 },
+      { x: 300, y: 180, w: 120, h: 18 },
+      { x: 105, y: 60, w: 130, h: 18 },
+      { x: 1000, y: 380, w: 120, h: 18 },
+      { x: 1260, y: 280, w: 120, h: 18 },
+      { x: 1000, y: 180, w: 120, h: 18 },
+      { x: 1105, y: 60, w: 130, h: 18 },
+      { x: 40, y: -150, w: 120, h: 18 },
+      { x: 170, y: -240, w: 120, h: 18 },
+      { x: 60, y: -330, w: 240, h: 18 },
+      { x: 2320, y: -420, w: 160, h: 18 },
     ],
     exits: {}, // las pone el recorrido (ROUTE)
     decorations: [ { type:'mushroom', x:90, y:480 }, { type:'mushroom', x:520, y:480 }, { type:'mushroom', x:880, y:480 } ],
@@ -1270,11 +1278,13 @@ const ENEMY_TEMPLATES = {
     { x: 650, y: -194, dir: 1, patrolMin: 645, patrolMax: 770, speed: 1.0 },
   ],
   18: [
-    { x: 100, y: 456, dir: 1, patrolMin: 10, patrolMax: 290, speed: 1.3 },
-    { x: 600, y: 456, dir: -1, patrolMin: 525, patrolMax: 770, speed: 1.3 },
-    { x: 1100, y: 456, dir: 1, patrolMin: 985, patrolMax: 1410, speed: 1.4 },
-    { x: 830, y: 406, dir: 1, patrolMin: 785, patrolMax: 950, speed: 1.0 },
-    { x: 770, y: 126, dir: -1, patrolMin: 762, patrolMax: 862, speed: 1.0 },
+    { x: 1500, y: -84, dir: -1, patrolMin: 1010, patrolMax: 2800, speed: 1.3 },
+    { x: 500, y: -84, dir: 1, patrolMin: 310, patrolMax: 880, speed: 1.1 },
+    { x: 200, y: 456, dir: 1, patrolMin: 20, patrolMax: 480, speed: 1.3 },
+    { x: 1000, y: 456, dir: -1, patrolMin: 720, patrolMax: 1480, speed: 1.3 },
+    { x: 1600, y: 376, dir: 1, patrolMin: 1505, patrolMax: 1720, speed: 1.0 },
+    { x: 700, y: -354, dir: 1, patrolMin: 320, patrolMax: 1180, speed: 1.2 },
+    { x: 1800, y: -354, dir: -1, patrolMin: 1400, patrolMax: 2280, speed: 1.2 },
   ],
   19: [
     { x: 200, y: 456, dir: 1, patrolMin: 20, patrolMax: 590, speed: 1.3 },
@@ -1488,7 +1498,7 @@ const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 // Dónde aparece el mapache al llegar a una sala por un lado
 function sideSpawn(id, side) {
   const R = ROOMS[id], RW = R.width || W;
-  if (side === 'up')   return { spawnX: RW / 2 - 20, spawnY: (R.top || 0) + 40 };   // cae desde arriba
+  if (side === 'up')   return { spawnX: R.upSpawnX ?? RW / 2 - 20, spawnY: (R.top || 0) + 40 };   // cae desde arriba
   if (side === 'down') return { spawnX: 300, spawnY: 400 };                         // sube desde abajo
   const x = side === 'left' ? 30 : RW - 70;
   const ground = R.platforms.filter(p => p.h >= 40 && p.x <= x + 13 && p.x + p.w >= x + 13)
@@ -1518,7 +1528,9 @@ const ROOM_THEME = {
   17: [{ type:'glowWorms', x0:110, x1:1330, y:-270 }, { type:'stalactites', x0:120, x1:1320, y:-270, color:'#1e4a3c' },
        { type:'glowShroom', x:300 }, { type:'glowShroom', x:1000 }, { type:'glowShroom', x:1180 }],
   2:  [{ type:'vines', x:150, y:0, len:150 }, { type:'vines', x:420, y:0, len:110 }, { type:'vines', x:780, y:0, len:170 }, { type:'bogFog', color:'110,90,40' }],
-  18: [{ type:'roots', x:220, y:-270, len:220 }, { type:'roots', x:540, y:-270, len:160 }, { type:'roots', x:900, y:-270, len:260 }, { type:'roots', x:1220, y:-270, len:190 }],
+  18: [{ type:'roots', x:1300, y:-270, len:120 }, { type:'roots', x:2050, y:-270, len:140 }, { type:'roots', x:2600, y:-270, len:110 },
+       { type:'roots', x:650, y:-500, len:100 }, { type:'roots', x:1750, y:-500, len:110 },
+       { type:'roots', x:400, y:0, len:180 }, { type:'roots', x:1400, y:0, len:200 }, { type:'roots', x:1750, y:0, len:150 }],
   19: [{ type:'bogFog', color:'90,140,60' }, { type:'spores' }, { type:'puddle', x:300 }, { type:'puddle', x:1100 }],
   20: [{ type:'curtain', x:110, w:140 }, { type:'curtain', x:1190, w:140 }, { type:'candelabra', x:320 }, { type:'candelabra', x:1100 }],
   21: [{ type:'carpet', x0:60, x1:1380 }, { type:'candelabra', x:260 }, { type:'candelabra', x:720 }, { type:'candelabra', x:1180 }],
@@ -6713,10 +6725,14 @@ function mapGeo() {
       const c = [cell[a][0] + v[0], cell[a][1] + v[1]];
       if (used.has(c + '')) continue;            // atajos (trampillas, etc.): no mueven salas
       cell[b] = c; used.add(c + ''); q.push(b);
+      for (const [dx, dy] of ROOMS[b].mapCells || []) used.add([c[0] + dx, c[1] + dy] + '');
     }
   }
-  const pos = {};
-  for (const [r, c] of Object.entries(cell)) pos[r] = { x: c[0] * MAP_CELL, y: c[1] * MAP_CELL };
+  const pos = {}, cells = {};
+  for (const [r, c] of Object.entries(cell)) {
+    pos[r] = { x: c[0] * MAP_CELL, y: c[1] * MAP_CELL };
+    cells[r] = (ROOMS[r].mapCells || [[0, 0]]).map(([dx, dy]) => ({ x: (c[0] + dx) * MAP_CELL, y: (c[1] + dy) * MAP_CELL }));
+  }
   // unión entre salas vecinas (las que se tocan en el mapa) o atajos (discontinuas)
   const links = [], seen = new Set();
   for (const [a, , b] of edges) {
@@ -6727,7 +6743,38 @@ function mapGeo() {
     const adj = Math.abs(cell[a][0] - cell[b][0]) + Math.abs(cell[a][1] - cell[b][1]) === 1;
     links.push([a, b, adj]);
   }
-  return (mapGeoCache = { pos, links });
+  return (mapGeoCache = { pos, links, cells });
+}
+
+// Sala de varias casillas: se rellena entera y solo se dibuja su borde exterior
+function drawMapShape(r, T) {
+  const G = mapGeo(), C = G.cells[r], s = MAP_CELL * T.s, h = s / 2, pad = s * 0.1;
+  const key = c => Math.round(c.x / MAP_CELL) + ',' + Math.round(c.y / MAP_CELL), set = new Set(C.map(key));
+  const has = (c, dx, dy) => set.has((Math.round(c.x / MAP_CELL) + dx) + ',' + (Math.round(c.y / MAP_CELL) + dy));
+  ctx.fillStyle = '#0a0818';
+  for (const c of C) {
+    const x = T.x(c.x), y = T.y(c.y);
+    const x0 = x - h + (has(c, -1, 0) ? 0 : pad), x1 = x + h - (has(c, 1, 0) ? 0 : pad);
+    const y0 = y - h + (has(c, 0, -1) ? 0 : pad), y1 = y + h - (has(c, 0, 1) ? 0 : pad);
+    ctx.fillStyle = '#0a0818'; ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+    ctx.fillStyle = hexAlpha(ROOMS[r].particleColor || '#9a6aff', 0.3); ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+  }
+  ctx.strokeStyle = r === currentRoom ? '#40ff90' : 'rgba(200,180,255,0.75)';
+  ctx.lineWidth = r === currentRoom ? 2.5 : 1.3;
+  ctx.beginPath();
+  for (const c of C) {
+    const x = T.x(c.x), y = T.y(c.y);
+    const x0 = x - h + pad, x1 = x + h - pad, y0 = y - h + pad, y1 = y + h - pad;
+    if (!has(c, 0, -1)) { ctx.moveTo(has(c, -1, 0) ? x - h : x0, y0); ctx.lineTo(has(c, 1, 0) ? x + h : x1, y0); }
+    if (!has(c, 0, 1))  { ctx.moveTo(has(c, -1, 0) ? x - h : x0, y1); ctx.lineTo(has(c, 1, 0) ? x + h : x1, y1); }
+    if (!has(c, -1, 0)) { ctx.moveTo(x0, has(c, 0, -1) ? y - h : y0); ctx.lineTo(x0, has(c, 0, 1) ? y + h : y1); }
+    if (!has(c, 1, 0))  { ctx.moveTo(x1, has(c, 0, -1) ? y - h : y0); ctx.lineTo(x1, has(c, 0, 1) ? y + h : y1); }
+  }
+  ctx.stroke();
+  const P = G.pos[r];
+  ctx.fillStyle = r === currentRoom ? '#40ff90' : '#ffffff';
+  ctx.font = `bold ${Math.max(7, Math.round(s * 0.32))}px monospace`; ctx.textAlign = 'center';
+  ctx.fillText(ROOM_ORDER.indexOf(r) + 1, T.x(P.x), T.y(P.y) + s * 0.12);
 }
 
 const BOSS_ROOMS = [3, 4, 13];
@@ -6752,6 +6799,7 @@ function drawWorldMap(T, showAll, labels = true) {
     const r = +rs;
     if (!seen(r)) continue;
     const x = T.x(P.x), y = T.y(P.y), boss = BOSS_ROOMS.includes(r), main = zoneOf(r) === r;
+    if (ROOMS[r].mapCells) { drawMapShape(r, T); continue; }
     ctx.fillStyle = '#0a0818'; ctx.fillRect(x - half, y - half, half * 2, half * 2);
     ctx.fillStyle = boss ? 'rgba(150,30,30,0.7)' : hexAlpha(ROOMS[r].particleColor || '#9a6aff', main ? 0.5 : 0.28);
     ctx.fillRect(x - half, y - half, half * 2, half * 2);
@@ -6786,7 +6834,7 @@ function drawWorldMap(T, showAll, labels = true) {
 
 // Encaja las salas indicadas dentro de un recuadro
 function fitMap(rooms, ax, ay, aw, ah, maxScale) {
-  const G = mapGeo(), xs = rooms.map(r => G.pos[r].x), ys = rooms.map(r => G.pos[r].y);
+  const G = mapGeo(), all = rooms.flatMap(r => G.cells[r]), xs = all.map(c => c.x), ys = all.map(c => c.y);
   const minX = Math.min(...xs) - MAP_CELL * 0.7, maxX = Math.max(...xs) + MAP_CELL * 0.7;
   const minY = Math.min(...ys) - MAP_CELL * 0.7, maxY = Math.max(...ys) + MAP_CELL * 1.1;
   const k = Math.min(maxScale, aw / (maxX - minX), ah / (maxY - minY));
@@ -6805,7 +6853,7 @@ function drawCheatWorldMap() {
 function worldMapRoomAt(mx, my) {
   if (!cheatMapT) return null;
   const [x, y] = cheatMapT.inv(mx, my), half = MAP_CELL * 0.5;
-  for (const [r, P] of Object.entries(mapGeo().pos)) if (Math.abs(x - P.x) <= half && Math.abs(y - P.y) <= half) return +r;
+  for (const [r, C] of Object.entries(mapGeo().cells)) for (const P of C) if (Math.abs(x - P.x) <= half && Math.abs(y - P.y) <= half) return +r;
   return null;
 }
 
