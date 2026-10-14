@@ -589,7 +589,7 @@ const ROOMS = {
       { x: 2500, y: -540, w: 380, h: 40 },
       { x: 300, y: -330, w: 2580, h: 60 },
       { x: 2840, y: -500, w: 40, h: 170 },
-      { x: 900, y: -270, w: 100, h: 210 },
+      { x: 900, y: -270, w: 100, h: 210, joinTop: true }, // columna pegada al techo
       { x: 0, y: -60, w: 100, h: 60 },
       { x: 240, y: -60, w: 860, h: 60 },
       { x: 1240, y: -60, w: 680, h: 60 },
@@ -6016,6 +6016,8 @@ function drawCastleRockStone(p) {
 // Roca de montaña con nieve encima (más oscura cuanto más de noche)
 // Tierra amorfa: bordes ondulados, musgo arriba y raicillas colgando
 function drawOrganicEarth(p) {
+  // Columna que cuelga del techo: se dibuja metida en él, sin musgo, para que no se vea la costura
+  if (p.joinTop) p = { x: p.x, y: p.y - 18, w: p.w, h: p.h + 18, joinTop: true };
   const thin = p.h < 40, wob = (x, y) => (Math.sin(x * 0.11 + y * 0.07) + Math.sin(x * 0.043 - y * 0.13)) * (thin ? 2.5 : 5);
   const step = 14, pts = [];
   for (let x = p.x; x <= p.x + p.w; x += step) pts.push([x, p.y + wob(x, p.y) - (thin ? 2 : 0)]);
@@ -6023,7 +6025,8 @@ function drawOrganicEarth(p) {
   for (let x = p.x + p.w; x >= p.x; x -= step) pts.push([x, p.y + p.h + wob(x, p.y + p.h) * (thin ? 1.6 : 1) + (thin ? 6 : 0)]);
   for (let y = p.y + p.h; y >= p.y; y -= step) pts.push([p.x + wob(p.x, y) * 0.8, y]);
   const g = ctx.createLinearGradient(0, p.y, 0, p.y + p.h + 8);
-  g.addColorStop(0, '#4a3820'); g.addColorStop(1, '#1a1206');
+  if (p.joinTop) { g.addColorStop(0, '#1c1407'); g.addColorStop(0.35, '#3a2c18'); g.addColorStop(1, '#1a1206'); }
+  else { g.addColorStop(0, '#4a3820'); g.addColorStop(1, '#1a1206'); }
   ctx.fillStyle = g;
   ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.fill();
   // grumos de tierra
@@ -6031,6 +6034,7 @@ function drawOrganicEarth(p) {
   for (let x = p.x + 18; x < p.x + p.w - 10; x += 34) for (let y = p.y + 14; y < p.y + p.h - 6; y += 30) {
     ctx.beginPath(); ctx.ellipse(x + wob(y, x) * 2, y, 6, 4, 0.3, 0, Math.PI * 2); ctx.fill();
   }
+  if (p.joinTop) return;
   // musgo por encima
   ctx.strokeStyle = '#5a7a2a'; ctx.lineWidth = 3; ctx.lineCap = 'round';
   ctx.beginPath();
