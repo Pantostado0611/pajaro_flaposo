@@ -2,7 +2,8 @@
   "version": 2,
   "builds": [
     { "src": "api/chat.js", "use": "@vercel/node", "config": { "maxDuration": 60 } },
-    { "src": "*.html",      "use": "@vercel/static" }
+    { "src": "*.html",      "use": "@vercel/static" },
+    { "src": "mapachon-juego/**", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/api/chat", "dest": "/api/chat.js" },

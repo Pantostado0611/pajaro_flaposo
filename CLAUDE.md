@@ -13,7 +13,7 @@ Vercel está conectado al repo `Pantostado0611/pajaro_flaposo` y redeploya autom
 
 ### Deploy automático de `mapachon.html`
 
-Cada cambio terminado en `mapachon.html` se despliega **automáticamente, sin preguntar ni esperar a que el usuario diga "deploy"**: probar, revisar que el diff solo toca lo pedido, commit y `git push origin main`, y decirle el hash del commit.
+Cada cambio terminado en `mapachon.html` o en `mapachon-juego/` se despliega **automáticamente, sin preguntar ni esperar a que el usuario diga "deploy"**: probar, revisar que el diff solo toca lo pedido, commit y `git push origin main`, y decirle el hash del commit.
 
 En los mensajes de commit no se dice dónde están las salas secretas: el usuario no quiere spoilers.
 
@@ -21,4 +21,5 @@ En los mensajes de commit no se dice dónde están las salas secretas: el usuari
 
 - `index.html` — Hub principal de minijuegos
 - `pajaro-flaposo.html` — Flappy Bird clone
-- `mapachon.html` — Plataformas con mapache
+- `mapachon.html` — Plataformas con mapache (solo la página; el código está en `mapachon-juego/`)
+- `mapachon-juego/` — el juego del mapache repartido en archivos JS normales (no módulos) que se cargan en orden y comparten variables globales, más `estilo.css`. Un archivo puede usar lo que definen los de antes. Si se agrega un archivo nuevo, va en la lista de `<script>` de `mapachon.html`. `vercel.json` publica esta carpeta: si se renombra, actualizarlo.

@@ -1,0 +1,54 @@
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #000; overflow: hidden; position: fixed; width: 100%; height: 100%; }
+  #game-wrap { position: absolute; transform-origin: top left; }
+  canvas { display: block; width: 960px; height: 540px; touch-action: none; }
+  #controls { color: #555; font-size: 12px; margin-top: 8px; letter-spacing: 1px; text-align: center; white-space: nowrap; }
+  @media (pointer: coarse) { #controls { display: none; } }
+
+  #touch-controls { display: none; position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+  @media (pointer: coarse) { #touch-controls { display: block; } }
+
+  .t-btn {
+    position: absolute;
+    width: 68px; height: 68px;
+    background: rgba(255,255,255,0.10);
+    border: 2px solid rgba(255,255,255,0.22);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.65);
+    font-size: 26px;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: all;
+    user-select: none; -webkit-user-select: none;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .t-btn.pressed { background: rgba(255,255,255,0.26); border-color: rgba(255,255,255,0.55); }
+
+  #btn-left   { bottom: 24px; left: 16px; }
+  #btn-right  { bottom: 24px; left: 100px; }
+  #btn-attack { bottom: 24px; right: 100px; background: rgba(255,80,60,0.14); border-color: rgba(255,100,80,0.32); }
+  #btn-shoot  { bottom: 100px; right: 100px; background: rgba(160,255,96,0.14); border-color: rgba(160,255,96,0.32); }
+  #btn-jump   { bottom: 24px; right: 16px;  background: rgba(0,200,255,0.14); border-color: rgba(0,200,255,0.32); }
+  #btn-inv    { top: 8px;  right: 8px;  width: 48px; height: 48px; font-size: 18px; background: rgba(180,120,255,0.14); border-color: rgba(180,120,255,0.32); }
+  #btn-music  { top: 120px; right: 8px; width: 48px; height: 48px; font-size: 18px; background: rgba(120,200,255,0.12); border-color: rgba(120,200,255,0.28); }
+  #btn-cheat  { top: 64px; right: 8px;  width: 48px; height: 48px; font-size: 18px; background: rgba(255,200,0,0.12);   border-color: rgba(255,200,0,0.28); }
+
+  /* Cheat numpad */
+  #cheat-numpad {
+    position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+    display: none; grid-template-columns: repeat(3, 54px); gap: 7px;
+    z-index: 30; pointer-events: all;
+  }
+  #cheat-numpad.visible { display: grid; }
+  .np-btn {
+    width: 54px; height: 54px;
+    background: rgba(10,6,30,0.92); border: 2px solid rgba(154,106,255,0.4);
+    border-radius: 8px; color: rgba(255,255,255,0.85);
+    font-size: 20px; font-family: monospace;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; user-select: none; -webkit-user-select: none;
+    touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  }
+  .np-btn:active { background: rgba(154,106,255,0.25); border-color: #c8a0ff; }
+  #np-del { border-color: rgba(255,100,80,0.4); color: rgba(255,120,100,0.9); }
+  #np-esc { border-color: rgba(255,100,80,0.4); color: rgba(255,120,100,0.9); }
