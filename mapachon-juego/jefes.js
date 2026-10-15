@@ -204,7 +204,7 @@ function checkBossCollisions() {
       collideRect(player.x + 3, player.y + 3, player.w - 6, player.h - 3, boss.x, boss.y, boss.w, boss.h)) {
     if (!godMode) {
       player.hp--;
-      if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+      if (player.hp <= 0) { player.hp = 0; isDeath = true; respawnAtBench(); return; }
     }
     player.invFrames = 90;
     const dir = (player.x + player.w / 2) < (boss.x + boss.w / 2) ? -1 : 1;
@@ -222,7 +222,7 @@ function checkBossCollisions() {
     if (dist < p.r + 12 && player.invFrames === 0) {
       if (!godMode) {
         player.hp--;
-        if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+        if (player.hp <= 0) { player.hp = 0; isDeath = true; respawnAtBench(); return; }
       }
       boss.projectiles.splice(i, 1);
       player.invFrames = 70;

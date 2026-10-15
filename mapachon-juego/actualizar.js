@@ -125,7 +125,7 @@ function checkExits() {
   if (R.spikes && !player.onGround && player.y + player.h >= SPIKE_Y &&   // parado en la orilla no pica
       R.spikes.some(([a, b]) => player.x + player.w > a + 4 && player.x < b - 4)) {
     if (!godMode && player.invFrames === 0) player.hp--;
-    if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+    if (player.hp <= 0) { player.hp = 0; isDeath = true; respawnAtBench(); return; }
     const s = safeSpot && safeSpot.room === currentRoom ? safeSpot : { x: 30, y: 400 };
     player.x = s.x; player.y = s.y; player.vx = 0; player.vy = 0;
     player.invFrames = Math.max(player.invFrames, 60); shake(10, 3);
@@ -134,7 +134,7 @@ function checkExits() {
   // Muerte: caer fuera del mapa
   if (player.y > H + 100) {
     if (godMode) { player.y = 400; player.vy = -5; }
-    else { isDeath = true; startTransition(0, 80, 400); }
+    else { isDeath = true; respawnAtBench(); }
   }
 }
 

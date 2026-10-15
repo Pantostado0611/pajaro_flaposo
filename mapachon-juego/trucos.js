@@ -28,6 +28,7 @@ function cheatAppend(digit) {
   cheatCode += digit;
   if (cheatCode.length === 4) {
     if      (cheatCode === '0611') { cheatState = 'map'; cheatCode = ''; updateCheatUI(); }
+    else if (cheatCode === '0000') { deleteSave(); }
     else if (cheatCode === '1111') { gridMode = !gridMode; cheatState = 'closed'; cheatCode = ''; updateCheatUI(); }
     else if (cheatCode === '9748') { godMode = !godMode; cheatState = 'closed'; cheatCode = ''; updateCheatUI(); }
     else if (cheatCode === '0614') {

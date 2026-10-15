@@ -162,7 +162,7 @@ function checkBoss3Collisions() {
   const hurt = (kx, inv) => {
     if (!godMode) {
       player.hp--;
-      if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return true; }
+      if (player.hp <= 0) { player.hp = 0; isDeath = true; respawnAtBench(); return true; }
     }
     player.invFrames = inv;
     player.vx = kx; player.vy = -6;

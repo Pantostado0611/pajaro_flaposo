@@ -39,6 +39,7 @@ function step() {
     updateGuardKeys();
     updateBreakables();
     updateChest();
+    updateBench();
     updateKey();
     updatePlayerShots();
     updateShade();
@@ -75,6 +76,7 @@ function step() {
   drawBoss2();
   drawBoss3();
   drawChest();
+  drawBench();
   drawCastleDoor();
   drawGuards();
   drawGuardKeys();
@@ -121,11 +123,12 @@ window.addEventListener('resize', resize);
 resize();
 
 // ─── INICIO ───────────────────────────────────────────────────────────────────
-resetParticles(0);
-initEnemies(0);
+const loadedSave = loadGame(); // si hay partida guardada, se sigue desde el último banco
+resetParticles(currentRoom);
+initEnemies(currentRoom);
 initBoss();
 initBoss2();
 roomLabelAlpha = 1;
 roomLabelTimer = 200;
-showChapter(1, 'Las Profundidades');
+if (!loadedSave) showChapter(1, 'Las Profundidades');
 requestAnimationFrame(frame);

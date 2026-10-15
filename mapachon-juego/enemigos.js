@@ -477,7 +477,7 @@ function explodeEnemy(e) {
   if (Math.hypot(pcx - ex, pcy - ey) < HOT_BLAST && player.invFrames === 0) {
     if (!godMode) {
       player.hp--;
-      if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+      if (player.hp <= 0) { player.hp = 0; isDeath = true; respawnAtBench(); return; }
     }
     player.invFrames = 90; player.knockbackTimer = 14;
     player.vx = (pcx < ex ? -1 : 1) * 8; player.vy = -9;
@@ -557,7 +557,7 @@ function checkEnemyCollisions() {
         if (player.hp <= 0) {
           player.hp = 0;
           isDeath = true;
-          startTransition(0, 80, 400);
+          respawnAtBench();
           return;
         }
       }
