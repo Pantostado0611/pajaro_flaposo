@@ -72,6 +72,8 @@ function updatePlayer() {
 }
 
 let hatchTimer = 0;
+const SPIKE_Y = 466;   // a esta altura los pies tocan las púas del foso
+let safeSpot = null;  // último sitio firme pisado (para volver tras las púas)
 function checkExits() {
   const exits = ROOMS[currentRoom].exits;
   if (!exits) return;
@@ -114,6 +116,19 @@ function checkExits() {
     if (currentRoom === 3 && !boss2Defeated) return; // debes matar al guardián
     const e = exits.down;
     startTransition(e.room, e.spawnX, e.spawnY);
+  }
+
+  // Púas del suelo: quitan un corazón y te devuelven al último sitio firme
+  const R = ROOMS[currentRoom];
+  const overPit = x => R.spikes && R.spikes.some(([a, b]) => x > a && x < b);
+  if (player.onGround && !overPit(player.x + player.w / 2)) safeSpot = { room: currentRoom, x: player.x, y: player.y };
+  if (R.spikes && !player.onGround && player.y + player.h >= SPIKE_Y &&   // parado en la orilla no pica
+      R.spikes.some(([a, b]) => player.x + player.w > a + 4 && player.x < b - 4)) {
+    if (!godMode && player.invFrames === 0) player.hp--;
+    if (player.hp <= 0) { player.hp = 0; isDeath = true; startTransition(0, 80, 400); return; }
+    const s = safeSpot && safeSpot.room === currentRoom ? safeSpot : { x: 30, y: 400 };
+    player.x = s.x; player.y = s.y; player.vx = 0; player.vy = 0;
+    player.invFrames = Math.max(player.invFrames, 60); shake(10, 3);
   }
 
   // Muerte: caer fuera del mapa

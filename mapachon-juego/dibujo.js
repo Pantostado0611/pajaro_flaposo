@@ -324,13 +324,31 @@ function drawPlatforms(room) {
     if (room.style === 'organic') { drawOrganicEarth(p, room.smooth); continue; }
     // las losas normales se dibujan una vez y se guardan (ver slabLayer)
   }
+  if (room.spikes) drawSpikePits(room);
+}
+
+// Foso con púas (solo lo que se ve)
+function drawSpikePits(room) {
+  const v = viewBox();
+  for (const [a, b] of room.spikes) {
+    const x0 = Math.max(a, v.x0), x1 = Math.min(b, v.x1);
+    if (x0 >= x1) continue;
+    ctx.fillStyle = '#04060c'; ctx.fillRect(x0, 482, x1 - x0, H - 482);
+    for (let x = a + Math.floor((x0 - a) / 16) * 16; x < x1; x += 16) {
+      const g = ctx.createLinearGradient(0, 462, 0, 486);
+      g.addColorStop(0, '#c8d0e8'); g.addColorStop(1, '#3a4260');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.moveTo(x, 486); ctx.lineTo(x + 8, 462); ctx.lineTo(x + 16, 486); ctx.closePath(); ctx.fill();
+    }
+  }
 }
 
 function slabLayer(room) {
-  return cachedLayer('slabs|' + currentRoom + '|' + boss2Defeated, c => {
+  return cachedLayer('slabs|' + currentRoom + '|' + boss2Defeated + '|' + [...brokenWalls].join(), c => {
     for (const p of room.platforms) {
       if ((p.trapdoor && boss2Defeated) || p.secretStair || p.door || p.breakable) continue;
-      drawSlab(c, p, room);
+      const fake = room.platforms.find(b => b.breakable && !brokenWalls.has(b.breakable) && fakeWallUnder(p, b));
+      drawSlab(c, fake ? { ...p, h: p.h + fake.h } : p, room);
     }
   });
 }

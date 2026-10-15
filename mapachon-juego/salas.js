@@ -3,6 +3,8 @@ const ctx = canvas.getContext('2d');
 const W = 960, H = 540;
 
 // ─── SALAS ───────────────────────────────────────────────────────────────────
+// Descansos de piedra del Pasaje de las Púas (sala secreta 44): [desde, hasta]
+const SPIKE_LEDGES = [[0, 360], [2200, 2440], [4280, 4520], [6360, 6600], [8440, 8680], [10520, 11520]]; // tramos de púas iguales (1840)
 const ROOMS = {
   0: {
     name: 'Entrada a las Ruinas',
@@ -1149,10 +1151,24 @@ const ROOMS = {
   43: {
     name: 'Rincón Olvidado', secret: true, zone: 0,
     bg: ['#050810', '#0a1020'], floorColor: '#1a2238', platColor: '#243050', edgeColor: '#314068', particleColor: '#4060b0',
-    platforms: [ { x: 0, y: 480, w: 960, h: 60 }, { x: 380, y: 380, w: 140, h: 18 } ],
-    exits: { left: { room: 15, spawnX: 2330, spawnY: 400, hidden: true } },
-    chest: { id: 'c43', x: 820, y: 480, money: 30 },
+    platforms: [ { x: 0, y: 480, w: 960, h: 60 }, { x: 380, y: 380, w: 140, h: 18 },
+      { x: 930, y: 0, w: 30, h: 380 },     // pared
+      { x: 930, y: 380, w: 30, h: 100, breakable: 'w43' } ], // parece pared: se rompe a golpes
+    exits: { left: { room: 15, spawnX: 2330, spawnY: 400, hidden: true },
+             right: { room: 44, spawnX: 30, spawnY: 400, hidden: true } },
+    chest: { id: 'c43', x: 760, y: 480, money: 30 },
     decorations: [ { type:'pillar', x:120, y:420, h:60 }, { type:'arch', x:600, y:200 } ],
+  },
+  // Pasillo larguísimo sobre un foso de púas: se cruza rebotando en murciélagos quietos (con doble salto)
+  44: {
+    name: 'Pasaje de las Púas', secret: true, zone: 0,
+    width: 11520,
+    bg: ['#050810', '#0a1020'], floorColor: '#1a2238', platColor: '#243050', edgeColor: '#314068', particleColor: '#4060b0',
+    platforms: SPIKE_LEDGES.map(([a, b]) => ({ x: a, y: 480, w: b - a, h: 60 })), // descansos de piedra
+    spikes: SPIKE_LEDGES.slice(1).map(([a], i) => [SPIKE_LEDGES[i][1], a]),       // entre descanso y descanso, púas
+    exits: { left: { room: 43, spawnX: 890, spawnY: 400, hidden: true } },
+    chest: { id: 'c44', x: 11320, y: 480, money: 200 },
+    decorations: [ ...SPIKE_LEDGES.map(([a, b]) => ({ type:'pillar', x:(a + b) / 2, y:420, h:60 })), { type:'arch', x:11200, y:200 } ],
   },
 };
 
@@ -1162,6 +1178,17 @@ const ROOMS = {
 const ROOM_ORDER = [0,  14,  15,  1,  16,  17,  2,  18,  19,  20,  21,  4,  22,  23,  3,  24,  25,  5,  26,  27,  6,  7,  28,  29,  8,  30,  31,  9,  32,  33,  10,  34,  35,  11,  36,  37,  13,  38];
 
 const ENEMY_TEMPLATES = {
+  44: SPIKE_LEDGES.slice(1).flatMap(([b], i) => {
+    const out = [], a = SPIKE_LEDGES[i][1];
+    // repartidos parejo a ~300 px: sin doble salto no se alcanza el siguiente (cada rebote lo recarga)
+    const n = Math.floor((b - a) / 300) - 1;
+    for (let k = 0; k < n; k++) {
+      const x = Math.round(a + (b - a) * (k + 1) / (n + 1)) - 14;
+      const y = k === 0 ? 350 : 330 - Math.round(40 * Math.sin(k * 1.3 + i)); // el primero, bajito: se sale del suelo
+      out.push({ x, y, dir: 1, patrolMin: x, patrolMax: x + 28, speed: 0, bouncy: true });
+    }
+    return out;
+  }),
   0: [
     { x: 250, y: 456, dir:  1, patrolMin:  80, patrolMax: 400, speed: 1.2 },
     { x: 700, y: 456, dir: -1, patrolMin: 500, patrolMax: 880, speed: 1.2 },

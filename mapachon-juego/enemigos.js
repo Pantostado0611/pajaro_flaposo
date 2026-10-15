@@ -187,6 +187,7 @@ const ROOM_CRITTER = {
   11: { body: 'quad',    c1: '#8a909c', c2: '#3a3e48', c3: '#d8dce4', eye: '#80d0ff', ears: 'pointy', tail: 'bushy', name: 'Lobo de la cima' },
   36: { body: 'spider',  c1: '#ff8a30', c2: '#7a1a08', c3: '#ffe080', eye: '#ffffff', extra: 'embers', name: 'Araña de metal al rojo' },
   37: { body: 'slime',   c1: '#ff7a20', c2: '#8a1a04', c3: '#ffe090', eye: '#2a0804', extra: 'embers', name: 'Babosa de magma' },
+  44: { body: 'bat',     c1: '#5a5a7a', c2: '#22223a', c3: '#c0c0e0', eye: '#ff6060', spikes: true, name: 'Murciélago de púas' },
   38: { body: 'imp',     c1: '#e8e0cc', c2: '#8a8070', c3: '#3a3428', eye: '#60ffb0', extra: 'skull', name: 'Esqueleto de las ruinas' },
 };
 
@@ -442,6 +443,12 @@ function drawCritter(e, cx, cy) {
   }
   ctx.scale(e.dir, 1);
   CRITTER_BODY[S.body](draw, t, walk);
+  if (S.spikes) { // púas por debajo: solo se le puede caer encima
+    ctx.fillStyle = S.c3;
+    for (let i = -2; i <= 2; i++) {
+      ctx.beginPath(); ctx.moveTo(i * 5 - 2.5, -2); ctx.lineTo(i * 5, 7); ctx.lineTo(i * 5 + 2.5, -2); ctx.closePath(); ctx.fill();
+    }
+  }
   ctx.restore();
 }
 
@@ -512,7 +519,7 @@ function checkEnemyCollisions() {
     if (e.dead) continue;
 
     // Ataque del jugador golpea al enemigo
-    if (player.attackActive > 0 &&
+    if (player.attackActive > 0 && !e.bouncy &&
         collideRect(atkX, atkY, atkW, atkH, e.x, e.y, e.w, e.h)) {
       e.dead = true;
       e.deathTimer = 22;
@@ -525,6 +532,15 @@ function checkEnemyCollisions() {
     // Stomp (caer encima mata al enemigo)
     const stompOverlap = collideRect(player.x, player.y, player.w, player.h, e.x, e.y, e.w, e.h);
     const fromAbove    = player.vy > 1 && (player.y + player.h) < (e.y + e.h * 0.6);
+    // (al murciélago de púas también se le pisa si en el cuadro anterior venías de arriba)
+    const cameFromAbove = player.vy > 1 && player.y + player.h - player.vy <= e.y + e.h * 0.6;
+    if (stompOverlap && cameFromAbove && e.bouncy) {
+      // murciélago de púas: no se muere, te hace rebotar (más alto si mantienes el salto)
+      player.vy = jumpHeld() ? JUMP_V : -9;
+      player.y = e.y - player.h; // queda encima: el rebote no pica
+      player.usedDouble = false;
+      continue;
+    }
     if (stompOverlap && fromAbove) {
       e.dead = true;
       e.deathTimer = 22;
