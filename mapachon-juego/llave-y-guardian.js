@@ -72,7 +72,9 @@ function drawKeyHUD() {
 function drawKeyGate() {
   // Reja dorada en la salida superior de sala 1
   if (currentRoom !== 1 || keyUsed) return;
-  const gx = 370, gw = 220;
+  // la reja está en el hueco del techo de la sala (se dibuja con la cámara)
+  const R = ROOMS[1], gx = R.keyGate.x, gw = R.keyGate.w;
+  ctx.save(); ctx.scale(camZ, camZ); ctx.translate(-Math.round(camX), -Math.round(camY) + (R.top || 0) + 38);
   ctx.fillStyle = 'rgba(0,0,0,0.7)';
   ctx.fillRect(gx, 0, gw, 22);
   const barCol  = hasKey ? '#c8a000' : '#4a4858';
@@ -91,19 +93,20 @@ function drawKeyGate() {
     ctx.strokeStyle = '#6a6a88'; ctx.lineWidth = 2.5;
     ctx.beginPath(); ctx.arc(lx, ly - 4, 5, Math.PI, 0); ctx.stroke();
   }
+  ctx.restore();
   // Texto de pista si el jefe del trono está muerto
   if (bossDefeated && !hasKey) {
     const pulse = 0.6 + 0.4 * Math.sin(Date.now() * 0.004);
     ctx.globalAlpha = pulse;
     ctx.fillStyle = '#ffd040'; ctx.font = '13px serif'; ctx.textAlign = 'center';
-    ctx.fillText('¡Recoge la llave del rey!', W / 2, 44);
+    ctx.fillText('¡Recoge la llave del rey!', W / 2, 84);
     ctx.globalAlpha = 1;
   }
   if (hasKey) {
     const pulse = 0.6 + 0.4 * Math.sin(Date.now() * 0.005);
     ctx.globalAlpha = pulse;
     ctx.fillStyle = '#ffd040'; ctx.font = '13px serif'; ctx.textAlign = 'center';
-    ctx.fillText('Presiona ↑ para abrir con la llave', W / 2, 44);
+    ctx.fillText('Presiona ↑ para abrir con la llave', W / 2, 84);
     ctx.globalAlpha = 1;
   }
 }

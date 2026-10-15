@@ -45,29 +45,43 @@ const ROOMS = {
   },
   1: {
     name: 'Sala de los Cristales',
+    width: 2400, top: -540, // caverna de cristal: se entra por abajo a la derecha, se sale arriba a la izquierda
+    keyGate: { x: 1080, w: 240 }, // reja con candado en el hueco del techo
     bg: ['#05100a', '#0a1f14'],
-    floorColor: '#1a3028',
-    platColor:  '#224038',
-    edgeColor:  '#2e5448',
+    floorColor: '#1a3028', platColor: '#224038', edgeColor: '#2e5448',
     particleColor: '#30c090',
     platforms: [
-      { x:   0, y: 480, w: 320, h: 60 },
-      { x: 640, y: 480, w: 320, h: 60 },
-      { x: 150, y: 360, w: 120, h: 18 },
-      { x: 380, y: 290, w: 200, h: 18 },
-      { x: 680, y: 360, w: 120, h: 18 },
-      { x: 420, y: 180, w: 120, h: 18 },
+      { x: 0, y: -540, w: 1080, h: 60 },     // techo, con el hueco de la reja
+      { x: 1320, y: -540, w: 1080, h: 60 },
+      { x: 0, y: -480, w: 600, h: 180 },     // roca sobre el pasillo de la izquierda
+      { x: 0, y: -60, w: 600, h: 540 },      // roca bajo el pasillo de la izquierda
+      { x: 1800, y: -480, w: 600, h: 660 },  // roca sobre el pasillo de la derecha
+      { x: 0, y: 480, w: 2400, h: 60 },      // suelo
+      // escalones de la caverna: al pasillo de la izquierda y luego hasta la reja
+      { x: 700, y: 370, w: 140, h: 18 },
+      { x: 950, y: 270, w: 140, h: 18 },
+      { x: 700, y: 170, w: 140, h: 18 },
+      { x: 950, y: 70, w: 140, h: 18 },
+      { x: 700, y: -30, w: 120, h: 18 },
+      { x: 950, y: -130, w: 140, h: 18 },
+      { x: 1150, y: -230, w: 140, h: 18 },
+      { x: 1350, y: -330, w: 140, h: 18 },
+      { x: 1150, y: -420, w: 140, h: 18 },
+      // lado derecho de la caverna
+      { x: 1450, y: 370, w: 160, h: 18 },
+      { x: 1600, y: 260, w: 140, h: 18 },
     ],
     exits: {
-      left:  { room: 15, spawnX: 1390, spawnY: 400 },
-      right: { room: 16, spawnX:  30, spawnY: 400 },
-      up:    { room: 22, spawnX: 180, spawnY: 400 },
-    },
+      up: { room: 22, spawnX: 180, spawnY: 400 },
+    }, // izquierda y derecha las pone el recorrido (ROUTE)
+    spawns: { left: { spawnX: 30, spawnY: -140 } }, // se llega por el pasillo alto
+    exitBands: { left: [-300, -60], right: [200, 460], up: [1080, 1320] },
     decorations: [
-      { type:'crystal', x:320, y:0,   h:H },
-      { type:'crystal', x:500, y:100, h:380 },
-      { type:'arch',    x:60,  y:200 },
-      { type:'arch',    x:860, y:200 },
+      { type:'crystal', x:880,  y:-480, h:960 },
+      { type:'crystal', x:1520, y:-480, h:960 },
+      { type:'crystal', x:1240, y:-120, h:600 },
+      { type:'arch',    x:1950, y:220 },
+      { type:'arch',    x:2200, y:220 },
     ],
   },
   2: {
@@ -112,7 +126,7 @@ const ROOMS = {
       { x: 360, y: 160, w: 240, h: 18 },
     ],
     exits: {
-      down:  { room: 1, spawnX: 420, spawnY: 200 },
+      down:  { room: 1, spawnX: 1207, spawnY: -470 }, // cae junto a la reja
       up:    { room: 24, spawnX: 180, spawnY: 400 }, // armería (tras vencer al guardián)
       right: { room: 26, spawnX:  30, spawnY: 400 }, // castillo (tras vencer al guardián)
     },
@@ -450,60 +464,68 @@ const ROOMS = {
   },
   16: {
     name: 'Grieta de Cuarzo',
-    width: 1440, top: -270, // torre: se entra y se sale por cualquier lado
+    width: 2400, top: -540, // grieta que baja en terrazas, de arriba a la derecha al hueco de abajo a la izquierda
     zone: 1,
     bg: ['#05100a', '#0a1f14'],
     floorColor: '#1a3028', platColor: '#224038', edgeColor: '#2e5448',
     particleColor: '#30c090',
     platforms: [
-      { x: 0, y: 480, w: 620, h: 60 },
-      { x: 820, y: 480, w: 620, h: 60 },
-      { x: 150, y: 380, w: 140, h: 18 },
-      { x: 1150, y: 380, w: 140, h: 18 },
-      { x: 360, y: 280, w: 140, h: 18 },
-      { x: 940, y: 280, w: 140, h: 18 },
-      { x: 600, y: 180, w: 240, h: 18 },
-      { x: 280, y: 80, w: 220, h: 60 },
-      { x: 940, y: 80, w: 220, h: 60 },
-      { x: 140, y: -20, w: 140, h: 18 },
-      { x: 1160, y: -20, w: 140, h: 18 },
-      { x: 380, y: -120, w: 140, h: 18 },
-      { x: 920, y: -120, w: 140, h: 18 },
-      { x: 640, y: -170, w: 160, h: 18 },
-      { x: 0, y: -270, w: 90, h: 180 },
-      { x: 1350, y: -270, w: 90, h: 150 },
+      { x: 0, y: -540, w: 2400, h: 60 },     // techo
+      { x: 0, y: -480, w: 240, h: 960 },     // roca de la izquierda
+      { x: 240, y: -480, w: 1320, h: 240 },  // techo de la grieta
+      { x: 1560, y: -480, w: 840, h: 180 },  // roca sobre el pasillo de arriba
+      { x: 1560, y: -60, w: 840, h: 540 },   // roca bajo el pasillo de arriba
+      { x: 600, y: -60, w: 960, h: 60 },     // terraza de arriba
+      { x: 240, y: 180, w: 960, h: 60 },     // terraza de en medio
+      { x: 0, y: 480, w: 240, h: 60 },       // suelo, con el hueco de bajada
+      { x: 420, y: 480, w: 1980, h: 60 },
+      // escalones para volver a subir
+      { x: 1300, y: 380, w: 120, h: 18 },
+      { x: 1220, y: 280, w: 120, h: 18 },
+      { x: 470, y: 80, w: 110, h: 18 },
+      { x: 480, y: -30, w: 100, h: 18 },
     ],
     exits: {}, // las pone el recorrido (ROUTE)
-    decorations: [ { type:'crystal', x:240, y:0, h:H }, { type:'crystal', x:620, y:80, h:400 }, { type:'crystal', x:860, y:0, h:H } ],
+    spawns: { right: { spawnX: 2330, spawnY: -140 }, down: { spawnX: 470, spawnY: 400 } },
+    exitBands: { right: [-300, -60], down: [240, 420] },
+    decorations: [ { type:'crystal', x:700, y:-240, h:720 }, { type:'crystal', x:1400, y:-240, h:720 }, { type:'crystal', x:400, y:-240, h:720 } ],
   },
   17: {
     name: 'Cueva Luminosa',
-    width: 1440, top: -270, // torre: se entra y se sale por cualquier lado
+    width: 2400, top: -540, // se cae por un tiro a una galería luminosa y por un hueco a la cueva grande
+    upSpawnX: 317,          // al bajar desde arriba caes por el tiro
     zone: 1,
     bg: ['#05100a', '#0a1f14'],
     floorColor: '#1a3028', platColor: '#224038', edgeColor: '#2e5448',
     particleColor: '#30c090',
     platforms: [
-      { x: 0, y: 480, w: 1440, h: 60 },
-      { x: 150, y: 380, w: 140, h: 18 },
-      { x: 1150, y: 380, w: 140, h: 18 },
-      { x: 360, y: 280, w: 140, h: 18 },
-      { x: 940, y: 280, w: 140, h: 18 },
-      { x: 600, y: 180, w: 240, h: 18 },
-      { x: 280, y: 80, w: 220, h: 60 },
-      { x: 940, y: 80, w: 220, h: 60 },
-      { x: 140, y: -20, w: 140, h: 18 },
-      { x: 1160, y: -20, w: 140, h: 18 },
-      { x: 380, y: -120, w: 140, h: 18 },
-      { x: 920, y: -120, w: 140, h: 18 },
-      { x: 640, y: -170, w: 160, h: 18 },
-      { x: 0, y: -270, w: 90, h: 180 },
-      { x: 1350, y: -270, w: 90, h: 150 },
-      { x: 1410, y: -270, w: 30, h: 650 },   // pared
-      { x: 1410, y: 380, w: 30, h: 100, breakable: 'w17' }, // parece pared: se rompe a golpes
+      { x: 0, y: -540, w: 240, h: 60 },      // techo, con el hueco del tiro
+      { x: 420, y: -540, w: 1980, h: 60 },
+      { x: 0, y: -480, w: 240, h: 720 },     // roca de la izquierda (hasta el pasillo de salida)
+      { x: 420, y: -480, w: 1980, h: 180 },  // roca sobre la galería
+      { x: 2160, y: -300, w: 240, h: 360 },  // roca a la derecha de la galería
+      { x: 240, y: -60, w: 1660, h: 120 },   // suelo de la galería = techo de la cueva
+      { x: 0, y: 480, w: 2400, h: 60 },      // suelo
+      // tiro de arriba
+      { x: 250, y: -170, w: 100, h: 18 },
+      { x: 320, y: -280, w: 90, h: 18 },
+      { x: 250, y: -390, w: 100, h: 18 },
+      // hueco entre la galería y la cueva
+      { x: 1950, y: 380, w: 120, h: 18 },
+      { x: 2060, y: 280, w: 100, h: 18 },
+      { x: 1950, y: 180, w: 120, h: 18 },
+      { x: 2060, y: 80, w: 100, h: 18 },
+      { x: 1950, y: -20, w: 100, h: 18 },
+      // cueva
+      { x: 600, y: 380, w: 140, h: 18 },
+      { x: 900, y: 300, w: 140, h: 18 },
+      { x: 1300, y: 380, w: 160, h: 18 },
+      { x: 2370, y: 60, w: 30, h: 320 },     // pared
+      { x: 2370, y: 380, w: 30, h: 100, breakable: 'w17' }, // parece pared: se rompe a golpes
     ],
     exits: { right: { room: 40, spawnX: 30, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
-    decorations: [ { type:'crystal', x:240, y:0, h:H }, { type:'crystal', x:620, y:80, h:400 }, { type:'crystal', x:860, y:0, h:H } ],
+    exitBands: { left: [260, 460], up: [240, 420] },
+    decorations: [ { type:'crystal', x:800, y:60, h:420 }, { type:'crystal', x:1500, y:60, h:420 }, { type:'crystal', x:1100, y:-300, h:240 } ],
   },
   18: {
     name: 'Raíces Podridas',
@@ -651,7 +673,7 @@ const ROOMS = {
     ],
     exits: {
       up: { room: 23, spawnX: 180, spawnY: 400 },
-      down: { room: 1, spawnX: 420, spawnY: 200 },
+      down: { room: 1, spawnX: 1207, spawnY: -470 }, // cae junto a la reja
     },
     decorations: [ { type:'star', x:90, y:70 }, { type:'star', x:280, y:120 }, { type:'star', x:690, y:50 }, { type:'star', x:870, y:130 } ],
   },
@@ -1104,7 +1126,7 @@ const ROOMS = {
     name: 'Gruta de Cuarzo Oculta', secret: true, zone: 1,
     bg: ['#05100a', '#0a1f14'], floorColor: '#1a3028', platColor: '#224038', edgeColor: '#2e5448', particleColor: '#30c090',
     platforms: [ { x: 0, y: 480, w: 960, h: 60 }, { x: 300, y: 380, w: 140, h: 18 }, { x: 560, y: 300, w: 140, h: 18 } ],
-    exits: { left: { room: 17, spawnX: 1370, spawnY: 400, hidden: true } },
+    exits: { left: { room: 17, spawnX: 2330, spawnY: 400, hidden: true } },
     chest: { id: 'c40', x: 820, y: 480, money: 50 },
     decorations: [ { type:'crystal', x:200, y:0, h:H }, { type:'crystal', x:480, y:60, h:420 }, { type:'crystal', x:900, y:0, h:H } ],
   },
@@ -1147,8 +1169,10 @@ const ENEMY_TEMPLATES = {
     { x: 2100, y: -204, dir: -1, patrolMin: 1830, patrolMax: 2340, speed: 1.2 },
   ],
   1: [
-    { x:  60, y: 456, dir:  1, patrolMin:  10, patrolMax: 290, speed: 1.3 },
-    { x: 760, y: 456, dir: -1, patrolMin: 640, patrolMax: 930, speed: 1.3 },
+    { x: 800, y: 456, dir: 1, patrolMin: 620, patrolMax: 1780, speed: 1.3 },
+    { x: 2000, y: 456, dir: -1, patrolMin: 1820, patrolMax: 2350, speed: 1.3 },
+    { x: 1000, y: 246, dir: 1, patrolMin: 955, patrolMax: 1070, speed: 1.1 },
+    { x: 300, y: -84, dir: 1, patrolMin: 40, patrolMax: 560, speed: 1.2 },
   ],
   2: [
     { x: 150, y: 456, dir:  1, patrolMin:  10, patrolMax: 940, speed: 1.4 },
@@ -1196,19 +1220,16 @@ const ENEMY_TEMPLATES = {
     { x: 1200, y: -204, dir: -1, patrolMin: 960, patrolMax: 1480, speed: 1.2 },
   ],
   16: [
-    { x: 200, y: 456, dir: 1, patrolMin: 20, patrolMax: 590, speed: 1.3 },
-    { x: 1000, y: 456, dir: -1, patrolMin: 850, patrolMax: 1410, speed: 1.3 },
-    { x: 300, y: 56, dir: 1, patrolMin: 285, patrolMax: 470, speed: 1.1 },
-    { x: 1000, y: 56, dir: -1, patrolMin: 945, patrolMax: 1130, speed: 1.1 },
-    { x: 660, y: 156, dir: 1, patrolMin: 605, patrolMax: 810, speed: 1.2 },
-    { x: 650, y: -194, dir: 1, patrolMin: 645, patrolMax: 770, speed: 1.0 },
+    { x: 1000, y: -84, dir: -1, patrolMin: 620, patrolMax: 1540, speed: 1.2 },
+    { x: 700, y: 156, dir: 1, patrolMin: 260, patrolMax: 1180, speed: 1.2 },
+    { x: 900, y: 456, dir: 1, patrolMin: 440, patrolMax: 1500, speed: 1.3 },
+    { x: 2000, y: -84, dir: -1, patrolMin: 1580, patrolMax: 2350, speed: 1.3 },
   ],
   17: [
-    { x: 500, y: 456, dir: 1, patrolMin: 20, patrolMax: 1410, speed: 1.4 },
-    { x: 300, y: 56, dir: 1, patrolMin: 285, patrolMax: 470, speed: 1.1 },
-    { x: 1000, y: 56, dir: -1, patrolMin: 945, patrolMax: 1130, speed: 1.1 },
-    { x: 660, y: 156, dir: 1, patrolMin: 605, patrolMax: 810, speed: 1.2 },
-    { x: 650, y: -194, dir: 1, patrolMin: 645, patrolMax: 770, speed: 1.0 },
+    { x: 1000, y: -84, dir: 1, patrolMin: 440, patrolMax: 1880, speed: 1.2 },
+    { x: 600, y: 456, dir: 1, patrolMin: 20, patrolMax: 1200, speed: 1.4 },
+    { x: 1700, y: 456, dir: -1, patrolMin: 1300, patrolMax: 2330, speed: 1.4 },
+    { x: 950, y: 276, dir: 1, patrolMin: 905, patrolMax: 1020, speed: 1.0 },
   ],
   18: [
     { x: 1500, y: -84, dir: -1, patrolMin: 1250, patrolMax: 2800, speed: 1.3 },
