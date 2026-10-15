@@ -1,10 +1,13 @@
 // ─── DECORACIÓN TEMÁTICA DE CADA SALA ────────────────────────────────────────
 // Cosas que encajan con el nombre de la sala (se añaden a sus decoraciones).
 const ROOM_THEME = {
-  0:  [{ type:'brokenColumn', x:300, h:110 }, { type:'rubble', x:560 }],
-  14: [{ type:'rubble', x:250 }, { type:'rubble', x:520 }, { type:'rubble', x:1000 }, { type:'rubble', x:1240 },
-       { type:'brokenColumn', x:380, h:70 }, { type:'brokenColumn', x:1110, h:130 }, { type:'fallingDust' }],
-  15: [{ type:'statue', x:220 }, { type:'statue', x:1220 }, { type:'echoRings', x:720, y:60 }, { type:'echoRings', x:300, y:-120 }],
+  0:  [{ type:'brokenColumn', x:300, h:110 }, { type:'rubble', x:560 }, { type:'rubble', x:1450 },
+       { type:'brokenColumn', x:2050, h:90, fy:-180 }, { type:'rubble', x:2250, fy:-180 }],
+  14: [{ type:'rubble', x:250 }, { type:'rubble', x:520 }, { type:'rubble', x:1000 }, { type:'rubble', x:1400 },
+       { type:'brokenColumn', x:380, h:70 }, { type:'brokenColumn', x:1100, h:130 }, { type:'rubble', x:900, fy:120 },
+       { type:'brokenColumn', x:1650, h:80, fy:120 }, { type:'fallingDust' }],
+  15: [{ type:'statue', x:620 }, { type:'statue', x:2250 }, { type:'statue', x:300, fy:-180 }, { type:'statue', x:1100, fy:-180 },
+       { type:'echoRings', x:1200, y:150 }, { type:'echoRings', x:600, y:-300 }],
   1:  [{ type:'crystalCluster', x:70, y:480, s:1 }, { type:'crystalCluster', x:250, y:480, s:0.8 },
        { type:'crystalCluster', x:700, y:480, s:1.1 }, { type:'crystalCluster', x:900, y:480, s:0.9 }],
   16: [{ type:'quartzCrack', x:720, y:-230, h:560 }, { type:'crystalCluster', x:200, y:480, s:1.2 }, { type:'crystalCluster', x:1250, y:480, s:1 }],
@@ -51,12 +54,14 @@ const ROOM_THEME = {
 for (const [id, decos] of Object.entries(ROOM_THEME)) (ROOMS[id].decorations ||= []).push(...decos);
 
 const FLOOR = 480;
+const FLOOR_Y = FLOOR; // los adornos de suelo usan su propio piso (fy) si lo tienen
 const hash = n => { const v = Math.sin(n * 127.1) * 43758.5453; return v - Math.floor(v); };
 // zona visible (para efectos que llenan la pantalla)
 const viewBox = () => ({ x0: camX - 20, x1: camX + W / camZ + 20, y0: camY - 20, y1: camY + H / camZ + 20 });
 
 const THEME_DECO = {
   brokenColumn(d) {
+    const FLOOR = d.fy ?? FLOOR_Y;
     const top = FLOOR - d.h;
     ctx.fillStyle = '#2c3450'; ctx.fillRect(d.x - 16, top, 32, d.h);
     ctx.fillStyle = 'rgba(255,255,255,0.05)'; ctx.fillRect(d.x - 12, top, 6, d.h);
@@ -65,6 +70,7 @@ const THEME_DECO = {
     ctx.beginPath(); ctx.moveTo(d.x - 16, top); ctx.lineTo(d.x - 6, top - 16); ctx.lineTo(d.x + 3, top - 5); ctx.lineTo(d.x + 16, top - 12); ctx.lineTo(d.x + 16, top); ctx.closePath(); ctx.fill();
   },
   rubble(d) {
+    const FLOOR = d.fy ?? FLOOR_Y;
     for (let i = 0; i < 6; i++) {
       const r = 5 + hash(d.x + i) * 9;
       ctx.fillStyle = vol(d.x - 30 + i * 12, FLOOR - r, r, '#4a5470', '#1e2438');
@@ -80,6 +86,7 @@ const THEME_DECO = {
     }
   },
   statue(d) {
+    const FLOOR = d.fy ?? FLOOR_Y;
     ctx.fillStyle = '#3a4466'; ctx.fillRect(d.x - 22, FLOOR - 40, 44, 40);
     ctx.fillStyle = '#4a5476'; ctx.fillRect(d.x - 26, FLOOR - 46, 52, 8);
     ctx.fillStyle = vol(d.x - 4, FLOOR - 90, 26, '#7a84a6', '#2c3450');

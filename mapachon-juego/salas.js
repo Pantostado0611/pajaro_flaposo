@@ -6,23 +6,37 @@ const W = 960, H = 540;
 const ROOMS = {
   0: {
     name: 'Entrada a las Ruinas',
+    width: 2400, top: -540, // sala grande: abajo la entrada, un tiro para subir y un pasillo alto que sale a la derecha
     bg: ['#050810', '#0a1020'],
     floorColor: '#1a2238',
     platColor:  '#243050',
     edgeColor:  '#314068',
     particleColor: '#4060b0',
     platforms: [
-      { x:   0, y: 480, w: 960, h: 60 }, // suelo
-      { x: 180, y: 370, w: 130, h: 18 },
-      { x: 400, y: 300, w: 110, h: 18 },
-      { x: 620, y: 370, w: 130, h: 18 },
-      { x: 820, y: 290, w: 100, h: 18 },
-      { x:   0, y: 150, w:  20, h: 330 }, // muro: arriba hay un hueco al que solo se llega con doble salto
+      { x:    0, y: -540, w: 2400, h: 120 }, // techo
+      { x:    0, y: -420, w: 1560, h: 450 }, // roca sobre la entrada
+      { x:  420, y:   30, w: 1140, h: 150 }, // techo de la sala de abajo
+      { x:    0, y:  150, w:   20, h: 330 }, // muro: arriba hay un hueco al que solo se llega con doble salto
+      { x:    0, y:  480, w: 2400, h:  60 }, // suelo
+      { x: 1800, y: -180, w:  600, h: 660 }, // roca bajo el pasillo de arriba
+      { x:  180, y: 370, w: 130, h: 18 },
+      { x:  400, y: 300, w: 110, h: 18 },
+      { x:  620, y: 370, w: 130, h: 18 },
+      { x:  820, y: 290, w: 100, h: 18 },
+      { x: 1050, y: 370, w: 130, h: 18 },
+      { x: 1280, y: 290, w: 110, h: 18 },
+      // tiro para subir al pasillo de arriba
+      { x: 1570, y: 370, w: 100, h: 18 },
+      { x: 1690, y: 260, w: 100, h: 18 },
+      { x: 1570, y: 150, w: 100, h: 18 },
+      { x: 1690, y:  40, w: 100, h: 18 },
+      { x: 1570, y: -70, w: 100, h: 18 },
     ],
     exits: {
-      right: { room: 14, spawnX: 30, spawnY: 400 },
       left:  { room: 39, spawnX: 890, spawnY: 400, band: [30, 150] }, // sala de la broma
-    },
+    }, // la de la derecha la pone el recorrido (ROUTE)
+    spawns: { right: { spawnX: 2330, spawnY: -260 } }, // se llega por el pasillo de arriba
+    exitBands: { right: [-420, -180] },
     decorations: [
       { type:'pillar', x:100,  y:420, h:60 },
       { type:'pillar', x:830,  y:420, h:60 },
@@ -368,59 +382,70 @@ const ROOMS = {
   // ── Salas añadidas: cada zona tiene ahora 3 salas (zone = sala principal)
   14: {
     name: 'Pasillo Derrumbado',
-    width: 1440, top: -270, // torre: se entra y se sale por cualquier lado
+    width: 2400, top: -540, // pasillo bajo con escombros, un tiro a la derecha y otro pasillo de vuelta que sube por el techo
+    upSpawnX: 317,          // al bajar desde arriba caes por el tiro de la izquierda
     zone: 0,
     bg: ['#050810', '#0a1020'],
     floorColor: '#1a2238', platColor: '#243050', edgeColor: '#314068',
     particleColor: '#4060b0',
     platforms: [
-      { x: 0, y: 480, w: 1440, h: 60 },
-      { x: 150, y: 380, w: 140, h: 18 },
-      { x: 1150, y: 380, w: 140, h: 18 },
-      { x: 360, y: 280, w: 140, h: 18 },
-      { x: 940, y: 280, w: 140, h: 18 },
-      { x: 600, y: 180, w: 240, h: 18 },
-      { x: 280, y: 80, w: 220, h: 60 },
-      { x: 940, y: 80, w: 220, h: 60 },
-      { x: 140, y: -20, w: 140, h: 18 },
-      { x: 1160, y: -20, w: 140, h: 18 },
-      { x: 380, y: -120, w: 140, h: 18 },
-      { x: 920, y: -120, w: 140, h: 18 },
-      { x: 640, y: -170, w: 160, h: 18 },
-      { x: 0, y: -270, w: 90, h: 180 },
-      { x: 1350, y: -270, w: 90, h: 150 },
-      { x: 1410, y: -270, w: 30, h: 650 },   // pared
-      { x: 1410, y: 380, w: 30, h: 100, breakable: 'w14' }, // parece pared: se rompe a golpes
+      { x: 0, y: -540, w: 240, h: 60 },      // techo, con el hueco de subida
+      { x: 420, y: -540, w: 1980, h: 60 },
+      { x: 0, y: -480, w: 240, h: 360 },     // roca a los lados del tiro de subida
+      { x: 420, y: -480, w: 1980, h: 360 },
+      { x: 0, y: -120, w: 20, h: 360 },      // pared izquierda del pasillo de en medio
+      { x: 0, y: 120, w: 1800, h: 120 },     // suelo del pasillo de en medio = techo del de abajo
+      { x: 2040, y: -120, w: 360, h: 360 },  // roca a la derecha del tiro
+      { x: 0, y: 480, w: 2400, h: 60 },      // suelo
+      { x: 600, y: 400, w: 120, h: 80 },     // escombros del derrumbe
+      { x: 1150, y: 380, w: 160, h: 100 },
+      { x: 600, y: 80, w: 100, h: 40 },      // escombros del pasillo de en medio
+      { x: 1300, y: 60, w: 140, h: 60 },
+      // tiro de la derecha (sube al pasillo de en medio)
+      { x: 1910, y: 380, w: 120, h: 18 },
+      { x: 1810, y: 280, w: 110, h: 18 },
+      { x: 1920, y: 180, w: 110, h: 18 },
+      // tiro de la izquierda (sube hasta el techo)
+      { x: 250, y: 10, w: 100, h: 18 },
+      { x: 320, y: -100, w: 90, h: 18 },
+      { x: 250, y: -210, w: 100, h: 18 },
+      { x: 320, y: -320, w: 90, h: 18 },
+      { x: 250, y: -430, w: 100, h: 18 },
+      { x: 2370, y: 240, w: 30, h: 140 },    // pared
+      { x: 2370, y: 380, w: 30, h: 100, breakable: 'w14' }, // parece pared: se rompe a golpes
     ],
     exits: { right: { room: 43, spawnX: 30, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
-    decorations: [ { type:'pillar', x:60, y:420, h:60 }, { type:'arch', x:440, y:200 }, { type:'pillar', x:900, y:420, h:60 } ],
+    exitBands: { left: [260, 460], up: [240, 420] },
+    decorations: [ { type:'pillar', x:60, y:420, h:60 }, { type:'arch', x:440, y:260 }, { type:'pillar', x:900, y:420, h:60 } ],
   },
   15: {
     name: 'Galería de los Ecos',
-    width: 1440, top: -270, // torre: se entra y se sale por cualquier lado
+    width: 2400, top: -540, // se llega por abajo a una galería enorme; arriba un pasillo largo sale a la izquierda
     zone: 0,
     bg: ['#050810', '#0a1020'],
     floorColor: '#1a2238', platColor: '#243050', edgeColor: '#314068',
     particleColor: '#4060b0',
     platforms: [
-      { x: 0, y: 480, w: 620, h: 60 },
-      { x: 820, y: 480, w: 620, h: 60 },
-      { x: 150, y: 380, w: 140, h: 18 },
-      { x: 1150, y: 380, w: 140, h: 18 },
-      { x: 360, y: 280, w: 140, h: 18 },
-      { x: 940, y: 280, w: 140, h: 18 },
-      { x: 600, y: 180, w: 240, h: 18 },
-      { x: 280, y: 80, w: 220, h: 60 },
-      { x: 940, y: 80, w: 220, h: 60 },
-      { x: 140, y: -20, w: 140, h: 18 },
-      { x: 1160, y: -20, w: 140, h: 18 },
-      { x: 380, y: -120, w: 140, h: 18 },
-      { x: 920, y: -120, w: 140, h: 18 },
-      { x: 640, y: -170, w: 160, h: 18 },
-      { x: 0, y: -270, w: 90, h: 180 },
-      { x: 1350, y: -270, w: 90, h: 150 },
+      { x: 0, y: -540, w: 2400, h: 120 },    // techo
+      { x: 0, y: -180, w: 1700, h: 120 },    // suelo del pasillo de arriba = techo de la galería
+      { x: 0, y: -60, w: 20, h: 540 },       // pared izquierda de la galería
+      { x: 2380, y: -420, w: 20, h: 900 },   // pared derecha
+      { x: 0, y: 480, w: 240, h: 60 },       // suelo, con el hueco de bajada
+      { x: 420, y: 480, w: 1980, h: 60 },
+      // balcones de la galería, subiendo hacia la derecha
+      { x: 700, y: 370, w: 200, h: 18 },
+      { x: 1000, y: 270, w: 160, h: 18 },
+      { x: 1300, y: 170, w: 200, h: 18 },
+      { x: 1620, y: 80, w: 140, h: 18 },
+      { x: 1880, y: -20, w: 140, h: 18 },
+      { x: 1740, y: -110, w: 120, h: 18 },
+      // pasillo de arriba
+      { x: 800, y: -260, w: 140, h: 80 },
+      { x: 1500, y: -240, w: 120, h: 60 },
     ],
     exits: {}, // las pone el recorrido (ROUTE)
+    spawns: { left: { spawnX: 30, spawnY: -260 }, down: { spawnX: 470, spawnY: 400 } },
+    exitBands: { left: [-420, -180], down: [240, 420] },
     decorations: [ { type:'pillar', x:60, y:420, h:60 }, { type:'arch', x:440, y:200 }, { type:'pillar', x:900, y:420, h:60 } ],
   },
   16: {
@@ -1103,7 +1128,7 @@ const ROOMS = {
     name: 'Rincón Olvidado', secret: true, zone: 0,
     bg: ['#050810', '#0a1020'], floorColor: '#1a2238', platColor: '#243050', edgeColor: '#314068', particleColor: '#4060b0',
     platforms: [ { x: 0, y: 480, w: 960, h: 60 }, { x: 380, y: 380, w: 140, h: 18 } ],
-    exits: { left: { room: 14, spawnX: 1370, spawnY: 400, hidden: true } },
+    exits: { left: { room: 14, spawnX: 2330, spawnY: 400, hidden: true } },
     chest: { id: 'c43', x: 820, y: 480, money: 30 },
     decorations: [ { type:'pillar', x:120, y:420, h:60 }, { type:'arch', x:600, y:200 } ],
   },
@@ -1118,6 +1143,8 @@ const ENEMY_TEMPLATES = {
   0: [
     { x: 250, y: 456, dir:  1, patrolMin:  80, patrolMax: 400, speed: 1.2 },
     { x: 700, y: 456, dir: -1, patrolMin: 500, patrolMax: 880, speed: 1.2 },
+    { x: 1200, y: 456, dir: 1, patrolMin: 1000, patrolMax: 1500, speed: 1.2 },
+    { x: 2100, y: -204, dir: -1, patrolMin: 1830, patrolMax: 2340, speed: 1.2 },
   ],
   1: [
     { x:  60, y: 456, dir:  1, patrolMin:  10, patrolMax: 290, speed: 1.3 },
@@ -1155,19 +1182,18 @@ const ENEMY_TEMPLATES = {
     { x: 800, y: 336, dir: -1, patrolMin: 630, patrolMax: 930, speed: 1.8 },
   ],
   14: [
-    { x: 500, y: 456, dir: 1, patrolMin: 20, patrolMax: 1410, speed: 1.4 },
-    { x: 300, y: 56, dir: 1, patrolMin: 285, patrolMax: 470, speed: 1.1 },
-    { x: 1000, y: 56, dir: -1, patrolMin: 945, patrolMax: 1130, speed: 1.1 },
-    { x: 660, y: 156, dir: 1, patrolMin: 605, patrolMax: 810, speed: 1.2 },
-    { x: 650, y: -194, dir: 1, patrolMin: 645, patrolMax: 770, speed: 1.0 },
+    { x: 300, y: 456, dir: 1, patrolMin: 20, patrolMax: 580, speed: 1.4 },
+    { x: 900, y: 456, dir: -1, patrolMin: 730, patrolMax: 1130, speed: 1.4 },
+    { x: 1500, y: 456, dir: 1, patrolMin: 1320, patrolMax: 2300, speed: 1.4 },
+    { x: 1000, y: 96, dir: -1, patrolMin: 720, patrolMax: 1280, speed: 1.1 },
+    { x: 1600, y: 96, dir: 1, patrolMin: 1450, patrolMax: 1770, speed: 1.1 },
   ],
   15: [
-    { x: 200, y: 456, dir: 1, patrolMin: 20, patrolMax: 590, speed: 1.3 },
-    { x: 1000, y: 456, dir: -1, patrolMin: 850, patrolMax: 1410, speed: 1.3 },
-    { x: 300, y: 56, dir: 1, patrolMin: 285, patrolMax: 470, speed: 1.1 },
-    { x: 1000, y: 56, dir: -1, patrolMin: 945, patrolMax: 1130, speed: 1.1 },
-    { x: 660, y: 156, dir: 1, patrolMin: 605, patrolMax: 810, speed: 1.2 },
-    { x: 650, y: -194, dir: 1, patrolMin: 645, patrolMax: 770, speed: 1.0 },
+    { x: 800, y: 456, dir: 1, patrolMin: 560, patrolMax: 1300, speed: 1.3 },
+    { x: 1800, y: 456, dir: -1, patrolMin: 1400, patrolMax: 2350, speed: 1.3 },
+    { x: 1350, y: 146, dir: 1, patrolMin: 1305, patrolMax: 1475, speed: 1.1 },
+    { x: 400, y: -204, dir: 1, patrolMin: 40, patrolMax: 780, speed: 1.2 },
+    { x: 1200, y: -204, dir: -1, patrolMin: 960, patrolMax: 1480, speed: 1.2 },
   ],
   16: [
     { x: 200, y: 456, dir: 1, patrolMin: 20, patrolMax: 590, speed: 1.3 },
@@ -1330,7 +1356,7 @@ const ENEMY_TEMPLATES = {
 // Estas salas miden pantalla y media: se abre un tramo nuevo en medio (donde el
 // suelo es continuo) y la cámara sigue al mapache hacia los lados. Las salas de
 // jefe, la tienda y las que se recorren hacia arriba o abajo se quedan igual.
-const WIDE_ROOMS = [0, 2, 8, 9, 10, 11];
+const WIDE_ROOMS = [2, 8, 9, 10, 11];
 const WIDE_EXTRA = 480;
 function widenRoom(id) {
   const R = ROOMS[id], X = WIDE_EXTRA;
@@ -1405,6 +1431,7 @@ const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 // Dónde aparece el mapache al llegar a una sala por un lado
 function sideSpawn(id, side) {
   const R = ROOMS[id], RW = R.width || W;
+  if (R.spawns && R.spawns[side]) return { ...R.spawns[side] }; // la sala dice dónde se aparece
   if (side === 'up')   return { spawnX: R.upSpawnX ?? RW / 2 - 20, spawnY: (R.top || 0) + 40 };   // cae desde arriba
   if (side === 'down') return { spawnX: 300, spawnY: 400 };                         // sube desde abajo
   const x = side === 'left' ? 30 : RW - 70;
@@ -1421,3 +1448,6 @@ for (const [a, dir, b] of ROUTE) {
     if (d === 'down') ROOMS[id].exits.down.bandX = [620, 820];
   }
 }
+// Brillo de cada salida donde de verdad está el hueco (salas que lo indican)
+for (const R of Object.values(ROOMS)) for (const [d, b] of Object.entries(R.exitBands || {}))
+  if (R.exits[d]) R.exits[d][d === 'up' || d === 'down' ? 'bandX' : 'band'] = b;
