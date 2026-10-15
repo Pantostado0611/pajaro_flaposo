@@ -2,6 +2,7 @@
 const keys = {};
 document.addEventListener('keydown', e => {
   if (e.code === 'KeyM') { Music.toggleMute(); e.preventDefault(); return; }
+  if (pauseKey(e)) { e.preventDefault(); return; } // menú de pausa (Esc)
   if (chapterTimer > 0) {
     if (chapterTimer < chapterDur - 90) chapterTimer = Math.min(chapterTimer, 50);
     e.preventDefault(); return;

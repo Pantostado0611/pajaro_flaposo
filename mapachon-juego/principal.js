@@ -24,7 +24,7 @@ function step() {
     ctx.translate((Math.random() - 0.5) * 2 * m, (Math.random() - 0.5) * 2 * m);
     if (!shakeTimer) shakeMag = 0;
   }
-  if (!transitioning && cheatState === 'closed' && chapterTimer <= 0) {
+  if (!transitioning && cheatState === 'closed' && chapterTimer <= 0 && !pauseState) {
     updatePlayer();
     updateEnemies();
     checkEnemyCollisions();
@@ -104,6 +104,7 @@ function step() {
   drawCheat();
   drawTransition();
   drawChapter();
+  drawPauseMenu();
 }
 
 // ─── RESPONSIVE ───────────────────────────────────────────────────────────────
