@@ -88,27 +88,44 @@ const ROOMS = {
   },
   2: {
     name: 'Jardín Putrefacto',
+    width: 2400, top: -540, // jardín en tres pisos: se entra abajo a la derecha y se sale arriba a la izquierda
     bg: ['#0a0805', '#1a1205'],
-    floorColor: '#2a2010',
-    platColor:  '#3a2e18',
-    edgeColor:  '#4a3e28',
+    floorColor: '#2a2010', platColor: '#3a2e18', edgeColor: '#4a3e28',
     particleColor: '#c08030',
     platforms: [
-      { x:   0, y: 480, w: 960, h: 60 },
-      { x:  80, y: 380, w: 150, h: 18 },
-      { x: 310, y: 310, w: 120, h: 18 },
-      { x: 500, y: 240, w: 160, h: 18 },
-      { x: 720, y: 310, w: 120, h: 18 },
-      { x: 820, y: 390, w: 100, h: 18 },
+      { x: 0, y: -540, w: 2400, h: 60 },     // techo
+      { x: 2100, y: -480, w: 300, h: 680 },  // roca de la derecha (abajo queda la entrada)
+      { x: 0, y: -240, w: 1900, h: 60 },     // piso de arriba
+      { x: 300, y: 120, w: 1800, h: 60 },    // piso de en medio
+      { x: 0, y: 480, w: 2400, h: 60 },      // suelo
+      { x: 1100, y: 420, w: 260, h: 60 },    // loma
+      // tiro de la izquierda: del suelo al piso de en medio
+      { x: 40, y: 380, w: 110, h: 18 },
+      { x: 170, y: 280, w: 110, h: 18 },
+      { x: 40, y: 180, w: 110, h: 18 },
+      // tiro de la derecha: del piso de en medio al de arriba
+      { x: 1930, y: 20, w: 100, h: 18 },
+      { x: 1990, y: -80, w: 100, h: 18 },
+      { x: 1920, y: -180, w: 100, h: 18 },
+      // plataformas sueltas
+      { x: 600, y: 370, w: 140, h: 18 },
+      { x: 1650, y: 370, w: 140, h: 18 },
+      { x: 900, y: 20, w: 140, h: 18 },
+      { x: 1400, y: 20, w: 140, h: 18 },
+      { x: 700, y: -350, w: 160, h: 18 },
+      { x: 1300, y: -350, w: 160, h: 18 },
     ],
-    exits: {
-      left:  { room: 17, spawnX: 1390, spawnY: 400 },
-      right: { room: 18, spawnX:  30, spawnY: 400 },
-    },
+    exits: {}, // las pone el recorrido (ROUTE)
+    spawns: { left: { spawnX: 30, spawnY: -320 } }, // se llega por el piso de arriba
+    exitBands: { left: [-480, -240], right: [200, 460] },
     decorations: [
-      { type:'mushroom', x:160, y:480 },
       { type:'mushroom', x:450, y:480 },
-      { type:'mushroom', x:700, y:480 },
+      { type:'mushroom', x:1500, y:480 },
+      { type:'mushroom', x:2250, y:480 },
+      { type:'mushroom', x:600, y:120 },
+      { type:'mushroom', x:1700, y:120 },
+      { type:'mushroom', x:400, y:-240 },
+      { type:'mushroom', x:1100, y:-240 },
     ],
   },
   3: {
@@ -573,31 +590,38 @@ const ROOMS = {
   },
   19: {
     name: 'Pantano de Esporas',
-    width: 1440, top: -270, // torre: se entra y se sale por cualquier lado
+    width: 2400, top: -540, // pantano hondo: se sube por islas de lodo del hueco del suelo al del techo
+    upSpawnX: 1060,         // al bajar desde arriba caes por el hueco del techo
     zone: 2,
     bg: ['#0a0805', '#1a1205'],
     floorColor: '#2a2010', platColor: '#3a2e18', edgeColor: '#4a3e28',
     particleColor: '#c08030',
     platforms: [
-      { x: 0, y: 480, w: 620, h: 60 },
-      { x: 820, y: 480, w: 620, h: 60 },
-      { x: 150, y: 380, w: 140, h: 18 },
-      { x: 1150, y: 380, w: 140, h: 18 },
-      { x: 360, y: 280, w: 140, h: 18 },
-      { x: 940, y: 280, w: 140, h: 18 },
-      { x: 600, y: 180, w: 240, h: 18 },
-      { x: 280, y: 80, w: 220, h: 60 },
-      { x: 940, y: 80, w: 220, h: 60 },
-      { x: 140, y: -20, w: 140, h: 18 },
-      { x: 1160, y: -20, w: 140, h: 18 },
-      { x: 380, y: -120, w: 140, h: 18 },
-      { x: 920, y: -120, w: 140, h: 18 },
-      { x: 640, y: -170, w: 160, h: 18 },
-      { x: 0, y: -270, w: 90, h: 180 },
-      { x: 1350, y: -270, w: 90, h: 150 },
+      { x: 0, y: -540, w: 1000, h: 60 },     // techo, con el hueco de salida
+      { x: 1200, y: -540, w: 1200, h: 60 },
+      { x: 0, y: -480, w: 200, h: 560 },     // roca de la izquierda
+      { x: 2200, y: -480, w: 200, h: 700 },  // roca de la derecha
+      { x: 0, y: 480, w: 1900, h: 60 },      // suelo, con el hueco de bajada
+      { x: 2100, y: 480, w: 300, h: 60 },
+      // islas de lodo que suben en espiral
+      { x: 1500, y: 370, w: 200, h: 40 },
+      { x: 1180, y: 270, w: 200, h: 40 },
+      { x: 860, y: 170, w: 200, h: 40 },
+      { x: 540, y: 70, w: 200, h: 40 },
+      { x: 250, y: -30, w: 180, h: 40 },
+      { x: 560, y: -130, w: 200, h: 40 },
+      { x: 880, y: -230, w: 200, h: 40 },
+      { x: 1180, y: -330, w: 140, h: 18 },
+      { x: 1020, y: -430, w: 120, h: 18 },
+      // islas de la derecha
+      { x: 1850, y: 230, w: 220, h: 40 },
+      { x: 1600, y: 100, w: 160, h: 18 },
+      { x: 1850, y: -60, w: 200, h: 40 },
     ],
     exits: {}, // las pone el recorrido (ROUTE)
-    decorations: [ { type:'mushroom', x:90, y:480 }, { type:'mushroom', x:520, y:480 }, { type:'mushroom', x:880, y:480 } ],
+    spawns: { down: { spawnX: 2250, spawnY: 400 } }, // se sube por el hueco del suelo
+    exitBands: { down: [1900, 2100], up: [1000, 1200] },
+    decorations: [ { type:'mushroom', x:500, y:480 }, { type:'mushroom', x:1300, y:480 }, { type:'mushroom', x:2300, y:480 } ],
   },
   20: {
     name: 'Antesala Carmesí',
@@ -1202,9 +1226,11 @@ const ENEMY_TEMPLATES = {
     { x: 300, y: -84, dir: 1, patrolMin: 40, patrolMax: 560, speed: 1.2 },
   ],
   2: [
-    { x: 150, y: 456, dir:  1, patrolMin:  10, patrolMax: 940, speed: 1.4 },
-    { x: 330, y: 286, dir:  1, patrolMin: 310, patrolMax: 420, speed: 1.2 },
-    { x: 740, y: 286, dir: -1, patrolMin: 720, patrolMax: 830, speed: 1.2 },
+    { x: 800, y: 456, dir: 1, patrolMin: 320, patrolMax: 1080, speed: 1.4 },
+    { x: 1700, y: 456, dir: -1, patrolMin: 1380, patrolMax: 2350, speed: 1.4 },
+    { x: 700, y: 96, dir: 1, patrolMin: 320, patrolMax: 1300, speed: 1.2 },
+    { x: 1600, y: 96, dir: -1, patrolMin: 1200, patrolMax: 2080, speed: 1.2 },
+    { x: 900, y: -264, dir: 1, patrolMin: 200, patrolMax: 1880, speed: 1.3 },
   ],
   3: [
     { x: 220, y: 346, dir:  1, patrolMin: 200, patrolMax: 355, speed: 1.4 },
@@ -1268,12 +1294,11 @@ const ENEMY_TEMPLATES = {
     { x: 1800, y: -354, dir: -1, patrolMin: 1400, patrolMax: 2280, speed: 1.2 },
   ],
   19: [
-    { x: 200, y: 456, dir: 1, patrolMin: 20, patrolMax: 590, speed: 1.3 },
-    { x: 1000, y: 456, dir: -1, patrolMin: 850, patrolMax: 1410, speed: 1.3 },
-    { x: 300, y: 56, dir: 1, patrolMin: 285, patrolMax: 470, speed: 1.1 },
-    { x: 1000, y: 56, dir: -1, patrolMin: 945, patrolMax: 1130, speed: 1.1 },
-    { x: 660, y: 156, dir: 1, patrolMin: 605, patrolMax: 810, speed: 1.2 },
-    { x: 650, y: -194, dir: 1, patrolMin: 645, patrolMax: 770, speed: 1.0 },
+    { x: 800, y: 456, dir: 1, patrolMin: 220, patrolMax: 1880, speed: 1.3 },
+    { x: 1200, y: 246, dir: 1, patrolMin: 1185, patrolMax: 1370, speed: 1.0 },
+    { x: 560, y: 46, dir: 1, patrolMin: 545, patrolMax: 730, speed: 1.0 },
+    { x: 900, y: -254, dir: 1, patrolMin: 885, patrolMax: 1070, speed: 1.0 },
+    { x: 1900, y: 206, dir: -1, patrolMin: 1855, patrolMax: 2060, speed: 1.1 },
   ],
   20: [
     { x: 200, y: 456, dir: 1, patrolMin: 20, patrolMax: 590, speed: 1.3 },
@@ -1404,7 +1429,7 @@ const ENEMY_TEMPLATES = {
 // Estas salas miden pantalla y media: se abre un tramo nuevo en medio (donde el
 // suelo es continuo) y la cámara sigue al mapache hacia los lados. Las salas de
 // jefe, la tienda y las que se recorren hacia arriba o abajo se quedan igual.
-const WIDE_ROOMS = [2, 8, 9, 10, 11];
+const WIDE_ROOMS = [8, 9, 10, 11];
 const WIDE_EXTRA = 480;
 function widenRoom(id) {
   const R = ROOMS[id], X = WIDE_EXTRA;
