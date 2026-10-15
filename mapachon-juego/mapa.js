@@ -196,7 +196,17 @@ function updateBreakables() {
 // Grietas que aparecen al golpear (el muro, por lo demás, es igual que la pared)
 function drawWallCracks(p) {
   const n = wallHits[p.breakable] || 0;
-  if (!n) return; // sin golpes no se nota nada: igual que la pared
+  // grietita que tiene siempre: pequeña, solo se ve si te fijas
+  // (en un muro ancho va en la cara que da a la sala)
+  const kx = p.x === 0 ? p.x + p.w - 15 : p.x + Math.min(p.w, 30) / 2, ky = p.y + p.h * 0.4;
+  ctx.save();
+  ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(kx - 3, ky); ctx.lineTo(kx + 2, ky + 8); ctx.lineTo(kx - 1, ky + 15); ctx.lineTo(kx + 4, ky + 24);
+  ctx.moveTo(kx + 2, ky + 8); ctx.lineTo(kx + 7, ky + 11);
+  ctx.stroke();
+  ctx.restore();
+  if (!n) return;
   ctx.save();
   ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.lineWidth = 1.5;
   const cx = p.x + p.w / 2, cy = p.y + p.h / 2;
