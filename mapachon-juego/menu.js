@@ -29,6 +29,7 @@ const PAUSE_MENUS = {
 function openPause(state, sel = 0) {
   pauseState = state; pauseSel = sel;
   for (const k in keys) keys[k] = false; // que el mapache no siga caminando
+  for (const k in touch) if (typeof touch[k] === 'boolean') touch[k] = false;
 }
 function closePause() { pauseState = null; }
 
@@ -91,3 +92,14 @@ canvas.addEventListener('click', e => {
   if (!pauseState) return;
   const i = pauseButtonAt(e); if (i >= 0) PAUSE_MENUS[pauseState].pick(i);
 });
+
+// Botón táctil ⏸ (en celular no hay Esc): abre o cierra el menú
+(function() {
+  const el = document.getElementById('btn-pause');
+  if (!el) return;
+  el.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (pauseState) closePause();
+    else if (cheatState === 'closed' && chapterTimer <= 0) openPause('main');
+  }, { passive: false });
+})();

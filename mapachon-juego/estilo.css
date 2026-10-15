@@ -31,6 +31,7 @@
   #btn-jump   { bottom: 24px; right: 16px;  background: rgba(0,200,255,0.14); border-color: rgba(0,200,255,0.32); }
   #btn-inv    { top: 8px;  right: 8px;  width: 48px; height: 48px; font-size: 18px; background: rgba(180,120,255,0.14); border-color: rgba(180,120,255,0.32); }
   #btn-music  { top: 120px; right: 8px; width: 48px; height: 48px; font-size: 18px; background: rgba(120,200,255,0.12); border-color: rgba(120,200,255,0.28); }
+  #btn-pause  { top: 8px;  right: 64px; width: 48px; height: 48px; font-size: 18px; background: rgba(220,230,255,0.12); border-color: rgba(220,230,255,0.3); }
   #btn-cheat  { top: 64px; right: 8px;  width: 48px; height: 48px; font-size: 18px; background: rgba(255,200,0,0.12);   border-color: rgba(255,200,0,0.28); }
 
   /* Cheat numpad */
