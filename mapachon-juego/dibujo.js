@@ -314,7 +314,7 @@ function drawPlatforms(room) {
     }
     if (room.style === 'castleRock') { drawCastleRockStone(p); continue; }
     if (room.style === 'mountain') { drawMountainRock(p, room.night); continue; }
-    if (room.style === 'organic') { drawOrganicEarth(p); continue; }
+    if (room.style === 'organic') { drawOrganicEarth(p, room.smooth); continue; }
     // las losas normales se dibujan una vez y se guardan (ver slabLayer)
   }
 }
@@ -434,10 +434,11 @@ function drawCastleRockStone(p) {
 
 // Roca de montaña con nieve encima (más oscura cuanto más de noche)
 // Tierra amorfa: bordes ondulados, musgo arriba y raicillas colgando
-function drawOrganicEarth(p) {
+function drawOrganicEarth(p, smooth) {
   // Columna que cuelga del techo: se dibuja metida en él, sin musgo, para que no se vea la costura
-  if (p.joinTop) p = { x: p.x, y: p.y - 18, w: p.w, h: p.h + 18, joinTop: true };
-  const thin = p.h < 40, wob = (x, y) => (Math.sin(x * 0.11 + y * 0.07) + Math.sin(x * 0.043 - y * 0.13)) * (thin ? 2.5 : 5);
+  if (p.joinTop && !smooth) p = { x: p.x, y: p.y - 18, w: p.w, h: p.h + 18, joinTop: true };
+  const thin = p.h < 40, wave = (x, y) => (Math.sin(x * 0.11 + y * 0.07) + Math.sin(x * 0.043 - y * 0.13)) * (thin ? 2.5 : 5);
+  const wob = smooth ? () => 0 : wave; // sala lisa: bordes rectos
   const step = 14, pts = [];
   for (let x = p.x; x <= p.x + p.w; x += step) pts.push([x, p.y + wob(x, p.y) - (thin ? 2 : 0)]);
   for (let y = p.y; y <= p.y + p.h; y += step) pts.push([p.x + p.w + wob(p.x + p.w, y) * 0.8, y]);
@@ -451,7 +452,7 @@ function drawOrganicEarth(p) {
   // grumos de tierra
   ctx.fillStyle = 'rgba(0,0,0,0.22)';
   for (let x = p.x + 18; x < p.x + p.w - 10; x += 34) for (let y = p.y + 14; y < p.y + p.h - 6; y += 30) {
-    ctx.beginPath(); ctx.ellipse(x + wob(y, x) * 2, y, 6, 4, 0.3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x + wave(y, x) * 2, y, 6, 4, 0.3, 0, Math.PI * 2); ctx.fill();
   }
   if (p.joinTop) return;
   // musgo por encima
@@ -462,7 +463,7 @@ function drawOrganicEarth(p) {
   // raicillas colgando por debajo
   ctx.strokeStyle = 'rgba(90,60,30,0.8)'; ctx.lineWidth = 1.4;
   for (let x = p.x + 12; x < p.x + p.w - 6; x += 26) {
-    const y0 = p.y + p.h + (thin ? 5 : 2), len = 6 + Math.abs(wob(x * 3, y0)) * 2.5;
+    const y0 = p.y + p.h + (thin ? 5 : 2), len = 6 + Math.abs(wave(x * 3, y0)) * 2.5;
     ctx.beginPath(); ctx.moveTo(x, y0); ctx.quadraticCurveTo(x + 3, y0 + len * 0.6, x - 1, y0 + len); ctx.stroke();
   }
 }

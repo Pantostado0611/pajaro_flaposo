@@ -487,6 +487,7 @@ const ROOMS = {
     mapCells: [[0, 0], [-1, 0], [-2, 0], [-1, 1], [-2, 1]], // forma en el mapa
     zone: 2,
     style: 'organic', // sala amorfa: todo es tierra con raíces, sin losas rectas
+    smooth: true,     // paredes, pisos y techos lisos (sin ondulaciones)
     bg: ['#0a0805', '#1a1205'],
     floorColor: '#2a2010', platColor: '#3a2e18', edgeColor: '#4a3e28',
     particleColor: '#c08030',
