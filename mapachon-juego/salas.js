@@ -425,10 +425,9 @@ const ROOMS = {
       { x: 250, y: -210, w: 100, h: 18 },
       { x: 320, y: -320, w: 90, h: 18 },
       { x: 250, y: -430, w: 100, h: 18 },
-      { x: 2370, y: 240, w: 30, h: 140 },    // pared
-      { x: 2370, y: 380, w: 30, h: 100, breakable: 'w14' }, // parece pared: se rompe a golpes
+      { x: 2370, y: 240, w: 30, h: 240 },    // pared
     ],
-    exits: { right: { room: 43, spawnX: 30, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
+    exits: {}, // las pone el recorrido (ROUTE)
     exitBands: { left: [260, 460], up: [240, 420] },
     decorations: [ { type:'pillar', x:60, y:420, h:60 }, { type:'arch', x:440, y:260 }, { type:'pillar', x:900, y:420, h:60 } ],
   },
@@ -443,7 +442,8 @@ const ROOMS = {
       { x: 0, y: -540, w: 2400, h: 120 },    // techo
       { x: 0, y: -180, w: 1700, h: 120 },    // suelo del pasillo de arriba = techo de la galería
       { x: 0, y: -60, w: 20, h: 540 },       // pared izquierda de la galería
-      { x: 2380, y: -420, w: 20, h: 900 },   // pared derecha
+      { x: 2370, y: -420, w: 30, h: 800 },   // pared derecha
+      { x: 2370, y: 380, w: 30, h: 100, breakable: 'w15' }, // parece pared: se rompe a golpes
       { x: 0, y: 480, w: 240, h: 60 },       // suelo, con el hueco de bajada
       { x: 420, y: 480, w: 1980, h: 60 },
       // balcones de la galería, subiendo hacia la derecha
@@ -457,7 +457,7 @@ const ROOMS = {
       { x: 800, y: -260, w: 140, h: 80 },
       { x: 1500, y: -240, w: 120, h: 60 },
     ],
-    exits: {}, // las pone el recorrido (ROUTE)
+    exits: { right: { room: 43, spawnX: 30, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
     spawns: { left: { spawnX: 30, spawnY: -260 }, down: { spawnX: 470, spawnY: 400 } },
     exitBands: { left: [-420, -180], down: [240, 420] },
     decorations: [ { type:'pillar', x:60, y:420, h:60 }, { type:'arch', x:440, y:200 }, { type:'pillar', x:900, y:420, h:60 } ],
@@ -471,7 +471,9 @@ const ROOMS = {
     particleColor: '#30c090',
     platforms: [
       { x: 0, y: -540, w: 2400, h: 60 },     // techo
-      { x: 0, y: -480, w: 240, h: 960 },     // roca de la izquierda
+      { x: 0, y: -480, w: 240, h: 560 },     // roca de la izquierda
+      { x: 0, y: 80, w: 240, h: 100, breakable: 'w16' }, // parece roca: se rompe a golpes
+      { x: 0, y: 180, w: 240, h: 300 },
       { x: 240, y: -480, w: 1320, h: 240 },  // techo de la grieta
       { x: 1560, y: -480, w: 840, h: 180 },  // roca sobre el pasillo de arriba
       { x: 1560, y: -60, w: 840, h: 540 },   // roca bajo el pasillo de arriba
@@ -485,7 +487,7 @@ const ROOMS = {
       { x: 470, y: 80, w: 110, h: 18 },
       { x: 480, y: -30, w: 100, h: 18 },
     ],
-    exits: {}, // las pone el recorrido (ROUTE)
+    exits: { left: { room: 40, spawnX: 890, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
     spawns: { right: { spawnX: 2330, spawnY: -140 }, down: { spawnX: 470, spawnY: 400 } },
     exitBands: { right: [-300, -60], down: [240, 420] },
     decorations: [ { type:'crystal', x:700, y:-240, h:720 }, { type:'crystal', x:1400, y:-240, h:720 }, { type:'crystal', x:400, y:-240, h:720 } ],
@@ -520,10 +522,9 @@ const ROOMS = {
       { x: 600, y: 380, w: 140, h: 18 },
       { x: 900, y: 300, w: 140, h: 18 },
       { x: 1300, y: 380, w: 160, h: 18 },
-      { x: 2370, y: 60, w: 30, h: 320 },     // pared
-      { x: 2370, y: 380, w: 30, h: 100, breakable: 'w17' }, // parece pared: se rompe a golpes
+      { x: 2370, y: 60, w: 30, h: 420 },     // pared
     ],
-    exits: { right: { room: 40, spawnX: 30, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
+    exits: {}, // las pone el recorrido (ROUTE)
     exitBands: { left: [260, 460], up: [240, 420] },
     decorations: [ { type:'crystal', x:800, y:60, h:420 }, { type:'crystal', x:1500, y:60, h:420 }, { type:'crystal', x:1100, y:-300, h:240 } ],
   },
@@ -765,8 +766,10 @@ const ROOMS = {
       { x: 640, y: -170, w: 160, h: 18 },
       { x: 0, y: -270, w: 90, h: 180 },
       { x: 1350, y: -270, w: 90, h: 150 },
+      { x: 1410, y: -270, w: 30, h: 650 },   // pared
+      { x: 1410, y: 380, w: 30, h: 100, breakable: 'w26' }, // parece pared: se rompe a golpes
     ],
-    exits: {}, // las pone el recorrido (ROUTE)
+    exits: { right: { room: 41, spawnX: 30, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
     decorations: [ { type:'bricks' }, { type:'window', x:200, y:120 }, { type:'window', x:760, y:120 }, { type:'torch', x:60, y:300 }, { type:'torch', x:900, y:300 } ],
   },
   27: {
@@ -792,10 +795,9 @@ const ROOMS = {
       { x: 640, y: -170, w: 160, h: 18 },
       { x: 0, y: -270, w: 90, h: 180 },
       { x: 1350, y: -270, w: 90, h: 150 },
-      { x: 0, y: -270, w: 30, h: 650 },   // pared
-      { x: 0, y: 380, w: 30, h: 100, breakable: 'w27' }, // parece pared: se rompe a golpes
+      { x: 0, y: -270, w: 30, h: 750 },   // pared
     ],
-    exits: { left: { room: 41, spawnX: 890, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
+    exits: {}, // las pone el recorrido (ROUTE)
     decorations: [ { type:'bricks' }, { type:'window', x:200, y:120 }, { type:'window', x:760, y:120 }, { type:'torch', x:60, y:300 }, { type:'torch', x:900, y:300 } ],
   },
   28: {
@@ -879,10 +881,9 @@ const ROOMS = {
       { x: 640, y: -170, w: 160, h: 18 },
       { x: 0, y: -270, w: 90, h: 180 },
       { x: 1350, y: -270, w: 90, h: 150 },
-      { x: 0, y: -270, w: 30, h: 650 },   // pared
-      { x: 0, y: 380, w: 30, h: 100, breakable: 'w30' }, // parece pared: se rompe a golpes
+      { x: 0, y: -270, w: 30, h: 750 },   // pared
     ],
-    exits: { left: { room: 42, spawnX: 890, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
+    exits: {}, // las pone el recorrido (ROUTE)
     decorations: [ { type:'nightRanges', level: 1.33 } ],
   },
   31: {
@@ -910,8 +911,10 @@ const ROOMS = {
       { x: 640, y: -170, w: 160, h: 18 },
       { x: 0, y: -270, w: 90, h: 180 },
       { x: 1350, y: -270, w: 90, h: 150 },
+      { x: 0, y: -270, w: 30, h: 650 },   // pared
+      { x: 0, y: 380, w: 30, h: 100, breakable: 'w31' }, // parece pared: se rompe a golpes
     ],
-    exits: {}, // las pone el recorrido (ROUTE)
+    exits: { left: { room: 42, spawnX: 890, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
     decorations: [ { type:'nightRanges', level: 1.67 } ],
   },
   32: {
@@ -1123,23 +1126,23 @@ const ROOMS = {
     name: 'Gruta de Cuarzo Oculta', secret: true, zone: 1,
     bg: ['#05100a', '#0a1f14'], floorColor: '#1a3028', platColor: '#224038', edgeColor: '#2e5448', particleColor: '#30c090',
     platforms: [ { x: 0, y: 480, w: 960, h: 60 }, { x: 300, y: 380, w: 140, h: 18 }, { x: 560, y: 300, w: 140, h: 18 } ],
-    exits: { left: { room: 17, spawnX: 2330, spawnY: 400, hidden: true } },
-    chest: { id: 'c40', x: 820, y: 480, money: 50 },
+    exits: { right: { room: 16, spawnX: 250, spawnY: 100, hidden: true } },
+    chest: { id: 'c40', x: 120, y: 480, money: 50 },
     decorations: [ { type:'crystal', x:200, y:0, h:H }, { type:'crystal', x:480, y:60, h:420 }, { type:'crystal', x:900, y:0, h:H } ],
   },
   41: {
     name: 'Bodega del Castillo', secret: true, zone: 6,
     bg: ['#0c0a10', '#18141e'], floorColor: '#2a2630', platColor: '#3a3542', edgeColor: '#55505e', particleColor: '#ff9a40',
     platforms: [ { x: 0, y: 480, w: 960, h: 60 }, { x: 500, y: 380, w: 140, h: 18 }, { x: 260, y: 300, w: 140, h: 18 } ],
-    exits: { right: { room: 27, spawnX: 50, spawnY: 400, hidden: true } },
-    chest: { id: 'c41', x: 110, y: 480, heart: 1 },
+    exits: { left: { room: 26, spawnX: 1370, spawnY: 400, hidden: true } },
+    chest: { id: 'c41', x: 820, y: 480, heart: 1 },
     decorations: [ { type:'bricks' }, { type:'torch', x:60, y:300 }, { type:'torch', x:900, y:300 } ],
   },
   42: {
     name: 'Cueva del Ermitaño', secret: true, zone: 8,
     bg: ['#04050a', '#0c0e16'], floorColor: '#3a3e4c', platColor: '#3a3e4c', edgeColor: '#6a7088', particleColor: '#c8d0e8',
     platforms: [ { x: 0, y: 480, w: 960, h: 60 }, { x: 420, y: 380, w: 140, h: 18 }, { x: 650, y: 300, w: 140, h: 18 } ],
-    exits: { right: { room: 30, spawnX: 50, spawnY: 400, hidden: true } },
+    exits: { right: { room: 31, spawnX: 50, spawnY: 400, hidden: true } },
     chest: { id: 'c42', x: 120, y: 480, money: 80 },
     decorations: [ { type:'pillar', x:300, y:480, h:90 }, { type:'pillar', x:880, y:480, h:140 } ],
   },
@@ -1147,7 +1150,7 @@ const ROOMS = {
     name: 'Rincón Olvidado', secret: true, zone: 0,
     bg: ['#050810', '#0a1020'], floorColor: '#1a2238', platColor: '#243050', edgeColor: '#314068', particleColor: '#4060b0',
     platforms: [ { x: 0, y: 480, w: 960, h: 60 }, { x: 380, y: 380, w: 140, h: 18 } ],
-    exits: { left: { room: 14, spawnX: 2330, spawnY: 400, hidden: true } },
+    exits: { left: { room: 15, spawnX: 2330, spawnY: 400, hidden: true } },
     chest: { id: 'c43', x: 820, y: 480, money: 30 },
     decorations: [ { type:'pillar', x:120, y:420, h:60 }, { type:'arch', x:600, y:200 } ],
   },
@@ -1280,7 +1283,7 @@ const ENEMY_TEMPLATES = {
   ],
   26: [
     { x: 200, y: 456, dir: 1, patrolMin: 20, patrolMax: 590, speed: 1.3 },
-    { x: 1000, y: 456, dir: -1, patrolMin: 850, patrolMax: 1410, speed: 1.3 },
+    { x: 1000, y: 456, dir: -1, patrolMin: 850, patrolMax: 1370, speed: 1.3 },
     { x: 300, y: 56, dir: 1, patrolMin: 285, patrolMax: 470, speed: 1.1 },
     { x: 1000, y: 56, dir: -1, patrolMin: 945, patrolMax: 1130, speed: 1.1 },
     { x: 660, y: 156, dir: 1, patrolMin: 605, patrolMax: 810, speed: 1.2 },
@@ -1316,7 +1319,7 @@ const ENEMY_TEMPLATES = {
     { x: 650, y: -194, dir: 1, patrolMin: 645, patrolMax: 770, speed: 1.0 },
   ],
   31: [
-    { x: 200, y: 456, dir: 1, patrolMin: 20, patrolMax: 590, speed: 1.3 },
+    { x: 200, y: 456, dir: 1, patrolMin: 40, patrolMax: 590, speed: 1.3 },
     { x: 1000, y: 456, dir: -1, patrolMin: 850, patrolMax: 1410, speed: 1.3 },
     { x: 300, y: 56, dir: 1, patrolMin: 285, patrolMax: 470, speed: 1.1 },
     { x: 1000, y: 56, dir: -1, patrolMin: 945, patrolMax: 1130, speed: 1.1 },

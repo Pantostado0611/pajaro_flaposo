@@ -277,10 +277,17 @@ function drawParticles() {
   ctx.globalAlpha = 1;
 }
 
+// Pared que tiene justo debajo un muro falso (mismo ancho): se dibujan juntos,
+// como una sola pieza, para que no se note la unión
+const fakeWallUnder = (q, b) => q !== b && !q.breakable && q.x === b.x && q.w === b.w && q.y + q.h === b.y;
+
 function drawPlatforms(room) {
   if (!room.style && !room.width) ctx.drawImage(slabLayer(room), 0, 0, W, H);
-  for (const p of room.platforms) {
+  for (let p of room.platforms) {
     if (p.breakable && brokenWalls.has(p.breakable)) continue;
+    if (p.breakable && room.platforms.some(q => fakeWallUnder(q, p))) continue; // lo pinta su pared
+    const fake = room.platforms.find(b => b.breakable && !brokenWalls.has(b.breakable) && fakeWallUnder(p, b));
+    if (fake) p = { ...p, h: p.h + fake.h };
     if (p.trapdoor && boss2Defeated) {
       // Portal abierto: vacío oscuro con bordes que brillan en púrpura
       const pulse = 0.45 + 0.25 * Math.sin(Date.now() * 0.004);
@@ -307,7 +314,7 @@ function drawPlatforms(room) {
       continue;
     }
     if (p.secretStair) { if (bossDefeated) drawSecretStair(p); continue; }
-    if (p.breakable && !room.style && !room.width) { drawSlab(ctx, p, room); drawWallCracks(p); continue; }
+    if (p.breakable && !room.style && !room.width) { drawSlab(ctx, p, room); continue; }
     if (room.width) { // sala grande: solo lo que se ve
       if (p.x + p.w < camX - 10 || p.x > camX + W / camZ + 10 || p.y > camY + H / camZ + 10 || p.y + p.h < camY - 10) continue;
       if (!room.style) { drawSlab(ctx, p, room); continue; }
