@@ -364,7 +364,60 @@ const Music = (() => {
     play(name);
   }
 
-  return { unlock, toggleMute, update, get muted() { return muted; } };
+  // ── Sonidos raros de los niños de la entrada ───────────────────────────────
+  // kind: 'samu' (boings, gárgaras, chillidos) o 'rata' (chillidos de rata,
+  // trompetillas, castañeteo). vol 0..1 según qué tan cerca estés.
+  function weird(kind, vol) {
+    if (!ac || muted || vol <= 0) return;
+    const t = ac.currentTime + 0.01, g = ac.createGain();
+    g.connect(master);
+    const peak = 0.22 * vol;
+    const osc = (type, f) => { const o = ac.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, t); o.connect(g); return o; };
+    const lfo = (rate, depth, param) => { const l = ac.createOscillator(), d = ac.createGain(); l.frequency.value = rate; d.gain.value = depth; l.connect(d); d.connect(param); l.start(t); return l; };
+    const r = Math.random();
+    let len;
+    if (kind === 'samu') {
+      if (r < 0.35) {        // boing que sube y se cae
+        len = 0.4; const o = osc('sine', 180);
+        o.frequency.exponentialRampToValueAtTime(950, t + 0.12); o.frequency.exponentialRampToValueAtTime(120, t + len);
+        lfo(14, 40, o.frequency).stop(t + len); o.start(t); o.stop(t + len);
+      } else if (r < 0.7) {  // gárgara
+        len = 0.55; const o = osc('square', 110 + Math.random() * 40);
+        lfo(28, 70, o.frequency).stop(t + len); o.start(t); o.stop(t + len);
+      } else {               // chillido largo
+        len = 0.35; const o = osc('sawtooth', 600);
+        o.frequency.linearRampToValueAtTime(1300 + Math.random() * 500, t + len);
+        lfo(9, 80, o.frequency).stop(t + len); o.start(t); o.stop(t + len);
+      }
+    } else {
+      if (r < 0.4) {         // chillidos de rata
+        len = 0.32;
+        for (let i = 0; i < 3; i++) {
+          const st = t + i * 0.1, o = osc('sine', 2200 + Math.random() * 600);
+          o.frequency.setValueAtTime(2200 + Math.random() * 600, st);
+          o.frequency.exponentialRampToValueAtTime(3400, st + 0.06); o.start(st); o.stop(st + 0.07);
+        }
+      } else if (r < 0.7) {  // trompetilla
+        len = 0.5; const n = ac.createBufferSource(), bp = ac.createBiquadFilter();
+        n.buffer = noiseBuf; bp.type = 'bandpass'; bp.frequency.value = 380; bp.Q.value = 3;
+        n.connect(bp); bp.connect(g); lfo(26, 300, bp.frequency).stop(t + len); n.start(t); n.stop(t + len);
+        const o = osc('sawtooth', 90); lfo(26, 25, o.frequency).stop(t + len); o.start(t); o.stop(t + len);
+      } else {               // castañeteo de dientes
+        len = 0.4;
+        for (let i = 0; i < 6; i++) {
+          const st = t + i * 0.06, o = osc('triangle', 1400 + Math.random() * 1200);
+          o.start(st); o.stop(st + 0.025);
+        }
+      }
+    }
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + 0.02);
+    g.gain.setValueAtTime(peak, t + len - 0.06);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    setTimeout(() => g.disconnect(), (len + 0.3) * 1000);
+  }
+
+  return { unlock, toggleMute, update, weird, get muted() { return muted; } };
 })();
 
 // botón táctil de música

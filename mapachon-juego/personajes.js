@@ -34,7 +34,7 @@ const NPCS = {
      'La gran puerta se abría con dos llaves: una azul y una roja. Quién sabe quién las tenga ahora.',
      'Varios han bajado por esa escalera. Ninguno ha vuelto a subir.'] },
   // en la entrada: lleva tanto tiempo atrapado que perdió la cordura; rasca la pared para salir
-  0: { name: 'Gaspar... ¿o era Gonzalo?', mad: true, cloak: ['#4e4a44', '#26241f'], x: 44, y: 480, say: () =>
+  0: { name: 'YisusFM', mad: true, cloak: ['#4e4a44', '#26241f'], x: 44, y: 480, say: () =>
     ['¡La salida estaba aquí! ¡AQUÍ! Yo la vi... yo entré por aquí...',
      '¿Cuánto llevo aquí? ¿Tres días? ¿Tres años? Las paredes se mueven cuando no las miras.',
      'Los que bajaron no volvieron, ¿sabes? Yo sí volví. Creo. ¿Volví?',
@@ -115,7 +115,7 @@ function drawNpc() {
   ctx.restore();
 }
 
-// Gaspar: brinca y rasca la pared; su farol está tirado en el suelo
+// YisusFM: brinca y rasca la pared; su farol está tirado en el suelo
 function drawMadNpc(n, t, bob, face, hop) {
   // farol tirado, parpadeando
   const on = Math.random() > 0.08;
@@ -218,5 +218,119 @@ function drawNpcTalk() {
     ctx.fillStyle = i === L.i ? '#ffc870' : 'rgba(255,200,112,0.3)';
     ctx.beginPath(); ctx.arc(bx + bw - 12 - (lines0.length - 1 - i) * 8, by + 12, 2.2, 0, Math.PI * 2); ctx.fill();
   }
+  ctx.restore();
+}
+
+// ─── NIÑOS DE LA ENTRADA ─────────────────────────────────────────────────────
+// samuFM y LaRataFM: niños con el cerebro podrido. No dicen nada, solo hacen
+// sonidos raros cuando estás cerca (y les salen garabatos de la cabeza).
+const KIDS = {
+  0: [
+    { name: 'samuFM', kind: 'samu', x: 560, y: 480, cloak: ['#5a6a3a', '#2e361e'], wait: 40, pops: [] },
+    { name: 'LaRataFM', kind: 'rata', x: 980, y: 480, cloak: ['#6a6058', '#34302c'], wait: 90, pops: [] },
+  ],
+};
+const KID_GLYPHS = { samu: ['¿¿??', 'blbl', '~~~', 'BOING', '@_@', 'ñeee'], rata: ['iik!', 'pbbbt', 'kchkch', '!!!', 'ñ i i', 'squik'] };
+
+function drawKids() {
+  const list = KIDS[currentRoom];
+  if (!list) return;
+  const t = Date.now() * 0.002;
+  for (const k of list) {
+    const d = Math.hypot(player.x + player.w / 2 - k.x, player.y + player.h - k.y);
+    // sonido raro de vez en cuando si estás cerca (no en pausa ni en transición)
+    if (!pauseState && !transitioning && cheatState === 'closed' && d < 320 && --k.wait <= 0) {
+      Music.weird(k.kind, 1 - d / 320);
+      const g = KID_GLYPHS[k.kind];
+      k.pops.push({ txt: g[Math.floor(Math.random() * g.length)], age: 0, dx: (Math.random() - 0.5) * 20 });
+      k.wait = 70 + Math.floor(Math.random() * 120);
+      k.shake = 20;
+    }
+    if (k.shake > 0) k.shake--;
+    ctx.save();
+    ctx.translate(k.x, k.y);
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath(); ctx.ellipse(0, 1, 11, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.save();
+    if (k.shake > 0) ctx.translate((Math.random() - 0.5) * 3, (Math.random() - 0.5) * 2);
+    if (k.kind === 'samu') drawSamu(k, t); else drawRata(k, t);
+    ctx.restore();
+    // garabatos que suben y se desvanecen
+    ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
+    const col = k.kind === 'samu' ? '190,255,120' : '255,200,200';
+    for (const p of k.pops) {
+      if (!pauseState) p.age++;
+      ctx.fillStyle = `rgba(${col},${Math.max(0, 1 - p.age / 70).toFixed(2)})`;
+      ctx.fillText(p.txt, p.dx + Math.sin(p.age * 0.3) * 4, -44 - p.age * 0.6);
+    }
+    k.pops = k.pops.filter(p => p.age < 70);
+    // su nombre, solo cuando estás cerca
+    if (d < 140) {
+      ctx.globalAlpha = Math.min(1, (140 - d) / 40);
+      ctx.fillStyle = '#ffc870'; ctx.font = 'bold 10px monospace';
+      ctx.fillText(k.name, 0, 14);
+    }
+    ctx.restore();
+  }
+}
+
+// samuFM: niño flaco que ladea la cabeza, con ojos en espiral y gorro de hélice
+function drawSamu(k, t) {
+  ctx.fillStyle = k.cloak[1];
+  ctx.fillRect(-5, -10, 4, 10); ctx.fillRect(2, -10, 4, 10);   // piernas
+  ctx.fillStyle = k.cloak[0];
+  ctx.beginPath(); ctx.roundRect(-8, -26, 16, 18, 4); ctx.fill(); // cuerpo
+  // brazos colgando que se balancean
+  ctx.strokeStyle = k.cloak[1]; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-7, -23); ctx.lineTo(-11 + Math.sin(t * 3) * 3, -10);
+  ctx.moveTo(7, -23); ctx.lineTo(11 - Math.sin(t * 3) * 3, -10);
+  ctx.stroke();
+  ctx.save(); ctx.translate(0, -30); ctx.rotate(Math.sin(t * 2.3) * 0.35);
+  ctx.fillStyle = '#c8b498';
+  ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#2a2020'; ctx.lineWidth = 0.9;
+  for (const ex of [-3, 3]) {
+    ctx.beginPath();
+    for (let a = 0; a < 9; a += 0.4) { const rr = a * 0.28; ctx.lineTo(ex + Math.cos(a + t * 6) * rr, -1 + Math.sin(a + t * 6) * rr); }
+    ctx.stroke();
+  }
+  // boca abierta babeando
+  ctx.fillStyle = '#3a1a1a'; ctx.beginPath(); ctx.ellipse(0, 4, 2.5, 1.8, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(160,220,255,0.7)'; ctx.fillRect(1, 5, 1, 2 + (Math.sin(t * 2) + 1) * 2);
+  // gorro con hélice
+  ctx.fillStyle = '#c03030'; ctx.beginPath(); ctx.arc(0, -4, 8, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = '#e0c020'; ctx.fillRect(-0.7, -16, 1.4, 5);
+  const sp = Math.cos(t * 12) * 9;
+  ctx.strokeStyle = '#4080e0'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-sp, -16); ctx.lineTo(sp, -16); ctx.stroke();
+  ctx.restore();
+}
+
+// LaRataFM: agachada como rata, con capucha de orejas y cola
+function drawRata(k, t) {
+  const sniff = Math.sin(t * 9) * 1.2;
+  ctx.strokeStyle = '#c89898'; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(8, -6);
+  ctx.quadraticCurveTo(20, -4 + Math.sin(t * 4) * 6, 24, -12 + Math.sin(t * 4 + 1) * 5); ctx.stroke();
+  ctx.fillStyle = k.cloak[0];
+  ctx.beginPath(); ctx.ellipse(2, -9, 11, 9, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = k.cloak[1];
+  ctx.fillRect(-7, -3, 5, 3); ctx.fillRect(4, -3, 5, 3);         // manitas en el suelo
+  ctx.save(); ctx.translate(-8, -17 + sniff * 0.4);
+  ctx.fillStyle = k.cloak[0];
+  ctx.beginPath(); ctx.arc(0, 0, 7.5, 0, Math.PI * 2); ctx.fill();
+  for (const ex of [-5, 4]) {
+    ctx.fillStyle = k.cloak[0]; ctx.beginPath(); ctx.arc(ex, -7, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#d8a0a0'; ctx.beginPath(); ctx.arc(ex, -7, 2, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.fillStyle = '#d8c0a8'; ctx.beginPath(); ctx.ellipse(-2, 1, 5, 5, 0, 0, Math.PI * 2); ctx.fill();
+  // ojitos rojos que no parpadean y nariz que olfatea
+  ctx.fillStyle = '#e02020';
+  ctx.beginPath(); ctx.arc(-4, -1, 1.3, 0, Math.PI * 2); ctx.arc(0, -1, 1.3, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#ff9aa8'; ctx.beginPath(); ctx.arc(-6.5 + sniff * 0.3, 2, 1.4, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.fillRect(-4, 4, 1.5, 2); ctx.fillRect(-2.3, 4, 1.5, 2);
+  ctx.strokeStyle = 'rgba(40,30,30,0.7)'; ctx.lineWidth = 0.6;
+  ctx.beginPath(); ctx.moveTo(-6, 2); ctx.lineTo(-12, sniff); ctx.moveTo(-6, 3); ctx.lineTo(-12, 4 + sniff); ctx.stroke();
   ctx.restore();
 }
