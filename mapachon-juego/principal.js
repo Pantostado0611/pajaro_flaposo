@@ -77,6 +77,7 @@ function step() {
   drawBoss3();
   drawChest();
   drawBench();
+  drawNpc();
   drawCastleDoor();
   drawGuards();
   drawGuardKeys();
@@ -88,6 +89,7 @@ function step() {
   ctx.restore();
   drawNightDark(room);
   if (currentRoom === 13) { ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY)); drawCastleDoorHint(); ctx.restore(); }
+  drawNpcTalk();
   if (room.hatch) { ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY)); drawHatchHint(room.hatch); ctx.restore(); }
   drawVignette(room);
   drawCoordGrid(room);
