@@ -24,7 +24,9 @@ function step() {
     ctx.translate((Math.random() - 0.5) * 2 * m, (Math.random() - 0.5) * 2 * m);
     if (!shakeTimer) shakeMag = 0;
   }
+  if (titleState) { drawTitle(); return; } // pantalla de inicio: elegir partida
   if (!transitioning && cheatState === 'closed' && chapterTimer <= 0 && !pauseState) {
+    playFrames++;
     updatePlayer();
     updateEnemies();
     checkEnemyCollisions();
@@ -127,12 +129,14 @@ window.addEventListener('resize', resize);
 resize();
 
 // ─── INICIO ───────────────────────────────────────────────────────────────────
-const loadedSave = loadGame(); // si hay partida guardada, se sigue desde el último banco
 resetParticles(currentRoom);
 initEnemies(currentRoom);
 initBoss();
 initBoss2();
 roomLabelAlpha = 1;
 roomLabelTimer = 200;
-if (!loadedSave) showChapter(1, 'Las Profundidades');
+// primero se elige la partida (titulo.js): una vacía empieza de cero y una
+// guardada sigue desde su último banco
+refreshTitleSlots();
+setTouchControls(false);
 requestAnimationFrame(frame);

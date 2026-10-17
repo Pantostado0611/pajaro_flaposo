@@ -13,7 +13,10 @@ const BENCHES = {
   38: { x: 120, damaged: true },
 };
 const BENCH_FLOOR = 480;
-const SAVE_KEY = 'mapachon-save';
+const SAVE_KEY = 'mapachon-save';  // antes había una sola partida; ahora hay 4 (ver titulo.js)
+const slotKey = n => 'mapachon-save-' + n;
+let saveSlot = 1;                   // partida que se está jugando
+let playFrames = 0;                 // tiempo jugado (cuadros de 1/60 s)
 let lastBench = null;                // { room, x } donde reapareces al morir
 let benchNear = false, benchDownHeld = false, benchRest = 0;
 const skyBench = { y: null, vy: 0, landed: false };
@@ -141,15 +144,38 @@ function saveGame() {
     chapterShown, chapter3Shown,
     playerDmg, weaponName, weaponColor, ranged,
     owned: [...ownedItems], chests: [...openedChests], walls: [...brokenWalls], visited: [...visitedRooms],
-    shade,
+    shade, time: playFrames,
   };
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch (e) {}
+  try { localStorage.setItem(slotKey(saveSlot), JSON.stringify(data)); } catch (e) {}
 }
 
-function loadGame() {
+// La partida guardada en la ranura n, o null si está vacía
+function slotData(n) {
   let d = null;
-  try { d = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch (e) {}
-  if (!d || d.v !== 1 || !d.bench || !ROOMS[d.bench.room]) return false;
+  try { d = JSON.parse(localStorage.getItem(slotKey(n))); } catch (e) {}
+  return d && d.v === 1 && d.bench && ROOMS[d.bench.room] ? d : null;
+}
+// Resumen para la pantalla de inicio
+function readSlot(n) {
+  const d = slotData(n);
+  if (!d) return null;
+  return { chapter: d.chapter3Shown ? 3 : d.chapterShown ? 2 : 1, roomName: ROOMS[d.bench.room].name,
+    maxHp: d.maxHp || 5, money: d.money || 0, time: d.time || 0 };
+}
+function deleteSlot(n) {
+  try { localStorage.removeItem(slotKey(n)); } catch (e) {}
+}
+// la partida única de antes pasa a ser la partida 1
+try {
+  const old = localStorage.getItem(SAVE_KEY);
+  if (old && !localStorage.getItem(slotKey(1))) localStorage.setItem(slotKey(1), old);
+  if (old) localStorage.removeItem(SAVE_KEY);
+} catch (e) {}
+
+function loadGame(n) {
+  const d = slotData(n);
+  if (!d) return false;
+  playFrames = d.time || 0;
   lastBench = d.bench;
   money = d.money || 0; player.maxHp = d.maxHp || player.maxHp; player.hp = player.maxHp;
   bossDefeated = !!d.bossDefeated; boss2Defeated = !!d.boss2Defeated;
@@ -170,8 +196,8 @@ function loadGame() {
   return true;
 }
 
-// Código 0000: borrar la partida guardada y empezar de cero
+// Código 0000: borrar la partida que se está jugando y volver al inicio
 function deleteSave() {
-  try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  deleteSlot(saveSlot);
   location.reload();
 }

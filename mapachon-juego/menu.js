@@ -7,7 +7,7 @@ let pauseSel = 0;
 const PAUSE_MENUS = {
   main: {
     title: 'Pausa',
-    items: () => ['Reanudar', 'Configuraciones', 'Salir'],
+    items: () => ['Reanudar', 'Configuraciones', 'Salir al menú'],
     pick: i => { if (i === 0) closePause(); else if (i === 1) openPause('config'); else openPause('confirm', 1); },
     back: () => closePause(),
   },
@@ -21,7 +21,7 @@ const PAUSE_MENUS = {
     title: '¿Estás seguro?',
     text: 'Toda la información sin guardar se perderá',
     items: () => ['Sí', 'No'],
-    pick: i => { if (i === 0) window.location.href = 'index.html'; else openPause('main', 2); },
+    pick: i => { if (i === 0) location.reload(); else openPause('main', 2); }, // vuelve a la pantalla de partidas
     back: () => openPause('main', 2),
   },
 };
@@ -35,6 +35,7 @@ function closePause() { pauseState = null; }
 
 // Teclas del menú. Devuelve true si la tecla era para el menú.
 function pauseKey(e) {
+  if (titleState) return titleKey(e); // pantalla de inicio
   if (!pauseState) {
     if (e.code === 'Escape' && cheatState === 'closed' && chapterTimer <= 0) { openPause('main'); return true; }
     return false;
@@ -99,6 +100,7 @@ canvas.addEventListener('click', e => {
   if (!el) return;
   el.addEventListener('touchstart', e => {
     e.preventDefault();
+    if (titleState) return;
     if (pauseState) closePause();
     else if (cheatState === 'closed' && chapterTimer <= 0) openPause('main');
   }, { passive: false });
