@@ -33,6 +33,15 @@ const NPCS = {
      'Abajo está el salón de la guardia. De ahí salen ruidos de metal, día y noche.',
      'La gran puerta se abría con dos llaves: una azul y una roja. Quién sabe quién las tenga ahora.',
      'Varios han bajado por esa escalera. Ninguno ha vuelto a subir.'] },
+  // en la entrada: lleva tanto tiempo atrapado que perdió la cordura; rasca la pared para salir
+  0: { name: 'Gaspar... ¿o era Gonzalo?', mad: true, cloak: ['#4e4a44', '#26241f'], x: 44, y: 480, say: () =>
+    ['¡La salida estaba aquí! ¡AQUÍ! Yo la vi... yo entré por aquí...',
+     '¿Cuánto llevo aquí? ¿Tres días? ¿Tres años? Las paredes se mueven cuando no las miras.',
+     'Los que bajaron no volvieron, ¿sabes? Yo sí volví. Creo. ¿Volví?',
+     '¿Oyes el goteo? Gotea al revés... hacia arriba. Je, je.',
+     'No vayas a la derecha. Ni a la izquierda. ¡NO VAYAS!',
+     'Si rasco lo suficiente, sale el sol. Eso me dijo la piedra.',
+     'Shhh... no les digas que me estoy escapando.'] },
   11: { name: 'Fermín, el pastor', cloak: ['#4a4a6a', '#24243a'], x: 470, y: 420, say: () =>
     ['Brrr... Se me perdió una cabra y llegué hasta acá. Aquí nunca amanece.',
      'Allá en la cima hay una trampilla. Dicen que baja a un castillo.',
@@ -51,11 +60,15 @@ function drawNpc() {
   const n = NPCS[currentRoom];
   if (!n) return;
   const t = Date.now() * 0.002, bob = Math.sin(t) * 1.5;
-  const face = player.x + player.w / 2 < n.x ? -1 : 1;
+  const toPlayer = player.x + player.w / 2 < n.x ? -1 : 1;
+  // el que perdió la cordura mira a la pared y a ratos voltea a verte
+  const face = n.mad ? (npcNear(n) && Math.sin(Date.now() * 0.0011) > 0.4 ? toPlayer : -1) : toPlayer;
+  const f = Math.floor(Date.now() / 16) % 100, hop = n.mad && f < 22 ? -Math.sin(f / 22 * Math.PI) * 14 : 0;
   ctx.save();
   ctx.translate(n.x, n.y);
   ctx.fillStyle = 'rgba(0,0,0,0.3)';
-  ctx.beginPath(); ctx.ellipse(0, 1, 16, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, 1, 16 + hop * 0.4, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+  if (n.mad) { drawMadNpc(n, t, bob, face, hop); ctx.restore(); return; }
   // luz del farol
   const lx = face * 17, ly = -22 + bob;
   const g = ctx.createRadialGradient(lx, ly, 0, lx, ly, 60);
@@ -100,6 +113,63 @@ function drawNpc() {
   ctx.strokeStyle = '#6a4a2a'; ctx.lineWidth = 2.5;
   ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(-8, -50 + bob); ctx.stroke();
   ctx.restore();
+}
+
+// Gaspar: brinca y rasca la pared; su farol está tirado en el suelo
+function drawMadNpc(n, t, bob, face, hop) {
+  // farol tirado, parpadeando
+  const on = Math.random() > 0.08;
+  if (on) {
+    const g = ctx.createRadialGradient(26, -6, 0, 26, -6, 55);
+    g.addColorStop(0, 'rgba(255,170,70,0.3)'); g.addColorStop(1, 'rgba(255,170,70,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(26, -6, 55, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.save(); ctx.translate(26, -4); ctx.rotate(1.35);
+  ctx.fillStyle = '#4a3a28'; ctx.fillRect(-4, -5, 8, 2); ctx.fillRect(-4, 5, 8, 2);
+  ctx.fillStyle = on ? 'rgba(255,190,100,0.9)' : 'rgba(90,70,40,0.9)'; ctx.fillRect(-3, -3, 6, 8);
+  ctx.restore();
+  // rasguños en la pared
+  ctx.strokeStyle = 'rgba(200,190,170,0.35)'; ctx.lineWidth = 1;
+  for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.moveTo(-22, -70 + i * 9); ctx.lineTo(-19, -58 + i * 9); ctx.stroke(); }
+  const jit = (Math.random() - 0.5) * 1.2; // tiembla
+  ctx.translate(jit, hop);
+  ctx.scale(face, 1);
+  const b = bob * 2;
+  // capa rota
+  const cloak = ctx.createLinearGradient(0, -46, 0, 0);
+  cloak.addColorStop(0, n.cloak[0]); cloak.addColorStop(1, n.cloak[1]);
+  ctx.fillStyle = cloak;
+  ctx.beginPath();
+  ctx.moveTo(-5, -44 + b); ctx.quadraticCurveTo(-15, -30, -14, 0);
+  ctx.lineTo(12, 0); ctx.quadraticCurveTo(13, -30, 6, -44 + b);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = n.cloak[1];
+  for (let i = -14; i < 10; i += 5) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + 2, 5 + (i & 3)); ctx.lineTo(i + 5, 0); ctx.fill(); }
+  // capucha caída: se le ve el pelo revuelto
+  ctx.fillStyle = '#8a8070';
+  for (let i = 0; i < 7; i++) {
+    const a = -2.6 + i * 0.4 + Math.sin(t * 4 + i) * 0.1;
+    ctx.beginPath(); ctx.moveTo(1, -42 + b); ctx.lineTo(1 + Math.cos(a) * 14, -42 + b + Math.sin(a) * 14); ctx.lineTo(1 + Math.cos(a + 0.2) * 9, -42 + b + Math.sin(a + 0.2) * 9); ctx.fill();
+  }
+  ctx.fillStyle = '#b8a890';
+  ctx.beginPath(); ctx.ellipse(2, -38 + b, 8, 9, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = n.cloak[0];
+  ctx.beginPath(); ctx.ellipse(-2, -30 + b, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
+  // ojos desparejos y muy abiertos
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(2, -40 + b, 3, 0, Math.PI * 2); ctx.arc(8, -39 + b, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.beginPath(); ctx.arc(2.5 + Math.sin(t * 5) * 1, -40 + b, 1, 0, Math.PI * 2); ctx.arc(8.3, -39 + b, 0.8, 0, Math.PI * 2); ctx.fill();
+  // boca torcida
+  ctx.strokeStyle = '#3a2a20'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(2, -33 + b); ctx.quadraticCurveTo(5, -31 + b + Math.sin(t * 7), 9, -34 + b); ctx.stroke();
+  // brazos arriba, rascando
+  ctx.strokeStyle = '#3a3428'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  const sc = Math.sin(t * 14) * 4;
+  ctx.beginPath();
+  ctx.moveTo(-4, -30 + b); ctx.lineTo(-14, -48 + sc);
+  ctx.moveTo(4, -30 + b); ctx.lineTo(-10, -56 - sc);
+  ctx.stroke();
 }
 
 // Globo con lo que dice, encima de todo (también de la oscuridad del pico)
