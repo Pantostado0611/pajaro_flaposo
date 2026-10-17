@@ -144,7 +144,7 @@ function saveGame() {
     chapterShown, chapter3Shown,
     playerDmg, weaponName, weaponColor, ranged,
     owned: [...ownedItems], chests: [...openedChests], walls: [...brokenWalls], visited: [...visitedRooms],
-    shade, time: playFrames,
+    shade, time: playFrames, trash,
   };
   try { localStorage.setItem(slotKey(saveSlot), JSON.stringify(data)); } catch (e) {}
 }
@@ -175,7 +175,7 @@ try {
 function loadGame(n) {
   const d = slotData(n);
   if (!d) return false;
-  playFrames = d.time || 0;
+  playFrames = d.time || 0; trash = d.trash || 0;
   lastBench = d.bench;
   money = d.money || 0; player.maxHp = d.maxHp || player.maxHp; player.hp = player.maxHp;
   bossDefeated = !!d.bossDefeated; boss2Defeated = !!d.boss2Defeated;

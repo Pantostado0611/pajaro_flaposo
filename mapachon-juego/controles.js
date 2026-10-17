@@ -41,14 +41,15 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('keyup', e => { keys[e.code] = false; });
 
-function left()     { return keys['ArrowLeft']  || keys['KeyA'] || touch.left; }
-function right()    { return keys['ArrowRight'] || keys['KeyD'] || touch.right; }
+// (mientras come basura para curarse, el mapache no se mueve)
+function left()     { return !healing && (keys['ArrowLeft']  || keys['KeyA'] || touch.left); }
+function right()    { return !healing && (keys['ArrowRight'] || keys['KeyD'] || touch.right); }
 const zoneOf = r => ROOMS[r].zone ?? r; // sala principal de la zona
 function down()     { return keys['ArrowDown'] || keys['KeyS']; }
 function jumpHeld() { return keys['Space'] || keys['ArrowUp'] || keys['KeyW'] || touch.jump; }
 
 // ─── TÁCTIL ───────────────────────────────────────────────────────────────────
-const touch = { left: false, right: false, jump: false, attack: false, shoot: false };
+const touch = { left: false, right: false, jump: false, attack: false, shoot: false, heal: false };
 
 (function () {
   function bind(id, key) {
@@ -71,6 +72,7 @@ const touch = { left: false, right: false, jump: false, attack: false, shoot: fa
   bind('btn-jump',   'jump');
   bind('btn-attack', 'attack');
   bind('btn-shoot',  'shoot');
+  bind('btn-heal',   'heal');
   const invBtn = document.getElementById('btn-inv');
   if (invBtn) {
     invBtn.addEventListener('touchstart', e => { e.preventDefault(); showInventory = !showInventory; }, { passive: false });

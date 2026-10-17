@@ -47,12 +47,8 @@ function updatePlayer() {
   if (player.invFrames    > 0) player.invFrames--;
   if (player.knockbackTimer > 0) { player.knockbackTimer--; }
 
-  // Regeneración: 1 corazón cada 12 segundos (720 frames a 60fps)
-  player.healTimer++;
-  if (player.healTimer >= 720) {
-    player.healTimer = 0;
-    if (player.hp < player.maxHp) player.hp++;
-  }
+  // Ya no hay regeneración: te curas comiendo basura (basura.js)
+  updateHeal();
 
   resolveCollisions();
   {
@@ -168,6 +164,7 @@ function updateTransition() {
         // Se conserva el progreso: jefes vencidos, llave, puerta abierta y armas compradas.
         // Los jefes no vencidos se reinician al volver a entrar en su sala.
         player.hp = player.maxHp; player.invFrames = 0;
+        trash = 0; // la basura del bote se pierde al morir
       }
       roomLabelAlpha = 1;
       roomLabelTimer = 200;

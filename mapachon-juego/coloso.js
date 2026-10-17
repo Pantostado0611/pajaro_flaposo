@@ -22,7 +22,7 @@ function initBoss3() {
 }
 
 function boss3Hit(dmg, inv) {
-  boss3.hp -= dmg; boss3.invFrames = inv;
+  boss3.hp -= dmg; boss3.invFrames = inv; gainTrash(boss3.x + boss3.w / 2, boss3.y + 20);
   if (boss3.hp <= 0) { boss3.hp = 0; boss3.dead = true; boss3.deathTimer = 160; boss3.projectiles = []; shake(30, 6); }
 }
 

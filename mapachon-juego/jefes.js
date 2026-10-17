@@ -184,7 +184,7 @@ function checkBossCollisions() {
   // Ataque del jugador golpea al jefe
   if (player.attackActive > 0 && boss.invFrames === 0 && boss.state !== 'roar' &&
       collideRect(atkX, atkY, atkW, atkH, boss.x, boss.y, boss.w, boss.h)) {
-    boss.hp -= playerDmg;
+    boss.hp -= playerDmg; gainTrash(boss.x + boss.w / 2, boss.y + 20);
     boss.invFrames = 28;
     if (boss.hp <= 0) { boss.hp = 0; boss.dead = true; boss.deathTimer = 130; boss.projectiles = []; return; }
   }
@@ -193,7 +193,7 @@ function checkBossCollisions() {
   const onBoss   = collideRect(player.x, player.y, player.w, player.h, boss.x, boss.y, boss.w, boss.h);
   const fromTop  = player.vy > 1 && (player.y + player.h) < (boss.y + boss.h * 0.5);
   if (onBoss && fromTop && boss.invFrames === 0 && boss.state !== 'roar') {
-    boss.hp -= playerDmg;
+    boss.hp -= playerDmg; gainTrash(boss.x + boss.w / 2, boss.y + 20);
     boss.invFrames = 28;
     player.vy = -12;
     if (boss.hp <= 0) { boss.hp = 0; boss.dead = true; boss.deathTimer = 130; boss.projectiles = []; return; }

@@ -401,15 +401,7 @@ function drawHUD() {
     drawHeart(20 + i * 28, 50, i < player.hp);
   }
 
-  // Barra de regeneración (solo si no está al máximo)
-  if (player.hp < player.maxHp) {
-    const barW = player.maxHp * 28 - 8;
-    const prog = player.healTimer / 720;
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
-    ctx.fillRect(16, 64, barW, 4);
-    ctx.fillStyle = prog > 0.85 ? '#ff8899' : '#882244';
-    ctx.fillRect(16, 64, barW * prog, 4);
-  }
+  drawTrashHUD(); // bote de basura para curarse
 
   // Dinero
   ctx.font = 'bold 14px monospace';
@@ -458,7 +450,7 @@ function drawHUD() {
   ctx.fillText('⚔ ' + weaponName + '  x' + playerDmg, W - 16, H - 28);
   ctx.fillStyle = 'rgba(255,255,255,0.16)';
   ctx.font = '10px monospace';
-  ctx.fillText('Z / J: corta  |  C / K: larga  |  pisotón: caer encima', W - 16, H - 14);
+  ctx.fillText('Z / J: corta  |  C / K: larga  |  F: comer basura (curar)  |  pisotón: caer encima', W - 16, H - 14);
   ctx.textAlign = 'left';
   ctx.fillText((Music.muted ? '🔇' : '🔊') + ' M: música', 16, H - 14);
 }

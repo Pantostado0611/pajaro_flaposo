@@ -54,7 +54,7 @@ function drawKey() {
 function drawKeyHUD() {
   if (!hasKey && !keyUsed) return;
   // Icono de llave en HUD (junto a los corazones)
-  const kx = 22 + player.maxHp * 28 + 16;
+  const kx = 22 + player.maxHp * 28 + 50; // después del bote de basura
   const ky = 44;
   ctx.save();
   ctx.translate(kx, ky);
@@ -315,7 +315,7 @@ function checkBoss2Collisions() {
   const b2solid = boss2.state !== 'shriek' && boss2.alpha > 0.5;
   if (player.attackActive > 0 && boss2.invFrames === 0 && b2solid &&
       collideRect(atkX, atkY, atkW, atkH, boss2.x, boss2.y, boss2.w, boss2.h)) {
-    boss2.hp -= playerDmg;
+    boss2.hp -= playerDmg; gainTrash(boss2.x + boss2.w / 2, boss2.y + 20);
     boss2.invFrames = 26;
     if (boss2.hp <= 0) { boss2.hp = 0; boss2.dead = true; boss2.deathTimer = 150; boss2.projectiles = []; return; }
   }
@@ -323,7 +323,7 @@ function checkBoss2Collisions() {
   const onBoss2  = collideRect(player.x, player.y, player.w, player.h, boss2.x, boss2.y, boss2.w, boss2.h);
   const fromTop2 = player.vy > 1 && (player.y + player.h) < (boss2.y + boss2.h * 0.5);
   if (onBoss2 && fromTop2 && boss2.invFrames === 0 && b2solid) {
-    boss2.hp -= playerDmg;
+    boss2.hp -= playerDmg; gainTrash(boss2.x + boss2.w / 2, boss2.y + 20);
     boss2.invFrames = 26;
     player.vy = -13;
     if (boss2.hp <= 0) { boss2.hp = 0; boss2.dead = true; boss2.deathTimer = 150; boss2.projectiles = []; return; }

@@ -524,6 +524,7 @@ function checkEnemyCollisions() {
       e.dead = true;
       e.deathTimer = 22;
       addMoney(MONEY_ENEMY, e.x + e.w / 2, e.y);
+      gainTrash(e.x + e.w / 2, e.y);
       // Rebote ligero al golpear
       if (player.knockbackTimer === 0) { player.vy = Math.min(player.vy, -4); }
       continue;
@@ -545,6 +546,7 @@ function checkEnemyCollisions() {
       e.dead = true;
       e.deathTimer = 22;
       addMoney(MONEY_ENEMY, e.x + e.w / 2, e.y);
+      gainTrash(e.x + e.w / 2, e.y);
       player.vy = -11;
       continue;
     }

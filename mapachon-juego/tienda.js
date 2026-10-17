@@ -47,6 +47,7 @@ function tryBuy() {
 
 function tryAttack() {
   if (tryBuy()) return;
+  if (healing) return; // comiendo basura no se ataca
   if (player.attackTimer === 0) {
     player.attackTimer  = 26;
     player.attackActive = 9;

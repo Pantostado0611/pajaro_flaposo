@@ -22,7 +22,7 @@ function initGuards() {
 
 const GUARD_ACTIVE = ['bash', 'jump', 'thrust', 'spin', 'block', 'windup'];
 function guardHit(g, dmg, inv) {
-  g.hp -= dmg; g.invFrames = inv;
+  g.hp -= dmg; g.invFrames = inv; gainTrash(g.x + g.w / 2, g.y + 20);
   if (g.hp <= 0) { g.hp = 0; g.dead = true; g.deathTimer = 120; shake(18, 4); }
 }
 

@@ -89,6 +89,7 @@ function step() {
   drawPlayerShots();
   drawShade();
   drawPlayer();
+  drawTrashFx();
   ctx.restore();
   drawNightDark(room);
   if (currentRoom === 13) { ctx.save(); ctx.translate(-Math.round(camX), -Math.round(camY)); drawCastleDoorHint(); ctx.restore(); }

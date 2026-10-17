@@ -49,7 +49,6 @@ const player = {
   knockbackTimer: 0,
   attackTimer: 0,
   attackActive: 0,
-  healTimer: 0,
 };
 
 const GRAVITY    = 0.55;
