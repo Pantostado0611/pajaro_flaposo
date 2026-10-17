@@ -221,14 +221,13 @@ function drawNpcTalk() {
   ctx.restore();
 }
 
-// ─── NIÑOS DE LA ENTRADA ─────────────────────────────────────────────────────
-// samuFM y LaRataFM: niños con el cerebro podrido. No dicen nada, solo hacen
-// sonidos raros cuando estás cerca (y les salen garabatos de la cabeza).
+// ─── NIÑOS DE LA MONTAÑA ─────────────────────────────────────────────────────
+// samuFM y LaRataFM: niños con el cerebro podrido, sentados en la nieve con la
+// mirada perdida. No dicen nada, solo hacen sonidos raros cuando estás cerca
+// (y les salen garabatos de la cabeza).
 const KIDS = {
-  0: [
-    { name: 'samuFM', kind: 'samu', x: 560, y: 480, cloak: ['#5a6a3a', '#2e361e'], wait: 40, pops: [] },
-    { name: 'LaRataFM', kind: 'rata', x: 980, y: 480, cloak: ['#6a6058', '#34302c'], wait: 90, pops: [] },
-  ],
+  8:  [{ name: 'samuFM', kind: 'samu', x: 210, y: 480, cloak: ['#5a6a3a', '#2e361e'], wait: 40, pops: [] }],
+  29: [{ name: 'LaRataFM', kind: 'rata', x: 836, y: 480, cloak: ['#6a6058', '#34302c'], wait: 90, pops: [] }], // en la orilla del hueco
 };
 const KID_GLYPHS = { samu: ['¿¿??', 'blbl', '~~~', 'BOING', '@_@', 'ñeee'], rata: ['iik!', 'pbbbt', 'kchkch', '!!!', 'ñ i i', 'squik'] };
 
@@ -274,63 +273,65 @@ function drawKids() {
   }
 }
 
-// samuFM: niño flaco que ladea la cabeza, con ojos en espiral y gorro de hélice
+// Ojos con la mirada perdida: fijos, muy abiertos y casi sin parpadear
+function blankEyes(xs, y, r) {
+  const blink = Math.floor(Date.now() / 100) % 55 === 0;
+  for (const x of xs) {
+    if (blink) { ctx.fillStyle = '#2a2020'; ctx.fillRect(x - r, y, r * 2, 0.8); continue; }
+    ctx.fillStyle = '#f4f0e8'; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1a1414'; ctx.beginPath(); ctx.arc(x + r * 0.15, y - r * 0.2, r * 0.32, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+// samuFM: sentado en la nieve con las piernas estiradas y los brazos caídos
 function drawSamu(k, t) {
   ctx.fillStyle = k.cloak[1];
-  ctx.fillRect(-5, -10, 4, 10); ctx.fillRect(2, -10, 4, 10);   // piernas
+  ctx.beginPath(); ctx.roundRect(-4, -6, 18, 5, 2); ctx.fill();  // piernas estiradas
+  ctx.fillStyle = '#3a2a20'; ctx.fillRect(13, -8, 4, 7);          // zapatos
   ctx.fillStyle = k.cloak[0];
-  ctx.beginPath(); ctx.roundRect(-8, -26, 16, 18, 4); ctx.fill(); // cuerpo
-  // brazos colgando que se balancean
+  ctx.beginPath(); ctx.roundRect(-8, -22, 14, 18, 4); ctx.fill(); // cuerpo
   ctx.strokeStyle = k.cloak[1]; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(-7, -23); ctx.lineTo(-11 + Math.sin(t * 3) * 3, -10);
-  ctx.moveTo(7, -23); ctx.lineTo(11 - Math.sin(t * 3) * 3, -10);
-  ctx.stroke();
-  ctx.save(); ctx.translate(0, -30); ctx.rotate(Math.sin(t * 2.3) * 0.35);
+  ctx.beginPath(); ctx.moveTo(-7, -19); ctx.lineTo(-10, -3); ctx.moveTo(5, -19); ctx.lineTo(7, -3); ctx.stroke();
+  ctx.save(); ctx.translate(-1, -27); ctx.rotate(0.22 + Math.sin(t * 0.4) * 0.03); // cabeza ladeada, casi quieta
   ctx.fillStyle = '#c8b498';
   ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#2a2020'; ctx.lineWidth = 0.9;
-  for (const ex of [-3, 3]) {
-    ctx.beginPath();
-    for (let a = 0; a < 9; a += 0.4) { const rr = a * 0.28; ctx.lineTo(ex + Math.cos(a + t * 6) * rr, -1 + Math.sin(a + t * 6) * rr); }
-    ctx.stroke();
-  }
-  // boca abierta babeando
-  ctx.fillStyle = '#3a1a1a'; ctx.beginPath(); ctx.ellipse(0, 4, 2.5, 1.8, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = 'rgba(160,220,255,0.7)'; ctx.fillRect(1, 5, 1, 2 + (Math.sin(t * 2) + 1) * 2);
-  // gorro con hélice
+  blankEyes([-2.5, 3.5], -1, 2.2);
+  ctx.fillStyle = '#3a1a1a'; ctx.beginPath(); ctx.ellipse(1, 4.5, 2, 1.4, 0, 0, Math.PI * 2); ctx.fill(); // boca abierta
+  ctx.fillStyle = 'rgba(160,220,255,0.7)'; ctx.fillRect(1.5, 5.5, 1, 2 + (Math.sin(t * 0.8) + 1) * 2); // baba
+  // gorro de hélice con nieve encima; la hélice apenas gira
   ctx.fillStyle = '#c03030'; ctx.beginPath(); ctx.arc(0, -4, 8, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = '#f0f4ff'; ctx.beginPath(); ctx.ellipse(-2, -11, 5, 2, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#e0c020'; ctx.fillRect(-0.7, -16, 1.4, 5);
-  const sp = Math.cos(t * 12) * 9;
+  const sp = Math.cos(t * 1.2) * 9;
   ctx.strokeStyle = '#4080e0'; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(-sp, -16); ctx.lineTo(sp, -16); ctx.stroke();
   ctx.restore();
 }
 
-// LaRataFM: agachada como rata, con capucha de orejas y cola
+// LaRataFM: sentada abrazando las rodillas, con capucha de orejas y la cola tirada
 function drawRata(k, t) {
-  const sniff = Math.sin(t * 9) * 1.2;
   ctx.strokeStyle = '#c89898'; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(8, -6);
-  ctx.quadraticCurveTo(20, -4 + Math.sin(t * 4) * 6, 24, -12 + Math.sin(t * 4 + 1) * 5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(7, -3); ctx.quadraticCurveTo(16, 0, 24, -1 + Math.sin(t * 0.6)); ctx.stroke();
   ctx.fillStyle = k.cloak[0];
-  ctx.beginPath(); ctx.ellipse(2, -9, 11, 9, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(1, -11, 9, 11, 0, 0, Math.PI * 2); ctx.fill();   // cuerpo
   ctx.fillStyle = k.cloak[1];
-  ctx.fillRect(-7, -3, 5, 3); ctx.fillRect(4, -3, 5, 3);         // manitas en el suelo
-  ctx.save(); ctx.translate(-8, -17 + sniff * 0.4);
+  ctx.beginPath(); ctx.ellipse(-5, -10, 5, 8, -0.2, 0, Math.PI * 2); ctx.fill(); // rodillas
+  ctx.fillStyle = '#3a2a20'; ctx.fillRect(-10, -3, 6, 3);                       // pies
+  ctx.strokeStyle = k.cloak[0]; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(2, -16); ctx.quadraticCurveTo(-9, -15, -9, -10); ctx.stroke(); // brazo abrazando
+  ctx.save(); ctx.translate(-2, -26);
   ctx.fillStyle = k.cloak[0];
   ctx.beginPath(); ctx.arc(0, 0, 7.5, 0, Math.PI * 2); ctx.fill();
   for (const ex of [-5, 4]) {
     ctx.fillStyle = k.cloak[0]; ctx.beginPath(); ctx.arc(ex, -7, 4, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#d8a0a0'; ctx.beginPath(); ctx.arc(ex, -7, 2, 0, Math.PI * 2); ctx.fill();
   }
+  ctx.fillStyle = '#f0f4ff'; ctx.beginPath(); ctx.ellipse(1, -7.5, 3.5, 1.5, 0, 0, Math.PI * 2); ctx.fill(); // nieve en la cabeza
   ctx.fillStyle = '#d8c0a8'; ctx.beginPath(); ctx.ellipse(-2, 1, 5, 5, 0, 0, Math.PI * 2); ctx.fill();
-  // ojitos rojos que no parpadean y nariz que olfatea
-  ctx.fillStyle = '#e02020';
-  ctx.beginPath(); ctx.arc(-4, -1, 1.3, 0, Math.PI * 2); ctx.arc(0, -1, 1.3, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#ff9aa8'; ctx.beginPath(); ctx.arc(-6.5 + sniff * 0.3, 2, 1.4, 0, Math.PI * 2); ctx.fill();
+  blankEyes([-4.5, 0], -0.5, 1.9);
+  ctx.fillStyle = '#ff9aa8'; ctx.beginPath(); ctx.arc(-6.5, 2.5, 1.3, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#fff'; ctx.fillRect(-4, 4, 1.5, 2); ctx.fillRect(-2.3, 4, 1.5, 2);
   ctx.strokeStyle = 'rgba(40,30,30,0.7)'; ctx.lineWidth = 0.6;
-  ctx.beginPath(); ctx.moveTo(-6, 2); ctx.lineTo(-12, sniff); ctx.moveTo(-6, 3); ctx.lineTo(-12, 4 + sniff); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-6, 2); ctx.lineTo(-12, 1); ctx.moveTo(-6, 3); ctx.lineTo(-12, 5); ctx.stroke();
   ctx.restore();
 }
