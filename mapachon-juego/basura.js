@@ -10,6 +10,8 @@ let healing = false, healCharge = 0, healLastHp = 0;
 const trashPops = [];   // basurita que salta del enemigo al pegarle
 const healFx = [];      // migajas y "¡ñam!" al curarse
 let trashFlash = 0;     // brillo del bote al ganar basura
+let healPop = 0;        // saltito de gusto al tragar (cuadros)
+let healJunk = 'lata';  // lo que se está comiendo
 
 const TRASH_KINDS = ['lata', 'cascara', 'espina', 'bolsa', 'manzana'];
 function healHeld() { return keys['KeyF'] || keys['KeyV'] || touch.heal; }
@@ -25,17 +27,20 @@ function gainTrash(x, y, amount = TRASH_HIT) {
 
 function updateHeal() {
   if (trashFlash > 0) trashFlash--;
+  if (healPop > 0) healPop--;
   const can = healHeld() && player.onGround && trash >= TRASH_HEAL && player.hp < player.maxHp &&
     player.attackActive === 0 && player.knockbackTimer === 0;
   // si te pegan mientras comes, se corta
   if (healing && player.hp < healLastHp) { healing = false; healCharge = 0; }
   healLastHp = player.hp;
   if (!can) { healing = false; healCharge = 0; return; }
+  if (!healing) healJunk = TRASH_KINDS[Math.floor(Math.random() * TRASH_KINDS.length)];
   healing = true;
   player.vx = 0; player.jumpBuffered = false;
   if (++healCharge % 9 === 0) healFx.push({ x: player.x + player.w / 2 + player.facing * 10 + (Math.random() - 0.5) * 8, y: player.y + 18, vx: (Math.random() - 0.5) * 2, vy: -1.5 - Math.random(), t: 26, crumb: true });
   if (healCharge >= HEAL_TIME) {
-    trash -= TRASH_HEAL; player.hp++; healCharge = 0; healLastHp = player.hp;
+    trash -= TRASH_HEAL; player.hp++; healCharge = 0; healLastHp = player.hp; healPop = 22;
+    healJunk = TRASH_KINDS[Math.floor(Math.random() * TRASH_KINDS.length)]; // si sigue comiendo, otra cosa
     healFx.push({ x: player.x + player.w / 2, y: player.y - 8, vx: 0, vy: -0.8, t: 50, text: '¡ñam!' });
     for (let i = 0; i < 10; i++) {
       const a = Math.random() * Math.PI * 2;
@@ -80,7 +85,7 @@ function drawTrashFx() {
     ctx.translate(p.x, p.y); ctx.rotate(p.rot); drawJunk(p.kind, 1.2);
     ctx.restore();
   }
-  // mientras come: un pedazo de basura en las manos y un círculo que se llena
+  // mientras come: un círculo que se llena (la basura la sostiene el mapache, ver drawPlayer)
   if (healing) {
     const cx = player.x + player.w / 2, k = healCharge / HEAL_TIME;
     ctx.save();
@@ -88,9 +93,14 @@ function drawTrashFx() {
     ctx.beginPath(); ctx.arc(cx, player.y + player.h / 2, 30, 0, Math.PI * 2); ctx.stroke();
     ctx.strokeStyle = 'rgba(190,255,140,0.85)';
     ctx.beginPath(); ctx.arc(cx, player.y + player.h / 2, 30, -Math.PI / 2, -Math.PI / 2 + k * Math.PI * 2); ctx.stroke();
-    ctx.translate(cx + player.facing * 12, player.y + 20 + Math.sin(healCharge * 0.6) * 1.5);
-    ctx.rotate(Math.sin(healCharge * 0.3) * 0.3);
-    drawJunk(TRASH_KINDS[Math.floor(healCharge / 18 + trash) % TRASH_KINDS.length], 1.3 * (1 - k * 0.5));
+    ctx.restore();
+  }
+  // al tragar: un anillo verde que se abre
+  if (healPop > 0) {
+    const k = 1 - healPop / 22;
+    ctx.save();
+    ctx.strokeStyle = `rgba(190,255,140,${(1 - k).toFixed(2)})`; ctx.lineWidth = 3 * (1 - k) + 1;
+    ctx.beginPath(); ctx.arc(player.x + player.w / 2, player.y + player.h / 2, 30 + k * 30, 0, Math.PI * 2); ctx.stroke();
     ctx.restore();
   }
   for (let i = healFx.length - 1; i >= 0; i--) {

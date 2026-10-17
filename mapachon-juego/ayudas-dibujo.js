@@ -42,6 +42,9 @@ function drawPlayer() {
   const hw = player.w / 2;   // 13
   const hh = player.h / 2;   // 19
   const fs = player.vx * f;  // velocidad hacia delante
+  // comiendo basura: se agacha, mastica y al tragar da un saltito (basura.js)
+  const eat = healing, chew = eat ? Math.sin(healCharge * 0.75) : 0;
+  const pop = healPop > 0 ? Math.sin((1 - healPop / 22) * Math.PI) : 0;
 
   ctx.save();
 
@@ -53,9 +56,16 @@ function drawPlayer() {
     ctx.fill();
   }
 
-  ctx.translate(px + hw, py + hh + bob);
+  ctx.translate(px + hw, py + hh + bob + (eat ? 3 + chew * 0.6 : 0) - pop * 7);
   ctx.rotate(Math.max(-0.12, Math.min(0.12, player.vx * 0.02)));
-  ctx.scale(f * sx, sy);
+  ctx.scale(f * sx * (eat ? 1.06 : 1) * (1 - pop * 0.06), sy * (eat ? 0.9 - chew * 0.015 : 1) * (1 + pop * 0.12));
+  // brillo verde que crece mientras come y estalla al tragar
+  if (eat || pop > 0) {
+    const ga = eat ? 0.1 + 0.25 * healCharge / HEAL_TIME : 0.4 * pop;
+    const gg = ctx.createRadialGradient(0, 0, 4, 0, 0, 36);
+    gg.addColorStop(0, `rgba(170,255,120,${ga.toFixed(2)})`); gg.addColorStop(1, 'rgba(170,255,120,0)');
+    ctx.fillStyle = gg; ctx.beginPath(); ctx.arc(0, 0, 36, 0, Math.PI * 2); ctx.fill();
+  }
 
   // Aura de invencibilidad
   if (godMode) {
@@ -70,8 +80,9 @@ function drawPlayer() {
   // ── COLA de mapache: gruesa, peluda, anillos gris/negro y punta negra ────
   const RINGS = 8;
   const tx0 = -hw + 3, ty0 = hh - 7;
-  const tcx = -hw - 18 - fs * 1.2, tcy = hh - 22 + Math.sin(t * 3) * 2;
-  const tx1 = -hw - 4 - fs * 2.2 + Math.sin(t * 2.4) * 3, ty1 = hh - 40 + Math.abs(fs) * 1.5;
+  // (comiendo, la cola se menea rápido de gusto)
+  const tcx = -hw - 18 - fs * 1.2, tcy = hh - 22 + Math.sin(t * (eat ? 12 : 3)) * (eat ? 4 : 2);
+  const tx1 = -hw - 4 - fs * 2.2 + Math.sin(t * (eat ? 10 : 2.4)) * (eat ? 7 : 3), ty1 = hh - 40 + Math.abs(fs) * 1.5;
   // silueta peluda por detrás
   for (let i = RINGS - 1; i >= 0; i--) {
     const k = i / (RINGS - 1), pt = bezierPt(k, tx0, ty0, tcx, tcy, tx1, ty1);
@@ -149,7 +160,7 @@ function drawPlayer() {
   }
 
   // ── CABEZA DE MAPACHE ─────────────────────────────────────────────────────
-  const hy = -hh + 4;
+  const hy = -hh + 4 + (eat ? 1 + chew * 1.2 : 0); // al masticar la cabeza sube y baja
 
   // orejas algo puntiagudas con borde blanco
   for (const s of [-1, 1]) {
@@ -168,8 +179,10 @@ function drawPlayer() {
   ctx.beginPath(); ctx.arc(0, hy, 13, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = 'rgba(20,18,16,0.45)'; ctx.lineWidth = 1; ctx.stroke();
 
-  // mejillas peludas y blancas que sobresalen
+  // mejillas peludas y blancas que sobresalen (infladas al masticar)
   for (const s of [-1, 1]) {
+    ctx.save();
+    if (eat) { const ch = 1.12 + Math.max(0, chew) * 0.12; ctx.translate(s * 9, hy + 5); ctx.scale(ch, ch); ctx.translate(-s * 9, -hy - 5); }
     ctx.fillStyle = '#ece8e0';
     ctx.beginPath();
     ctx.moveTo(s * 8, hy - 1);
@@ -177,6 +190,7 @@ function drawPlayer() {
     ctx.lineTo(s * 16.5, hy + 8); ctx.lineTo(s * 11, hy + 8.5);
     ctx.lineTo(s * 12, hy + 11); ctx.lineTo(s * 5, hy + 8);
     ctx.closePath(); ctx.fill();
+    ctx.restore();
   }
 
   // cejas blancas sobre el antifaz (le dan cara de decidido)
@@ -204,8 +218,12 @@ function drawPlayer() {
   ctx.fillStyle = '#4a4540';
   ctx.beginPath(); ctx.moveTo(-1.6, hy - 12); ctx.lineTo(1.6, hy - 12); ctx.lineTo(1.2, hy - 3); ctx.lineTo(-1.2, hy - 3); ctx.closePath(); ctx.fill();
 
-  // ojos negros brillantes (parpadean de vez en cuando)
-  if (blinkNow(1)) {
+  // ojos negros brillantes (parpadean de vez en cuando; comiendo, cerrados de gusto)
+  if (eat || pop > 0) {
+    ctx.strokeStyle = '#d8d0c4'; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-8, hy); ctx.quadraticCurveTo(-5, hy - 3, -2, hy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo( 2, hy); ctx.quadraticCurveTo( 5, hy - 3,  8, hy); ctx.stroke();
+  } else if (blinkNow(1)) {
     ctx.strokeStyle = '#5a5550'; ctx.lineWidth = 1.3; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(-8, hy - 0.5); ctx.quadraticCurveTo(-5, hy + 1, -2, hy - 0.5); ctx.stroke();
     ctx.beginPath(); ctx.moveTo( 2, hy - 0.5); ctx.quadraticCurveTo( 5, hy + 1,  8, hy - 0.5); ctx.stroke();
@@ -230,9 +248,14 @@ function drawPlayer() {
   ctx.beginPath(); ctx.ellipse(0, hy + 3.6, 3.2, 2.2, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = 'rgba(255,255,255,0.5)';
   ctx.beginPath(); ctx.arc(-1.1, hy + 2.9, 0.8, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#3a3532'; ctx.lineWidth = 0.9;
-  ctx.beginPath(); ctx.moveTo(0, hy + 5.6); ctx.lineTo(0, hy + 7);
-  ctx.quadraticCurveTo(2, hy + 8.6, 3.6, hy + 7.2); ctx.stroke();
+  if (eat) { // boca que se abre y se cierra
+    ctx.fillStyle = '#3a1a18';
+    ctx.beginPath(); ctx.ellipse(1, hy + 8, 2.6, 0.6 + Math.max(0, chew) * 1.8, 0, 0, Math.PI * 2); ctx.fill();
+  } else {
+    ctx.strokeStyle = '#3a3532'; ctx.lineWidth = 0.9;
+    ctx.beginPath(); ctx.moveTo(0, hy + 5.6); ctx.lineTo(0, hy + 7);
+    ctx.quadraticCurveTo(2, hy + 8.6, 3.6, hy + 7.2); ctx.stroke();
+  }
 
   // bigotes
   ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 0.8; ctx.lineCap = 'round';
@@ -241,6 +264,19 @@ function drawPlayer() {
   ctx.beginPath(); ctx.moveTo(-4, hy + 6); ctx.lineTo(-15, hy + 3.5); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(-4, hy + 7); ctx.lineTo(-15, hy + 9); ctx.stroke();
 
+  // comiendo: guarda el blaster y sostiene la basura con las dos manitas
+  if (eat) {
+    const k = healCharge / HEAL_TIME, jy = hy + 11 - Math.max(0, chew) * 1.5;
+    for (const s of [-1, 1]) {
+      ctx.fillStyle = vol(4 + s * 6, hy + 14, 5, '#9a948a', '#4e4944');
+      ctx.beginPath(); ctx.ellipse(4 + s * 7, hy + 15, 3.5, 5, s * -0.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#1e1a18';
+      ctx.beginPath(); ctx.ellipse(7 + s * 7, jy + 1, 2.8, 2.6, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.save(); ctx.translate(7, jy); ctx.rotate(Math.sin(healCharge * 0.3) * 0.2);
+    drawJunk(healJunk, 1.8 * (1 - k * 0.6)); // entre las manitas; cada mordida la hace más chica
+    ctx.restore();
+  } else {
   // bracito gris con manita oscura
   ctx.fillStyle = vol(hw - 1, -hh + 22, 6, '#9a948a', '#4e4944');
   ctx.beginPath(); ctx.ellipse(hw - 1, -hh + 22, 4, 7, 0.4, 0, Math.PI * 2); ctx.fill();
@@ -284,6 +320,7 @@ function drawPlayer() {
   ctx.beginPath(); ctx.arc(hw + 41, -hh + 15.5, mr + 1, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = 'rgba(220,255,255,0.95)';
   ctx.beginPath(); ctx.arc(hw + 41, -hh + 15.5, 2, 0, Math.PI * 2); ctx.fill();
+  }
 
   // ── TAJO DE ATAQUE con estela (del color del arma) ────────────────────────
   if (player.attackActive > 0) {
