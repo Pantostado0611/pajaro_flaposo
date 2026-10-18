@@ -74,7 +74,7 @@ const ROOMS = {
       { x: 1600, y: 260, w: 140, h: 18 },
     ],
     exits: {
-      up: { room: 22, spawnX: 180, spawnY: 400 },
+      up: { room: 22, spawnX: 470, spawnY: 400 },
     }, // izquierda y derecha las pone el recorrido (ROUTE)
     spawns: { left: { spawnX: 30, spawnY: -140 } }, // se llega por el pasillo alto
     exitBands: { left: [-300, -60], right: [200, 460], up: [1080, 1320] },
@@ -688,48 +688,94 @@ const ROOMS = {
   },
   22: {
     name: 'Pozo de las Estrellas',
+    width: 2400, top: -540, // pozo grande lleno de estrellas: se sube por piedras flotantes del hueco del suelo al del techo
+    upSpawnX: 2100,         // al bajar desde arriba caes en la última piedra
     zone: 3,
     bg: ['#100818', '#1a0e28'],
     floorColor: '#2a1848', platColor: '#3a2060', edgeColor: '#503080',
     particleColor: '#c080ff',
     platforms: [
-      { x: 0, y: 480, w: 380, h: 60 },
-      { x: 580, y: 480, w: 380, h: 60 },
-      { x: 120, y: 380, w: 140, h: 18 },
+      { x: 0, y: -540, w: 2000, h: 60 },
+      // techo, con el hueco de salida
+      { x: 2200, y: -540, w: 200, h: 60 },
+      { x: 0, y: -480, w: 150, h: 700 },
+      // roca de la izquierda
+      { x: 1950, y: 160, w: 450, h: 320 },
+      // roca de abajo a la derecha
+      { x: 0, y: 480, w: 200, h: 60 },
+      // suelo, con el hueco de bajada a la reja
+      { x: 400, y: 480, w: 2000, h: 60 },
+      // subida: escalones, una isla, vuelta a la izquierda y piedras flotantes hacia el hueco
       { x: 700, y: 380, w: 140, h: 18 },
-      { x: 300, y: 290, w: 120, h: 18 },
-      { x: 540, y: 290, w: 120, h: 18 },
-      { x: 140, y: 200, w: 120, h: 18 },
-      { x: 700, y: 200, w: 120, h: 18 },
-      { x: 400, y: 150, w: 160, h: 18 },
+      { x: 1000, y: 290, w: 140, h: 18 },
+      { x: 1300, y: 200, w: 140, h: 18 },
+      { x: 1500, y: 100, w: 400, h: 40 },
+      { x: 1250, y: 0, w: 140, h: 18 },
+      { x: 980, y: -100, w: 140, h: 18 },
+      { x: 700, y: -200, w: 140, h: 18 },
+      { x: 300, y: -300, w: 300, h: 40 },
+      { x: 710, y: -320, w: 130, h: 18 },
+      { x: 950, y: -320, w: 130, h: 18 },
+      { x: 1190, y: -320, w: 130, h: 18 },
+      { x: 1430, y: -330, w: 130, h: 18 },
+      { x: 1670, y: -340, w: 130, h: 18 },
+      { x: 1910, y: -350, w: 130, h: 18 },
+      { x: 2050, y: -410, w: 130, h: 18 },
     ],
     exits: {
-      up: { room: 23, spawnX: 180, spawnY: 400 },
+      up: { room: 23, spawnX: 2250, spawnY: 400 },
       down: { room: 1, spawnX: 1207, spawnY: -470 }, // cae junto a la reja
     },
-    decorations: [ { type:'star', x:90, y:70 }, { type:'star', x:280, y:120 }, { type:'star', x:690, y:50 }, { type:'star', x:870, y:130 } ],
+    spawns: { down: { spawnX: 470, spawnY: 400 } },
+    exitBands: { down: [200, 400], up: [2000, 2200] },
+    decorations: [ { type:'star', x:300, y:-200 }, { type:'star', x:900, y:-420 }, { type:'star', x:1700, y:-200 }, { type:'star', x:600, y:200 },
+      { type:'star', x:1200, y:350 }, { type:'star', x:2200, y:-100 }, { type:'star', x:1800, y:-450 } ],
   },
   23: {
     name: 'Ascenso Fracturado',
+    width: 2400, top: -540, // cielo roto en tres pisos: se entra abajo a la derecha y se sale por el techo a la izquierda
+    upSpawnX: 290,
     zone: 3,
     bg: ['#100818', '#1a0e28'],
     floorColor: '#2a1848', platColor: '#3a2060', edgeColor: '#503080',
     particleColor: '#c080ff',
     platforms: [
-      { x: 0, y: 480, w: 380, h: 60 },
-      { x: 580, y: 480, w: 380, h: 60 },
-      { x: 160, y: 390, w: 120, h: 18 },
-      { x: 680, y: 390, w: 120, h: 18 },
-      { x: 420, y: 310, w: 120, h: 18 },
-      { x: 200, y: 230, w: 120, h: 18 },
-      { x: 640, y: 230, w: 120, h: 18 },
-      { x: 400, y: 150, w: 160, h: 18 },
+      { x: 0, y: -540, w: 200, h: 60 },
+      // techo, con el hueco de salida
+      { x: 400, y: -540, w: 2000, h: 60 },
+      { x: 0, y: 480, w: 2000, h: 60 },
+      // suelo, con el hueco por donde se llega
+      { x: 2200, y: 480, w: 200, h: 60 },
+      { x: 300, y: 120, w: 2100, h: 40 },
+      // piso de en medio
+      { x: 0, y: -240, w: 1900, h: 40 },
+      // piso de arriba
+      // a la izquierda: del suelo al piso de en medio
+      { x: 40, y: 380, w: 110, h: 18 },
+      { x: 170, y: 280, w: 110, h: 18 },
+      { x: 40, y: 180, w: 110, h: 18 },
+      // a la derecha: del piso de en medio al de arriba
+      { x: 2000, y: 20, w: 110, h: 18 },
+      { x: 2200, y: -80, w: 110, h: 18 },
+      { x: 2000, y: -170, w: 110, h: 18 },
+      // hasta el hueco del techo
+      { x: 380, y: -330, w: 110, h: 18 },
+      { x: 230, y: -430, w: 110, h: 18 },
+      // pedazos de cielo roto
+      { x: 800, y: 360, w: 140, h: 18 },
+      { x: 1500, y: 360, w: 140, h: 18 },
+      { x: 1100, y: 0, w: 160, h: 18 },
+      { x: 700, y: -380, w: 140, h: 18 },
+      { x: 1400, y: -380, w: 140, h: 18 },
     ],
     exits: {
       up: { room: 3, spawnX: 180, spawnY: 450 },
-      down: { room: 22, spawnX: 460, spawnY: 40 },
+      down: { room: 22, spawnX: 2100, spawnY: -500 },
     },
-    decorations: [ { type:'star', x:90, y:70 }, { type:'star', x:280, y:120 }, { type:'star', x:690, y:50 }, { type:'star', x:870, y:130 } ],
+    spawns: { down: { spawnX: 2250, spawnY: 400 } },
+    exitBands: { up: [200, 400], down: [2000, 2200] },
+    decorations: [ { type:'star', x:300, y:-420 }, { type:'star', x:1000, y:-420 }, { type:'star', x:1800, y:-400 }, { type:'star', x:600, y:-60 },
+      { type:'star', x:1600, y:-80 }, { type:'star', x:900, y:280 }, { type:'star', x:1900, y:300 } ],
   },
   24: {
     name: 'Escalera del Herrero',
@@ -1322,13 +1368,14 @@ const ENEMY_TEMPLATES = {
     { x: 400, y: -84, dir: 1, patrolMin: 40, patrolMax: 680, speed: 1.2 },
   ],
   22: [
-    { x: 100, y: 456, dir: 1, patrolMin: 20, patrolMax: 350, speed: 1.3 },
-    { x: 800, y: 456, dir: -1, patrolMin: 600, patrolMax: 930, speed: 1.3 },
+    { x: 800, y: 300, dir: 1, patrolMin: 420, patrolMax: 1880, speed: 1.2 },
+    { x: 1200, y: -150, dir: -1, patrolMin: 700, patrolMax: 1700, speed: 1.1 },
+    { x: 1700, y: 0, dir: 1, patrolMin: 1500, patrolMax: 1900, speed: 1.0 },
   ],
   23: [
-    { x: 120, y: 456, dir: 1, patrolMin: 20, patrolMax: 350, speed: 1.4 },
-    { x: 780, y: 456, dir: -1, patrolMin: 600, patrolMax: 930, speed: 1.4 },
-    { x: 440, y: 286, dir: 1, patrolMin: 425, patrolMax: 515, speed: 1.0 },
+    { x: 1000, y: 300, dir: 1, patrolMin: 320, patrolMax: 1900, speed: 1.2 },
+    { x: 1200, y: -60, dir: -1, patrolMin: 400, patrolMax: 1950, speed: 1.1 },
+    { x: 900, y: -400, dir: 1, patrolMin: 520, patrolMax: 1800, speed: 1.0 },
   ],
   24: [
     { x: 120, y: 456, dir: 1, patrolMin: 20, patrolMax: 350, speed: 1.4 },
