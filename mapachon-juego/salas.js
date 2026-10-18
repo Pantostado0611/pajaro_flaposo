@@ -210,47 +210,49 @@ const ROOMS = {
   },
   6: {
     name: 'Castillo del Umbral',
-    width: 2400, top: -540, // salón del castillo en tres pisos: se entra abajo a la izquierda y se sube por el techo
+    width: 2400, top: -540, // pasillos del castillo que suben en zigzag hasta el hueco del techo
     upSpawnX: 1220,         // al bajar de La Cumbre
     bg: ['#0c0a10', '#18141e'],
     floorColor: '#2a2630', platColor: '#3a3542', edgeColor: '#55505e',
     particleColor: '#ff9a40',
     platforms: [
-      { x: 0, y: -540, w: 1100, h: 60 },
-      // techo, con el hueco a La Cumbre
-      { x: 1300, y: -540, w: 1100, h: 60 },
-      { x: 0, y: 480, w: 2400, h: 60 },
-      // suelo
-      { x: 0, y: 120, w: 2000, h: 40 },
-      // primer piso
-      { x: 400, y: -240, w: 2000, h: 40 },
-      // segundo piso
-      // a la derecha: del suelo al primer piso
-      { x: 2100, y: 380, w: 110, h: 18 },
-      { x: 2250, y: 280, w: 110, h: 18 },
-      { x: 2100, y: 190, w: 110, h: 18 },
-      // a la izquierda: del primer piso al segundo
-      { x: 150, y: 30, w: 110, h: 18 },
-      { x: 280, y: -70, w: 110, h: 18 },
-      { x: 150, y: -160, w: 110, h: 18 },
-      // hasta el hueco del techo
-      { x: 1050, y: -340, w: 110, h: 18 },
-      { x: 1180, y: -430, w: 110, h: 18 },
+      // roca (lo que no es pasillo)
+      { x: 0, y: -540, w: 200, h: 870 },
+      { x: 200, y: -540, w: 500, h: 690 },
+      { x: 700, y: -300, w: 60, h: 630 },
+      { x: 0, y: 480, w: 900, h: 60 },
+      { x: 900, y: 330, w: 30, h: 210 },
+      { x: 700, y: -540, w: 300, h: 160 },
+      { x: 1000, y: -540, w: 100, h: 110 },
+      { x: 930, y: 60, w: 370, h: 480 },
+      { x: 1300, y: 140, w: 300, h: 400 },
+      { x: 760, y: -300, w: 980, h: 220 },
+      { x: 1300, y: -540, w: 600, h: 110 },
+      { x: 1600, y: 60, w: 300, h: 480 },
+      { x: 1900, y: -540, w: 500, h: 1080 },
+      { x: 770, y: 390, w: 70, h: 18 },
+      { x: 850, y: 300, w: 70, h: 18 },
+      { x: 770, y: 210, w: 70, h: 18 },
+      { x: 850, y: 120, w: 70, h: 18 },
+      { x: 1750, y: -30, w: 70, h: 18 },
+      { x: 1820, y: -120, w: 70, h: 18 },
+      { x: 1750, y: -210, w: 70, h: 18 },
+      { x: 1130, y: -390, w: 80, h: 18 },
+      { x: 1210, y: -470, w: 80, h: 18 },
+      { x: 300, y: 250, w: 120, h: 18 },
     ],
+
     // Solo sube a La Cumbre Quebrantada (y vuelve al Patio de Armas)
     exits: {
       up:   { room: 7, spawnX: 280, spawnY: 420 },
     }, // la de la izquierda la pone el recorrido (ROUTE)
     spawns: { left: { spawnX: 30, spawnY: 400 } },
-    exitBands: { left: [180, 480], up: [1100, 1300] },
+    exitBands: { left: [330, 480], up: [1100, 1300] },
     decorations: [
       { type:'bricks' },
-      { type:'window', x:500, y:300 }, { type:'window', x:1500, y:300 },
-      { type:'window', x:800, y:-60 }, { type:'window', x:1700, y:-60 },
-      { type:'window', x:700, y:-400 }, { type:'window', x:1800, y:-400 },
-      { type:'torch',  x: 60, y:300 }, { type:'torch', x:1200, y:300 }, { type:'torch', x:2340, y:300 },
-      { type:'torch',  x:1000, y:-60 }, { type:'torch', x:600, y:-420 }, { type:'torch', x:2000, y:-420 },
-      { type:'pillar', x: 30, y:480, h:120 }, { type:'pillar', x:1000, y:480, h:120 }, { type:'pillar', x:1900, y:480, h:120 },
+      { type:'window', x:450, y:230 }, { type:'window', x:1100, y:-20 }, { type:'window', x:1500, y:-380 },
+      { type:'torch', x:60, y:420 }, { type:'torch', x:650, y:250 }, { type:'torch', x:1000, y:0 },
+      { type:'torch', x:1800, y:0 }, { type:'torch', x:1600, y:-370 },
     ],
   },
   7: {
@@ -889,83 +891,83 @@ const ROOMS = {
   },
   26: {
     name: 'Puente Levadizo',
-    width: 2400, top: -540, // muralla con foso: abajo el foso (se cae al patio) y arriba el adarve que lo cruza
+    width: 2400, top: -540, // pasadizos de la muralla: abajo el foso (cae al patio), arriba el adarve
     zone: 6,
     bg: ['#0c0a10', '#18141e'],
     floorColor: '#2a2630', platColor: '#3a3542', edgeColor: '#55505e',
     particleColor: '#ff9a40',
     platforms: [
-      { x: 0, y: -540, w: 2400, h: 60 },
-      // techo
-      { x: 0, y: -480, w: 1000, h: 300 },
-      // muralla de arriba (en medio queda el hueco del rastrillo)
-      { x: 1400, y: -480, w: 1000, h: 300 },
+      // roca (lo que no es pasillo)
+      { x: 0, y: -540, w: 2370, h: 140 },
+      { x: 0, y: -400, w: 1100, h: 150 },
+      { x: 1300, y: -400, w: 1070, h: 270 },
+      { x: 0, y: -250, w: 500, h: 120 },
+      { x: 750, y: -250, w: 350, h: 120 },
+      { x: 0, y: -130, w: 300, h: 460 },
+      { x: 2060, y: -130, w: 310, h: 460 },
+      { x: 460, y: 0, w: 1440, h: 330 },
       { x: 0, y: 480, w: 820, h: 60 },
-      // suelo, con el foso que baja al patio
-      { x: 1060, y: 480, w: 1340, h: 60 },
-      { x: 400, y: 0, w: 1700, h: 40 },
-      // adarve que cruza sobre el foso
-      // escalones al adarve
-      { x: 100, y: 380, w: 110, h: 18 },
-      { x: 250, y: 280, w: 110, h: 18 },
-      { x: 100, y: 180, w: 110, h: 18 },
-      { x: 250, y: 80, w: 110, h: 18 },
-      { x: 2130, y: 380, w: 110, h: 18 },
-      { x: 2250, y: 280, w: 110, h: 18 },
-      { x: 2130, y: 180, w: 110, h: 18 },
-      { x: 2250, y: 80, w: 110, h: 18 },
-      { x: 2370, y: -180, w: 30, h: 560 },
+      { x: 1060, y: 480, w: 1310, h: 60 },
+      { x: 310, y: 390, w: 70, h: 18 },
+      { x: 380, y: 300, w: 70, h: 18 },
+      { x: 310, y: 210, w: 70, h: 18 },
+      { x: 380, y: 120, w: 70, h: 18 },
+      { x: 310, y: 30, w: 70, h: 18 },
+      { x: 1910, y: 390, w: 70, h: 18 },
+      { x: 1980, y: 300, w: 70, h: 18 },
+      { x: 1910, y: 210, w: 70, h: 18 },
+      { x: 1980, y: 120, w: 70, h: 18 },
+      { x: 1910, y: 30, w: 70, h: 18 },
+      { x: 560, y: -130, w: 90, h: 18 },
+      { x: 2370, y: -540, w: 30, h: 870 },
       // pared
-      { x: 2370, y: 380, w: 30, h: 100, breakable: 'w26' },
+      { x: 2370, y: 330, w: 30, h: 150, breakable: 'w26' },
       // parece pared: se rompe a golpes
+      { x: 2370, y: 480, w: 30, h: 60 },
     ],
+
     exits: { right: { room: 41, spawnX: 30, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
     spawns: { left: { spawnX: 30, spawnY: 400 }, down: { spawnX: 760, spawnY: 400 } },
-    exitBands: { left: [180, 480], down: [820, 1060] },
-    decorations: [ { type:'bricks' }, { type:'window', x:600, y:-100 }, { type:'window', x:1800, y:-100 }, { type:'torch', x:60, y:300 }, { type:'torch', x:2320, y:300 } ],
+    exitBands: { left: [330, 480], down: [820, 1060] },
+    decorations: [ { type:'bricks' }, { type:'window', x:1200, y:-300 }, { type:'torch', x:60, y:420 }, { type:'torch', x:1500, y:-70 }, { type:'torch', x:2200, y:420 } ],
   },
   27: {
     name: 'Patio de Armas',
-    width: 2400, top: -540, // patio grande con galerías a los lados: se cae del foso y se sale por la derecha
+    width: 2400, top: -540, // galerías estrechas que bajan del foso al patio y salen a la derecha
     upSpawnX: 930,          // al caer del foso
     zone: 6,
     bg: ['#0c0a10', '#18141e'],
     floorColor: '#2a2630', platColor: '#3a3542', edgeColor: '#55505e',
     particleColor: '#ff9a40',
     platforms: [
-      { x: 0, y: -540, w: 820, h: 60 },
-      // techo, con el hueco del foso
-      { x: 1060, y: -540, w: 1340, h: 60 },
-      { x: 0, y: -480, w: 560, h: 240 },
-      // tejado y piso de la galería izquierda
-      { x: 0, y: -60, w: 560, h: 40 },
-      { x: 1840, y: -480, w: 560, h: 240 },
-      // tejado y piso de la galería derecha
-      { x: 1840, y: -60, w: 560, h: 40 },
+      // roca (lo que no es pasillo)
+      { x: 0, y: -540, w: 820, h: 200 },
+      { x: 1060, y: -540, w: 1340, h: 200 },
+      { x: 0, y: -340, w: 500, h: 140 },
+      { x: 0, y: -200, w: 1140, h: 180 },
+      { x: 1300, y: -340, w: 1100, h: 460 },
+      { x: 460, y: 120, w: 1940, h: 30 },
+      { x: 460, y: 150, w: 740, h: 180 },
+      { x: 1800, y: 150, w: 600, h: 180 },
+      { x: 0, y: -20, w: 300, h: 500 },
       { x: 0, y: 480, w: 2400, h: 60 },
-      // suelo del patio
-      // escalones de en medio, hasta el hueco del foso
-      { x: 650, y: 380, w: 120, h: 18 },
-      { x: 870, y: 290, w: 120, h: 18 },
-      { x: 650, y: 200, w: 120, h: 18 },
-      { x: 870, y: 110, w: 120, h: 18 },
-      { x: 650, y: 20, w: 120, h: 18 },
-      { x: 870, y: -70, w: 120, h: 18 },
-      { x: 650, y: -160, w: 120, h: 18 },
-      { x: 870, y: -250, w: 120, h: 18 },
-      { x: 650, y: -340, w: 120, h: 18 },
-      { x: 870, y: -430, w: 120, h: 18 },
-      // escalones a la galería derecha
-      { x: 1700, y: 380, w: 110, h: 18 },
-      { x: 1560, y: 290, w: 110, h: 18 },
-      { x: 1700, y: 200, w: 110, h: 18 },
-      { x: 1560, y: 110, w: 110, h: 18 },
-      { x: 1700, y: 20, w: 110, h: 18 },
+      { x: 850, y: -290, w: 80, h: 18 },
+      { x: 950, y: -380, w: 80, h: 18 },
+      { x: 850, y: -470, w: 80, h: 18 },
+      { x: 1150, y: 30, w: 70, h: 18 },
+      { x: 1220, y: -60, w: 70, h: 18 },
+      { x: 1150, y: -150, w: 70, h: 18 },
+      { x: 310, y: 390, w: 70, h: 18 },
+      { x: 380, y: 300, w: 70, h: 18 },
+      { x: 310, y: 210, w: 70, h: 18 },
+      { x: 1350, y: 330, w: 120, h: 18 },
+      { x: 1600, y: 240, w: 120, h: 18 },
     ],
+
     exits: {}, // las pone el recorrido (ROUTE)
-    exitBands: { up: [820, 1060], right: [180, 480] },
-    decorations: [ { type:'bricks' }, { type:'window', x:1300, y:-250 }, { type:'window', x:1500, y:-250 }, { type:'torch', x:60, y:300 }, { type:'torch', x:2340, y:300 },
-      { type:'torch', x:300, y:-130 }, { type:'torch', x:2100, y:-130 } ],
+    spawns: { right: { spawnX: 2330, spawnY: 400 } },
+    exitBands: { up: [820, 1060], right: [330, 480] },
+    decorations: [ { type:'bricks' }, { type:'torch', x:600, y:-280 }, { type:'torch', x:700, y:40 }, { type:'torch', x:2300, y:400 } ],
   },
   28: {
     name: 'Adarve Nevado',
@@ -1380,9 +1382,9 @@ const ENEMY_TEMPLATES = {
   4: [], // sala del jefe — sin enemigos normales
   5: [], // armería
   6: [
-    { x: 800, y: 300, dir: 1, patrolMin: 100, patrolMax: 1900, speed: 1.2 },
-    { x: 1200, y: -60, dir: -1, patrolMin: 300, patrolMax: 2200, speed: 1.1 },
-    { x: 900, y: -380, dir: 1, patrolMin: 500, patrolMax: 2000, speed: 1.0 },
+    { x: 400, y: 400, dir: 1, patrolMin: 40, patrolMax: 740, speed: 1.1 },
+    { x: 1100, y: 0, dir: -1, patrolMin: 950, patrolMax: 1880, speed: 1.1 },
+    { x: 1400, y: -370, dir: 1, patrolMin: 1020, patrolMax: 1720, speed: 1.0 },
   ],
   7: [],
   8: [
@@ -1475,15 +1477,14 @@ const ENEMY_TEMPLATES = {
     { x: 600, y: 456, dir: 1, patrolMin: 320, patrolMax: 1480, speed: 1.1 },
   ],
   26: [
-    { x: 400, y: 456, dir: 1, patrolMin: 20, patrolMax: 800, speed: 1.3 },
-    { x: 1600, y: 456, dir: -1, patrolMin: 1080, patrolMax: 2340, speed: 1.3 },
-    { x: 1200, y: -24, dir: 1, patrolMin: 410, patrolMax: 2090, speed: 1.2 },
+    { x: 500, y: 456, dir: 1, patrolMin: 20, patrolMax: 800, speed: 1.2 },
+    { x: 1600, y: 456, dir: -1, patrolMin: 1080, patrolMax: 2340, speed: 1.2 },
+    { x: 1200, y: -24, dir: 1, patrolMin: 480, patrolMax: 1880, speed: 1.1 },
   ],
   27: [
-    { x: 700, y: 456, dir: 1, patrolMin: 40, patrolMax: 1300, speed: 1.3 },
-    { x: 1700, y: 456, dir: -1, patrolMin: 1300, patrolMax: 2340, speed: 1.3 },
-    { x: 300, y: -84, dir: 1, patrolMin: 20, patrolMax: 540, speed: 1.1 },
-    { x: 2100, y: -84, dir: -1, patrolMin: 1850, patrolMax: 2380, speed: 1.1 },
+    { x: 700, y: -224, dir: 1, patrolMin: 520, patrolMax: 1120, speed: 1.1 },
+    { x: 700, y: 96, dir: -1, patrolMin: 480, patrolMax: 1120, speed: 1.1 },
+    { x: 1000, y: 456, dir: 1, patrolMin: 480, patrolMax: 2340, speed: 1.3 },
   ],
   28: [
     { x: 500, y: 456, dir: 1, patrolMin: 20, patrolMax: 1410, speed: 1.4 },
