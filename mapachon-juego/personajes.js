@@ -24,7 +24,7 @@ const NPCS = {
      '¿Ves esa reja en el techo? Desde que me acuerdo ha estado cerrada con candado.',
      'La gente dice que la llave se la quedó el rey de allá abajo. Yo nomás repito lo que oigo.',
      'Varios han ido a buscarla. Ninguno ha regresado.'] },
-  37: { name: 'Rosendo, el viejo mozo', cloak: ['#5a3a3a', '#2e1e20'], x: 110, y: 480, say: () =>
+  37: { name: 'Rosendo, el viejo mozo', cloak: ['#5a3a3a', '#2e1e20'], x: 2120, y: 480, say: () =>
     castleDoorOpen ? ['¿Abriste la gran puerta? Del otro lado estaba el viejo castillo...',
                       'No sé qué quede ahí ahora. Yo me quedo aquí, gracias.'] :
     guardsDefeated ? ['Ya no se oye nada allá abajo... ¿Qué pasó con los guardias?',
@@ -42,7 +42,7 @@ const NPCS = {
      'No vayas a la derecha. Ni a la izquierda. ¡NO VAYAS!',
      'Si rasco lo suficiente, sale el sol. Eso me dijo la piedra.',
      'Shhh... no les digas que me estoy escapando.'] },
-  11: { name: 'Fermín, el pastor', cloak: ['#4a4a6a', '#24243a'], x: 470, y: 420, say: () =>
+  11: { name: 'Fermín, el pastor', cloak: ['#4a4a6a', '#24243a'], x: 1900, y: -200, say: () =>
     ['Brrr... Se me perdió una cabra y llegué hasta acá. Aquí nunca amanece.',
      'Allá en la cima hay una trampilla. Dicen que baja a un castillo.',
      'Los que han bajado por ahí no han vuelto a salir. Yo ni me acerco.',
@@ -226,8 +226,8 @@ function drawNpcTalk() {
 // mirada perdida. No dicen nada, solo hacen sonidos raros cuando estás cerca
 // (y les salen garabatos de la cabeza).
 const KIDS = {
-  8:  [{ name: 'samuFM', kind: 'samu', x: 210, y: 480, cloak: ['#5a6a3a', '#2e361e'], wait: 40, pops: [] }],
-  29: [{ name: 'LaRataFM', kind: 'rata', x: 836, y: 480, cloak: ['#6a6058', '#34302c'], wait: 90, pops: [] }], // en la orilla del hueco
+  8:  [{ name: 'samuFM', kind: 'samu', x: 300, y: 480, cloak: ['#5a6a3a', '#2e361e'], wait: 40, pops: [] }],
+  29: [{ name: 'LaRataFM', kind: 'rata', x: 2125, y: 480, cloak: ['#6a6058', '#34302c'], wait: 90, pops: [] }], // en la orilla del hueco
 };
 const KID_GLYPHS = { samu: ['¿¿??', 'blbl', '~~~', 'BOING', '@_@', 'ñeee'], rata: ['iik!', 'pbbbt', 'kchkch', '!!!', 'ñ i i', 'squik'] };
 

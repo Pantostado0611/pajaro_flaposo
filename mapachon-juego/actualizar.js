@@ -80,7 +80,7 @@ function checkExits() {
     const on = player.onGround && Math.abs(player.y + player.h - hatch.y) < 4 &&
       Math.abs(player.x + player.w / 2 - (hatch.x + hatch.w / 2)) < hatch.w / 2;
     hatchTimer = on && Math.abs(player.vx) < 0.5 ? hatchTimer + 1 : 0;
-    if (on && (down() || hatchTimer >= 45)) { hatchTimer = 0; startTransition(hatch.room, 460, 40); return; }
+    if (on && (down() || hatchTimer >= 45)) { hatchTimer = 0; startTransition(hatch.room, hatch.spawnX ?? 460, hatch.spawnY ?? 40); return; }
   }
 
   if (currentRoom === 13 && !castleDoorOpen && keysHeld.blue && keysHeld.red &&

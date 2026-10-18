@@ -291,7 +291,7 @@ function drawPlatforms(room) {
     if (p.breakable && brokenWalls.has(p.breakable)) continue;
     if (p.breakable && room.platforms.some(q => fakeWallUnder(q, p))) continue; // lo pinta su pared
     const fake = room.platforms.find(b => b.breakable && !brokenWalls.has(b.breakable) && fakeWallUnder(p, b));
-    if (fake) p = { ...p, h: p.h + fake.h };
+    if (fake) p = { ...p, h: p.h + fake.h, _src: p };
     if (p.trapdoor && boss2Defeated) {
       // Portal abierto: vacío oscuro con bordes que brillan en púrpura
       const pulse = 0.45 + 0.25 * Math.sin(Date.now() * 0.004);
@@ -322,6 +322,7 @@ function drawPlatforms(room) {
     if (room.width) { // sala grande: solo lo que se ve
       if (p.x + p.w < camX - 10 || p.x > camX + W / camZ + 10 || p.y > camY + H / camZ + 10 || p.y + p.h < camY - 10) continue;
       if (!room.style) { drawSlab(ctx, p, room); continue; }
+      if (room.carved && p.h > 18) { drawCarvedRock(room, p); continue; } // sala de pasillos (roca.js)
     }
     if (room.style === 'castleRock') { drawCastleRockStone(p); continue; }
     if (room.style === 'mountain') { drawMountainRock(p, room.night); continue; }
