@@ -50,8 +50,15 @@ function openPause(state, sel = 0) {
   pauseState = state; pauseSel = sel;
   for (const k in keys) keys[k] = false; // que el mapache no siga caminando
   for (const k in touch) if (typeof touch[k] === 'boolean') touch[k] = false;
+  menuHidesTouch(true);
 }
-function closePause() { pauseState = null; rebind = null; }
+function closePause() { pauseState = null; rebind = null; menuHidesTouch(false); }
+// con el menú abierto se esconden los botones táctiles (menos ⏸), para que uno
+// que se movió al centro no tape las opciones
+function menuHidesTouch(on) {
+  const tc = document.getElementById('touch-controls');
+  if (tc && tc.classList && typeof tc.classList.toggle === 'function') tc.classList.toggle('menu-open', on);
+}
 
 // Nombres para mostrar
 const actionName = a => ACTIONS.find(x => x[0] === a)[1];

@@ -68,4 +68,5 @@
     border-radius: 6px; padding: 6px 10px; cursor: pointer;
   }
   #touch-edit-bar button[data-te="listo"] { background: #3a4a8a; }
+  #touch-controls.menu-open .t-btn:not(#btn-pause) { visibility: hidden; }
   .t-btn.te-sel { outline: 3px dashed #ffe080; outline-offset: 3px; }

@@ -36,6 +36,7 @@ function rememberTouchBtn(id) {
 let touchEditBar = null;
 function startTouchEdit() {
   pauseState = 'touchedit';
+  menuHidesTouch(false);
   touchEdit = { sel: null, drag: null };
   const tc = document.getElementById('touch-controls');
   if (tc) tc.style.display = 'block'; // también en compu, para poder acomodarlos con el ratón
