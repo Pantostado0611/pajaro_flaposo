@@ -487,7 +487,8 @@ function drawHUD() {
   ctx.fillText('⚔ ' + weaponName + '  x' + playerDmg, W - 16, H - 28);
   ctx.fillStyle = 'rgba(255,255,255,0.16)';
   ctx.font = '10px monospace';
-  ctx.fillText('Z / J: corta  |  C / K: larga  |  F: comer basura (curar)  |  pisotón: caer encima', W - 16, H - 14);
+  ctx.fillText(gamepadActive ? 'A: saltar  |  X: atacar  |  Y / RB: disparar  |  B: comer basura (curar)  |  Start: pausa'
+    : 'Z / J: corta  |  C / K: larga  |  F: comer basura (curar)  |  pisotón: caer encima', W - 16, H - 14);
   ctx.textAlign = 'left';
   ctx.fillText((Music.muted ? '🔇' : '🔊') + ' M: música', 16, H - 14);
 }

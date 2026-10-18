@@ -146,7 +146,7 @@ function drawTitle() {
   ctx.textAlign = 'center'; ctx.fillStyle = qOn ? '#ffffff' : '#b8c4e8'; ctx.font = (qOn ? 'bold ' : '') + '16px serif';
   ctx.fillText('Salir', W / 2, q.y + q.h / 2 + 1);
   ctx.fillStyle = 'rgba(138,152,200,0.6)'; ctx.font = '12px monospace';
-  ctx.fillText('↑ ↓ elegir  ·  → borrar  ·  Enter jugar', W / 2, H - 18);
+  ctx.fillText(gamepadActive ? '↑ ↓ elegir  ·  → borrar  ·  A jugar  ·  B volver' : '↑ ↓ elegir  ·  → borrar  ·  Enter jugar', W / 2, H - 18);
   // confirmación
   if (titleState === 'confirm') {
     ctx.fillStyle = 'rgba(2,4,12,0.72)'; ctx.fillRect(0, 0, W, H);

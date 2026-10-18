@@ -14,6 +14,7 @@ function frame(ts) {
 }
 
 function step() {
+  pollGamepads(); // mando de consola (mando.js)
   Music.update();
   ctx.setTransform(renderScale, 0, 0, renderScale, 0, 0);
   ctx.imageSmoothingQuality = 'high';
