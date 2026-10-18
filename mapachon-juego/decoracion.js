@@ -33,7 +33,7 @@ const ROOM_THEME = {
   26: [{ type:'chains', x:300, y:-270, len:330 }, { type:'chains', x:1140, y:-270, len:330 }, { type:'portcullis', x:640, y:-250, w:160, h:150 }],
   27: [{ type:'dummy', x:300 }, { type:'dummy', x:1120 }, { type:'target', x:1250, y:200 }, { type:'target', x:200, y:120 }],
   28: [{ type:'brazier', x:300 }, { type:'brazier', x:1150 }, { type:'snowfall' }],
-  29: [{ type:'brazier', x:1200 }, { type:'lantern', x:300, y:-150 }, { type:'lantern', x:1326, y:-215, wall: 1 }, { type:'snowfall' }],
+  29: [{ type:'brazier', x:1200 }, { type:'lantern', x:114, y:-125, wall: -1 }, { type:'lantern', x:1326, y:-215, wall: 1 }, { type:'snowfall' }],
   8:  [{ type:'icicles', x0:200, x1:310, y:368 }, { type:'icicles', x0:560, x1:680, y:328 }, { type:'icicles', x0:770, x1:900, y:258 }, { type:'snowfall' }],
   30: [{ type:'pine', x:220, h:150 }, { type:'pine', x:1240, h:190 }, { type:'pine', x:1110, h:120 }, { type:'snowDrift', x:500, w:160 }, { type:'snowfall' }],
   31: [{ type:'icicles', x0:140, x1:280, y:-2 }, { type:'icicles', x0:1160, x1:1300, y:-2 }, { type:'icicles', x0:380, x1:520, y:-102 },
