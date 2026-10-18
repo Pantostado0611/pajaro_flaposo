@@ -325,7 +325,7 @@ function drawPlatforms(room) {
     }
     if (room.style === 'castleRock') { drawCastleRockStone(p); continue; }
     if (room.style === 'mountain') { drawMountainRock(p, room.night); continue; }
-    if (room.style === 'organic') { drawOrganicEarth(p, room.smooth); continue; }
+    if (room.style === 'organic') { drawOrganicEarth(p, room.smooth, room); continue; }
     // las losas normales se dibujan una vez y se guardan (ver slabLayer)
   }
   if (room.spikes) drawSpikePits(room);
@@ -463,7 +463,7 @@ function drawCastleRockStone(p) {
 
 // Roca de montaña con nieve encima (más oscura cuanto más de noche)
 // Tierra amorfa: bordes ondulados, musgo arriba y raicillas colgando
-function drawOrganicEarth(p, smooth) {
+function drawOrganicEarth(p, smooth, room) {
   // Columna que cuelga del techo: se dibuja metida en él, sin musgo, para que no se vea la costura
   if (p.joinTop && !smooth) p = { x: p.x, y: p.y - 18, w: p.w, h: p.h + 18, joinTop: true };
   const thin = p.h < 40, wave = (x, y) => (Math.sin(x * 0.11 + y * 0.07) + Math.sin(x * 0.043 - y * 0.13)) * (thin ? 2.5 : 5);
@@ -473,7 +473,12 @@ function drawOrganicEarth(p, smooth) {
   for (let y = p.y; y <= p.y + p.h; y += step) pts.push([p.x + p.w + wob(p.x + p.w, y) * 0.8, y]);
   for (let x = p.x + p.w; x >= p.x; x -= step) pts.push([x, p.y + p.h + wob(x, p.y + p.h) * (thin ? 1.6 : 1) + (thin ? 6 : 0)]);
   for (let y = p.y + p.h; y >= p.y; y -= step) pts.push([p.x + wob(p.x, y) * 0.8, y]);
-  const g = ctx.createLinearGradient(0, p.y, 0, p.y + p.h + 8);
+  // ¿hay otra roca pegada justo encima/debajo en esa x? (la sala es roca con pasillos: no se pinta musgo ni raíces por dentro)
+  const solid = q => q !== p && q.h > 18 && !q.breakable;
+  const coveredAt = (x, above) => room && room.platforms.some(q => solid(q) && x >= q.x && x <= q.x + q.w &&
+    (above ? q.y + q.h === p.y : q.y === p.y + p.h));
+  const g = smooth && room && room.top !== undefined && p.h > 18
+    ? ctx.createLinearGradient(0, room.top, 0, H) : ctx.createLinearGradient(0, p.y, 0, p.y + p.h + 8); // sala lisa: un solo degradado para toda la roca
   if (p.joinTop) { g.addColorStop(0, '#1c1407'); g.addColorStop(0.35, '#3a2c18'); g.addColorStop(1, '#1a1206'); }
   else { g.addColorStop(0, '#4a3820'); g.addColorStop(1, '#1a1206'); }
   ctx.fillStyle = g;
@@ -487,11 +492,16 @@ function drawOrganicEarth(p, smooth) {
   // musgo por encima
   ctx.strokeStyle = '#5a7a2a'; ctx.lineWidth = 3; ctx.lineCap = 'round';
   ctx.beginPath();
-  for (let x = p.x; x <= p.x + p.w; x += step) { const y = p.y + wob(x, p.y) - (thin ? 2 : 0); x === p.x ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+  let pen = false;
+  for (let x = p.x; x <= p.x + p.w; x += step) {
+    if (coveredAt(x, true)) { pen = false; continue; }
+    const y = p.y + wob(x, p.y) - (thin ? 2 : 0); pen ? ctx.lineTo(x, y) : ctx.moveTo(x, y); pen = true;
+  }
   ctx.stroke();
   // raicillas colgando por debajo
   ctx.strokeStyle = 'rgba(90,60,30,0.8)'; ctx.lineWidth = 1.4;
   for (let x = p.x + 12; x < p.x + p.w - 6; x += 26) {
+    if (coveredAt(x, false)) continue;
     const y0 = p.y + p.h + (thin ? 5 : 2), len = 6 + Math.abs(wave(x * 3, y0)) * 2.5;
     ctx.beginPath(); ctx.moveTo(x, y0); ctx.quadraticCurveTo(x + 3, y0 + len * 0.6, x - 1, y0 + len); ctx.stroke();
   }
