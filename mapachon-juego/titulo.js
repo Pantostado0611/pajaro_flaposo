@@ -45,7 +45,10 @@ function titleLayout() {
 }
 
 function titleAct() {
-  if (titleSel === SLOTS) { window.location.href = 'index.html'; return; }
+  if (titleSel === SLOTS) { // en el programa de escritorio cierra el juego; en la web vuelve a los minijuegos
+    if (window.escritorio) window.escritorio.salir(); else window.location.href = 'index.html';
+    return;
+  }
   const s = titleSlots[titleSel];
   if (titleCol === 1 && s) { titleSlotToDelete = titleSel + 1; titleConfirmSel = 1; titleState = 'confirm'; return; }
   startSlot(titleSel + 1);

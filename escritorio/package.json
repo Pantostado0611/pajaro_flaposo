@@ -1,0 +1,48 @@
+{
+  "name": "mapachon",
+  "productName": "Mapachón",
+  "version": "1.0.0",
+  "description": "Mapachón: Explorador de Ruinas",
+  "author": "Burned Games",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "copiar": "node copiar.js",
+    "start": "node copiar.js && electron .",
+    "dist": "node copiar.js && electron-builder --win nsis portable"
+  },
+  "build": {
+    "appId": "com.burnedgames.mapachon",
+    "productName": "Mapachón",
+    "executableName": "Mapachon",
+    "files": [
+      "main.js",
+      "preload.js",
+      "juego/**"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Mapachón",
+      "artifactName": "Mapachon-Instalador-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Mapachon-Portable-${version}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
+  }
+}
