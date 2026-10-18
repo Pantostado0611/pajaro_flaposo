@@ -33,7 +33,7 @@ const ROOM_THEME = {
   26: [{ type:'chains', x:300, y:-270, len:330 }, { type:'chains', x:1140, y:-270, len:330 }, { type:'portcullis', x:640, y:-250, w:160, h:150 }],
   27: [{ type:'dummy', x:300 }, { type:'dummy', x:1120 }, { type:'target', x:1250, y:200 }, { type:'target', x:200, y:120 }],
   28: [{ type:'brazier', x:300 }, { type:'brazier', x:1150 }, { type:'snowfall' }],
-  29: [{ type:'brazier', x:1200 }, { type:'lantern', x:300, y:-150 }, { type:'lantern', x:1140, y:-150 }, { type:'snowfall' }],
+  29: [{ type:'brazier', x:1200 }, { type:'lantern', x:300, y:-150 }, { type:'lantern', x:1326, y:-215, wall: 1 }, { type:'snowfall' }],
   8:  [{ type:'icicles', x0:200, x1:310, y:368 }, { type:'icicles', x0:560, x1:680, y:328 }, { type:'icicles', x0:770, x1:900, y:258 }, { type:'snowfall' }],
   30: [{ type:'pine', x:220, h:150 }, { type:'pine', x:1240, h:190 }, { type:'pine', x:1110, h:120 }, { type:'snowDrift', x:500, w:160 }, { type:'snowfall' }],
   31: [{ type:'icicles', x0:140, x1:280, y:-2 }, { type:'icicles', x0:1160, x1:1300, y:-2 }, { type:'icicles', x0:380, x1:520, y:-102 },
@@ -480,7 +480,11 @@ const THEME_DECO = {
   },
   lantern(d) {
     const t = Date.now() * 0.006, f = 0.85 + 0.15 * Math.sin(t + d.x);
-    THEME_DECO.chains({ x: d.x, y: d.y - 50, len: 40 });
+    if (d.wall) { // colgada de un brazo de hierro clavado en la pared (wall: 1 pared a la derecha, -1 a la izquierda)
+      ctx.strokeStyle = '#2a2a30'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(d.x + d.wall * 24, d.y - 22); ctx.lineTo(d.x, d.y - 22); ctx.lineTo(d.x, d.y - 10);
+      ctx.moveTo(d.x + d.wall * 24, d.y - 4); ctx.lineTo(d.x + d.wall * 10, d.y - 21); ctx.stroke();
+    } else THEME_DECO.chains({ x: d.x, y: d.y - 50, len: 40 });
     const g = ctx.createRadialGradient(d.x, d.y + 10, 0, d.x, d.y + 10, 80 * f);
     g.addColorStop(0, 'rgba(255,200,100,0.3)'); g.addColorStop(1, 'rgba(255,200,100,0)');
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(d.x, d.y + 10, 80 * f, 0, Math.PI * 2); ctx.fill();
