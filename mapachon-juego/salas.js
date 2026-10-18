@@ -210,33 +210,47 @@ const ROOMS = {
   },
   6: {
     name: 'Castillo del Umbral',
+    width: 2400, top: -540, // salón del castillo en tres pisos: se entra abajo a la izquierda y se sube por el techo
+    upSpawnX: 1220,         // al bajar de La Cumbre
     bg: ['#0c0a10', '#18141e'],
-    floorColor: '#2a2630',
-    platColor:  '#3a3542',
-    edgeColor:  '#55505e',
+    floorColor: '#2a2630', platColor: '#3a3542', edgeColor: '#55505e',
     particleColor: '#ff9a40',
     platforms: [
-      { x:   0, y: 480, w: 960, h: 60 },
-      { x:  90, y: 400, w: 150, h: 18 },
-      { x: 300, y: 320, w: 150, h: 18 },
-      { x: 560, y: 250, w: 150, h: 18 },
-      { x: 380, y: 160, w: 200, h: 18 }, // rellano bajo la salida
+      { x: 0, y: -540, w: 1100, h: 60 },
+      // techo, con el hueco a La Cumbre
+      { x: 1300, y: -540, w: 1100, h: 60 },
+      { x: 0, y: 480, w: 2400, h: 60 },
+      // suelo
+      { x: 0, y: 120, w: 2000, h: 40 },
+      // primer piso
+      { x: 400, y: -240, w: 2000, h: 40 },
+      // segundo piso
+      // a la derecha: del suelo al primer piso
+      { x: 2100, y: 380, w: 110, h: 18 },
+      { x: 2250, y: 280, w: 110, h: 18 },
+      { x: 2100, y: 190, w: 110, h: 18 },
+      // a la izquierda: del primer piso al segundo
+      { x: 150, y: 30, w: 110, h: 18 },
+      { x: 280, y: -70, w: 110, h: 18 },
+      { x: 150, y: -160, w: 110, h: 18 },
+      // hasta el hueco del techo
+      { x: 1050, y: -340, w: 110, h: 18 },
+      { x: 1180, y: -430, w: 110, h: 18 },
     ],
-    // Solo sube a La Cumbre Quebrantada (y vuelve a La Cima)
+    // Solo sube a La Cumbre Quebrantada (y vuelve al Patio de Armas)
     exits: {
-      left: { room: 27, spawnX: 1390, spawnY: 400 },
       up:   { room: 7, spawnX: 280, spawnY: 420 },
-    },
+    }, // la de la izquierda la pone el recorrido (ROUTE)
+    spawns: { left: { spawnX: 30, spawnY: 400 } },
+    exitBands: { left: [180, 480], up: [1100, 1300] },
     decorations: [
       { type:'bricks' },
-      { type:'window', x:160, y:120 },
-      { type:'window', x:800, y:120 },
-      { type:'banner', x:270, y:40 },
-      { type:'banner', x:690, y:40 },
-      { type:'torch',  x: 60, y:300 },
-      { type:'torch',  x:900, y:300 },
-      { type:'pillar', x: 30, y:480, h:120 },
-      { type:'pillar', x:930, y:480, h:120 },
+      { type:'window', x:500, y:300 }, { type:'window', x:1500, y:300 },
+      { type:'window', x:800, y:-60 }, { type:'window', x:1700, y:-60 },
+      { type:'window', x:700, y:-400 }, { type:'window', x:1800, y:-400 },
+      { type:'torch',  x: 60, y:300 }, { type:'torch', x:1200, y:300 }, { type:'torch', x:2340, y:300 },
+      { type:'torch',  x:1000, y:-60 }, { type:'torch', x:600, y:-420 }, { type:'torch', x:2000, y:-420 },
+      { type:'pillar', x: 30, y:480, h:120 }, { type:'pillar', x:1000, y:480, h:120 }, { type:'pillar', x:1900, y:480, h:120 },
     ],
   },
   7: {
@@ -258,7 +272,7 @@ const ROOMS = {
       { x: 760, y: 330, w: 110, h: 18 },
     ],
     exits: {
-      down:  { room: 6, spawnX: 460, spawnY: 110 },
+      down:  { room: 6, spawnX: 1220, spawnY: -500 },
       right: { room: 28, spawnX:  30, spawnY: 400 }, // subida a la montaña
     },
     decorations: [
@@ -868,61 +882,83 @@ const ROOMS = {
   },
   26: {
     name: 'Puente Levadizo',
-    width: 1440, top: -270, // torre: se entra y se sale por cualquier lado
+    width: 2400, top: -540, // muralla con foso: abajo el foso (se cae al patio) y arriba el adarve que lo cruza
     zone: 6,
     bg: ['#0c0a10', '#18141e'],
     floorColor: '#2a2630', platColor: '#3a3542', edgeColor: '#55505e',
     particleColor: '#ff9a40',
     platforms: [
-      { x: 0, y: 480, w: 620, h: 60 },
-      { x: 820, y: 480, w: 620, h: 60 },
-      { x: 150, y: 380, w: 140, h: 18 },
-      { x: 1150, y: 380, w: 140, h: 18 },
-      { x: 360, y: 280, w: 140, h: 18 },
-      { x: 940, y: 280, w: 140, h: 18 },
-      { x: 600, y: 180, w: 240, h: 18 },
-      { x: 280, y: 80, w: 220, h: 60 },
-      { x: 940, y: 80, w: 220, h: 60 },
-      { x: 140, y: -20, w: 140, h: 18 },
-      { x: 1160, y: -20, w: 140, h: 18 },
-      { x: 380, y: -120, w: 140, h: 18 },
-      { x: 920, y: -120, w: 140, h: 18 },
-      { x: 640, y: -170, w: 160, h: 18 },
-      { x: 0, y: -270, w: 90, h: 180 },
-      { x: 1350, y: -270, w: 90, h: 150 },
-      { x: 1410, y: -270, w: 30, h: 650 },   // pared
-      { x: 1410, y: 380, w: 30, h: 100, breakable: 'w26' }, // parece pared: se rompe a golpes
+      { x: 0, y: -540, w: 2400, h: 60 },
+      // techo
+      { x: 0, y: -480, w: 1000, h: 300 },
+      // muralla de arriba (en medio queda el hueco del rastrillo)
+      { x: 1400, y: -480, w: 1000, h: 300 },
+      { x: 0, y: 480, w: 820, h: 60 },
+      // suelo, con el foso que baja al patio
+      { x: 1060, y: 480, w: 1340, h: 60 },
+      { x: 400, y: 0, w: 1700, h: 40 },
+      // adarve que cruza sobre el foso
+      // escalones al adarve
+      { x: 100, y: 380, w: 110, h: 18 },
+      { x: 250, y: 280, w: 110, h: 18 },
+      { x: 100, y: 180, w: 110, h: 18 },
+      { x: 250, y: 80, w: 110, h: 18 },
+      { x: 2130, y: 380, w: 110, h: 18 },
+      { x: 2250, y: 280, w: 110, h: 18 },
+      { x: 2130, y: 180, w: 110, h: 18 },
+      { x: 2250, y: 80, w: 110, h: 18 },
+      { x: 2370, y: -180, w: 30, h: 560 },
+      // pared
+      { x: 2370, y: 380, w: 30, h: 100, breakable: 'w26' },
+      // parece pared: se rompe a golpes
     ],
     exits: { right: { room: 41, spawnX: 30, spawnY: 400, hidden: true } }, // el resto las pone el recorrido (ROUTE)
-    decorations: [ { type:'bricks' }, { type:'window', x:200, y:120 }, { type:'window', x:760, y:120 }, { type:'torch', x:60, y:300 }, { type:'torch', x:900, y:300 } ],
+    spawns: { left: { spawnX: 30, spawnY: 400 }, down: { spawnX: 760, spawnY: 400 } },
+    exitBands: { left: [180, 480], down: [820, 1060] },
+    decorations: [ { type:'bricks' }, { type:'window', x:600, y:-100 }, { type:'window', x:1800, y:-100 }, { type:'torch', x:60, y:300 }, { type:'torch', x:2320, y:300 } ],
   },
   27: {
     name: 'Patio de Armas',
-    width: 1440, top: -270, // torre: se entra y se sale por cualquier lado
+    width: 2400, top: -540, // patio grande con galerías a los lados: se cae del foso y se sale por la derecha
+    upSpawnX: 930,          // al caer del foso
     zone: 6,
     bg: ['#0c0a10', '#18141e'],
     floorColor: '#2a2630', platColor: '#3a3542', edgeColor: '#55505e',
     particleColor: '#ff9a40',
     platforms: [
-      { x: 0, y: 480, w: 1440, h: 60 },
-      { x: 150, y: 380, w: 140, h: 18 },
-      { x: 1150, y: 380, w: 140, h: 18 },
-      { x: 360, y: 280, w: 140, h: 18 },
-      { x: 940, y: 280, w: 140, h: 18 },
-      { x: 600, y: 180, w: 240, h: 18 },
-      { x: 280, y: 80, w: 220, h: 60 },
-      { x: 940, y: 80, w: 220, h: 60 },
-      { x: 140, y: -20, w: 140, h: 18 },
-      { x: 1160, y: -20, w: 140, h: 18 },
-      { x: 380, y: -120, w: 140, h: 18 },
-      { x: 920, y: -120, w: 140, h: 18 },
-      { x: 640, y: -170, w: 160, h: 18 },
-      { x: 0, y: -270, w: 90, h: 180 },
-      { x: 1350, y: -270, w: 90, h: 150 },
-      { x: 0, y: -270, w: 30, h: 750 },   // pared
+      { x: 0, y: -540, w: 820, h: 60 },
+      // techo, con el hueco del foso
+      { x: 1060, y: -540, w: 1340, h: 60 },
+      { x: 0, y: -480, w: 560, h: 240 },
+      // tejado y piso de la galería izquierda
+      { x: 0, y: -60, w: 560, h: 40 },
+      { x: 1840, y: -480, w: 560, h: 240 },
+      // tejado y piso de la galería derecha
+      { x: 1840, y: -60, w: 560, h: 40 },
+      { x: 0, y: 480, w: 2400, h: 60 },
+      // suelo del patio
+      // escalones de en medio, hasta el hueco del foso
+      { x: 650, y: 380, w: 120, h: 18 },
+      { x: 870, y: 290, w: 120, h: 18 },
+      { x: 650, y: 200, w: 120, h: 18 },
+      { x: 870, y: 110, w: 120, h: 18 },
+      { x: 650, y: 20, w: 120, h: 18 },
+      { x: 870, y: -70, w: 120, h: 18 },
+      { x: 650, y: -160, w: 120, h: 18 },
+      { x: 870, y: -250, w: 120, h: 18 },
+      { x: 650, y: -340, w: 120, h: 18 },
+      { x: 870, y: -430, w: 120, h: 18 },
+      // escalones a la galería derecha
+      { x: 1700, y: 380, w: 110, h: 18 },
+      { x: 1560, y: 290, w: 110, h: 18 },
+      { x: 1700, y: 200, w: 110, h: 18 },
+      { x: 1560, y: 110, w: 110, h: 18 },
+      { x: 1700, y: 20, w: 110, h: 18 },
     ],
     exits: {}, // las pone el recorrido (ROUTE)
-    decorations: [ { type:'bricks' }, { type:'window', x:200, y:120 }, { type:'window', x:760, y:120 }, { type:'torch', x:60, y:300 }, { type:'torch', x:900, y:300 } ],
+    exitBands: { up: [820, 1060], right: [180, 480] },
+    decorations: [ { type:'bricks' }, { type:'window', x:1300, y:-250 }, { type:'window', x:1500, y:-250 }, { type:'torch', x:60, y:300 }, { type:'torch', x:2340, y:300 },
+      { type:'torch', x:300, y:-130 }, { type:'torch', x:2100, y:-130 } ],
   },
   28: {
     name: 'Adarve Nevado',
@@ -1258,7 +1294,7 @@ const ROOMS = {
     name: 'Bodega del Castillo', secret: true, zone: 6,
     bg: ['#0c0a10', '#18141e'], floorColor: '#2a2630', platColor: '#3a3542', edgeColor: '#55505e', particleColor: '#ff9a40',
     platforms: [ { x: 0, y: 480, w: 960, h: 60 }, { x: 500, y: 380, w: 140, h: 18 }, { x: 260, y: 300, w: 140, h: 18 } ],
-    exits: { left: { room: 26, spawnX: 1370, spawnY: 400, hidden: true } },
+    exits: { left: { room: 26, spawnX: 2330, spawnY: 400, hidden: true } },
     chest: { id: 'c41', x: 820, y: 480, heart: 1 },
     decorations: [ { type:'bricks' }, { type:'torch', x:60, y:300 }, { type:'torch', x:900, y:300 } ],
   },
@@ -1337,8 +1373,9 @@ const ENEMY_TEMPLATES = {
   4: [], // sala del jefe — sin enemigos normales
   5: [], // armería
   6: [
-    { x: 600, y: 456, dir: -1, patrolMin: 420, patrolMax: 900, speed: 1.5 },
-    { x: 320, y: 296, dir:  1, patrolMin: 300, patrolMax: 422, speed: 1.3 },
+    { x: 800, y: 300, dir: 1, patrolMin: 100, patrolMax: 1900, speed: 1.2 },
+    { x: 1200, y: -60, dir: -1, patrolMin: 300, patrolMax: 2200, speed: 1.1 },
+    { x: 900, y: -380, dir: 1, patrolMin: 500, patrolMax: 2000, speed: 1.0 },
   ],
   7: [],
   8: [
@@ -1431,19 +1468,15 @@ const ENEMY_TEMPLATES = {
     { x: 1500, y: -244, dir: -1, patrolMin: 1255, patrolMax: 1890, speed: 1.1 },
   ],
   26: [
-    { x: 200, y: 456, dir: 1, patrolMin: 20, patrolMax: 590, speed: 1.3 },
-    { x: 1000, y: 456, dir: -1, patrolMin: 850, patrolMax: 1370, speed: 1.3 },
-    { x: 300, y: 56, dir: 1, patrolMin: 285, patrolMax: 470, speed: 1.1 },
-    { x: 1000, y: 56, dir: -1, patrolMin: 945, patrolMax: 1130, speed: 1.1 },
-    { x: 660, y: 156, dir: 1, patrolMin: 605, patrolMax: 810, speed: 1.2 },
-    { x: 650, y: -194, dir: 1, patrolMin: 645, patrolMax: 770, speed: 1.0 },
+    { x: 400, y: 456, dir: 1, patrolMin: 20, patrolMax: 800, speed: 1.3 },
+    { x: 1600, y: 456, dir: -1, patrolMin: 1080, patrolMax: 2340, speed: 1.3 },
+    { x: 1200, y: -24, dir: 1, patrolMin: 410, patrolMax: 2090, speed: 1.2 },
   ],
   27: [
-    { x: 500, y: 456, dir: 1, patrolMin: 20, patrolMax: 1410, speed: 1.4 },
-    { x: 300, y: 56, dir: 1, patrolMin: 285, patrolMax: 470, speed: 1.1 },
-    { x: 1000, y: 56, dir: -1, patrolMin: 945, patrolMax: 1130, speed: 1.1 },
-    { x: 660, y: 156, dir: 1, patrolMin: 605, patrolMax: 810, speed: 1.2 },
-    { x: 650, y: -194, dir: 1, patrolMin: 645, patrolMax: 770, speed: 1.0 },
+    { x: 700, y: 456, dir: 1, patrolMin: 40, patrolMax: 1300, speed: 1.3 },
+    { x: 1700, y: 456, dir: -1, patrolMin: 1300, patrolMax: 2340, speed: 1.3 },
+    { x: 300, y: -84, dir: 1, patrolMin: 20, patrolMax: 540, speed: 1.1 },
+    { x: 2100, y: -84, dir: -1, patrolMin: 1850, patrolMax: 2380, speed: 1.1 },
   ],
   28: [
     { x: 500, y: 456, dir: 1, patrolMin: 20, patrolMax: 1410, speed: 1.4 },
