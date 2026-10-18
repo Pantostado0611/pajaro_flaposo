@@ -3,7 +3,7 @@
 // Al acercarte dicen sus frases una tras otra; lo que dicen cambia según lo que
 // ya hiciste (por eso cada texto es una función que devuelve las frases).
 const NPCS = {
-  21: { name: 'Anselmo, el carbonero', cloak: ['#5a4a3a', '#2e2620'], x: 1250, y: 480, say: () =>
+  21: { name: 'Anselmo, el carbonero', cloak: ['#5a4a3a', '#2e2620'], x: 1950, y: 480, say: () =>
     keyUsed ? ['Dicen que alguien abrió la reja de los Cristales. ¿Fuiste tú?',
                'Pues ten cuidado allá arriba. Nadie sabe qué hay.'] :
     hasKey ? ['¡Esa llave dorada! Igualita a la de los cuentos de mi abuelo.',

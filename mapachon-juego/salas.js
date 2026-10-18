@@ -625,58 +625,66 @@ const ROOMS = {
   },
   20: {
     name: 'Antesala Carmesí',
-    width: 1440, top: -270, // torre: se entra y se sale por cualquier lado
+    width: 2400, top: -540, // salón alto con balcones: se sube del hueco del suelo al pasillo de arriba a la derecha
     zone: 4,
     bg: ['#100505', '#200808'],
     floorColor: '#301010', platColor: '#481818', edgeColor: '#602020',
     particleColor: '#ff4040',
     platforms: [
-      { x: 0, y: 480, w: 620, h: 60 },
-      { x: 820, y: 480, w: 620, h: 60 },
-      { x: 150, y: 380, w: 140, h: 18 },
-      { x: 1150, y: 380, w: 140, h: 18 },
-      { x: 360, y: 280, w: 140, h: 18 },
-      { x: 940, y: 280, w: 140, h: 18 },
-      { x: 600, y: 180, w: 240, h: 18 },
-      { x: 280, y: 80, w: 220, h: 60 },
-      { x: 940, y: 80, w: 220, h: 60 },
-      { x: 140, y: -20, w: 140, h: 18 },
-      { x: 1160, y: -20, w: 140, h: 18 },
-      { x: 380, y: -120, w: 140, h: 18 },
-      { x: 920, y: -120, w: 140, h: 18 },
-      { x: 640, y: -170, w: 160, h: 18 },
-      { x: 0, y: -270, w: 90, h: 180 },
-      { x: 1350, y: -270, w: 90, h: 150 },
+      { x: 0, y: -540, w: 2400, h: 60 },
+      // techo
+      { x: 1900, y: -480, w: 500, h: 180 },
+      // roca sobre el pasillo de salida
+      { x: 1900, y: -60, w: 500, h: 540 },
+      // roca bajo el pasillo de salida
+      { x: 0, y: 480, w: 200, h: 60 },
+      // suelo, con el hueco de bajada
+      { x: 400, y: 480, w: 2000, h: 60 },
+      // balcones que suben en zigzag
+      { x: 600, y: 380, w: 200, h: 24 },
+      { x: 950, y: 280, w: 300, h: 30 },
+      { x: 1400, y: 180, w: 300, h: 30 },
+      { x: 1000, y: 70, w: 250, h: 30 },
+      { x: 600, y: -40, w: 250, h: 30 },
+      { x: 200, y: -150, w: 250, h: 30 },
+      { x: 550, y: -250, w: 1350, h: 30 },
+      // galería de arriba, hasta el pasillo
     ],
     exits: {}, // las pone el recorrido (ROUTE)
-    decorations: [ { type:'pillar', x:100, y:420, h:60 }, { type:'pillar', x:480, y:420, h:60 }, { type:'pillar', x:860, y:420, h:60 } ],
+    spawns: { right: { spawnX: 2330, spawnY: -140 }, down: { spawnX: 470, spawnY: 400 } },
+    exitBands: { right: [-300, -60], down: [200, 400] },
+    decorations: [ { type:'pillar', x:800, y:420, h:60 }, { type:'pillar', x:1300, y:420, h:60 }, { type:'pillar', x:1750, y:420, h:60 } ],
   },
   21: {
     name: 'Corredor del Trono',
-    width: 1440, top: -270, // torre: se entra y se sale por cualquier lado
+    width: 2400, top: -540, // se entra arriba a la izquierda y se baja por terrazas al pasillo del trono
     zone: 4,
     bg: ['#100505', '#200808'],
     floorColor: '#301010', platColor: '#481818', edgeColor: '#602020',
     particleColor: '#ff4040',
     platforms: [
-      { x: 0, y: 480, w: 1440, h: 60 },
-      { x: 150, y: 380, w: 140, h: 18 },
-      { x: 1150, y: 380, w: 140, h: 18 },
-      { x: 360, y: 280, w: 140, h: 18 },
-      { x: 940, y: 280, w: 140, h: 18 },
-      { x: 600, y: 180, w: 240, h: 18 },
-      { x: 280, y: 80, w: 220, h: 60 },
-      { x: 940, y: 80, w: 220, h: 60 },
-      { x: 140, y: -20, w: 140, h: 18 },
-      { x: 1160, y: -20, w: 140, h: 18 },
-      { x: 380, y: -120, w: 140, h: 18 },
-      { x: 920, y: -120, w: 140, h: 18 },
-      { x: 640, y: -170, w: 160, h: 18 },
-      { x: 0, y: -270, w: 90, h: 180 },
-      { x: 1350, y: -270, w: 90, h: 150 },
+      { x: 0, y: -540, w: 2400, h: 60 },
+      // techo
+      { x: 0, y: -480, w: 700, h: 180 },
+      // roca sobre el pasillo de entrada
+      { x: 0, y: -60, w: 700, h: 140 },
+      // piso del pasillo de entrada (abajo queda el rincón del banco)
+      { x: 700, y: 120, w: 500, h: 60 },
+      // terrazas que bajan
+      { x: 1350, y: 300, w: 400, h: 40 },
+      { x: 2100, y: -480, w: 300, h: 640 },
+      // roca sobre la puerta del trono
+      { x: 0, y: 480, w: 2400, h: 60 },
+      // suelo
+      // escalones para volver a subir
+      { x: 1800, y: 390, w: 110, h: 18 },
+      { x: 1230, y: 210, w: 100, h: 18 },
+      { x: 800, y: 30, w: 110, h: 18 },
     ],
     exits: {}, // las pone el recorrido (ROUTE)
-    decorations: [ { type:'pillar', x:100, y:420, h:60 }, { type:'pillar', x:480, y:420, h:60 }, { type:'pillar', x:860, y:420, h:60 } ],
+    spawns: { left: { spawnX: 30, spawnY: -140 } }, // se llega por el pasillo de arriba
+    exitBands: { left: [-300, -60], right: [160, 480] },
+    decorations: [ { type:'pillar', x:100, y:420, h:60 }, { type:'pillar', x:1300, y:420, h:60 }, { type:'pillar', x:2050, y:420, h:60 } ],
   },
   22: {
     name: 'Pozo de las Estrellas',
@@ -1301,19 +1309,17 @@ const ENEMY_TEMPLATES = {
     { x: 1900, y: 206, dir: -1, patrolMin: 1855, patrolMax: 2060, speed: 1.1 },
   ],
   20: [
-    { x: 200, y: 456, dir: 1, patrolMin: 20, patrolMax: 590, speed: 1.3 },
-    { x: 1000, y: 456, dir: -1, patrolMin: 850, patrolMax: 1410, speed: 1.3 },
-    { x: 300, y: 56, dir: 1, patrolMin: 285, patrolMax: 470, speed: 1.1 },
-    { x: 1000, y: 56, dir: -1, patrolMin: 945, patrolMax: 1130, speed: 1.1 },
-    { x: 660, y: 156, dir: 1, patrolMin: 605, patrolMax: 810, speed: 1.2 },
-    { x: 650, y: -194, dir: 1, patrolMin: 645, patrolMax: 770, speed: 1.0 },
+    { x: 900, y: 456, dir: 1, patrolMin: 420, patrolMax: 1880, speed: 1.3 },
+    { x: 1000, y: 256, dir: -1, patrolMin: 955, patrolMax: 1220, speed: 1.1 },
+    { x: 1450, y: 156, dir: 1, patrolMin: 1405, patrolMax: 1670, speed: 1.1 },
+    { x: 1000, y: -274, dir: 1, patrolMin: 560, patrolMax: 1880, speed: 1.3 },
+    { x: 2100, y: -84, dir: -1, patrolMin: 1920, patrolMax: 2350, speed: 1.2 },
   ],
   21: [
-    { x: 500, y: 456, dir: 1, patrolMin: 20, patrolMax: 1410, speed: 1.4 },
-    { x: 300, y: 56, dir: 1, patrolMin: 285, patrolMax: 470, speed: 1.1 },
-    { x: 1000, y: 56, dir: -1, patrolMin: 945, patrolMax: 1130, speed: 1.1 },
-    { x: 660, y: 156, dir: 1, patrolMin: 605, patrolMax: 810, speed: 1.2 },
-    { x: 650, y: -194, dir: 1, patrolMin: 645, patrolMax: 770, speed: 1.0 },
+    { x: 1200, y: 456, dir: 1, patrolMin: 760, patrolMax: 1750, speed: 1.3 },
+    { x: 2200, y: 456, dir: -1, patrolMin: 2000, patrolMax: 2350, speed: 1.2 },
+    { x: 900, y: 96, dir: 1, patrolMin: 705, patrolMax: 1180, speed: 1.1 },
+    { x: 400, y: -84, dir: 1, patrolMin: 40, patrolMax: 680, speed: 1.2 },
   ],
   22: [
     { x: 100, y: 456, dir: 1, patrolMin: 20, patrolMax: 350, speed: 1.3 },

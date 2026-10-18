@@ -120,7 +120,11 @@ function drawDecoration(room, d) {
     }
     if (d.type === 'floatStones') drawFloatStones(room);
     if (d.type === 'ruinedWalls') drawRuinedWalls(room);
-    if (THEME_DECO[d.type]) THEME_DECO[d.type](d, room);
+    if (THEME_DECO[d.type]) {
+      if (d.onY !== undefined) { ctx.save(); ctx.translate(0, d.onY - 480); } // adorno de suelo puesto en un piso más alto
+      THEME_DECO[d.type](d, room);
+      if (d.onY !== undefined) ctx.restore();
+    }
     if (d.type === 'jokeText') {
       const wob = Math.sin(Date.now() * 0.004) * 0.04;
       ctx.save();
