@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Mapachón - Explorador de Ruinas</title>
 <link rel="stylesheet" href="mapachon-juego/estilo.css">
+<link rel="manifest" href="/mapachon-juego/app/manifest.json">
+<meta name="theme-color" content="#0e1428">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mapachón">
+<link rel="apple-touch-icon" href="/mapachon-juego/app/icono-apple-180.png">
 </head>
 <body>
 <div id="game-wrap">
@@ -64,5 +71,9 @@
 <script src="mapachon-juego/titulo.js"></script>
 <script src="mapachon-juego/musica.js"></script>
 <script src="mapachon-juego/principal.js"></script>
+<script>
+// se puede instalar como app (celular o compu); en el programa de Windows no hace falta
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('/sw.js').catch(() => {});
+</script>
 </body>
 </html>

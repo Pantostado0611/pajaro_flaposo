@@ -1,0 +1,18 @@
+{
+  "name": "Mapachón: Explorador de Ruinas",
+  "short_name": "Mapachón",
+  "description": "Explora las ruinas como un mapache aventurero.",
+  "id": "/mapachon.html",
+  "start_url": "/mapachon.html",
+  "scope": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#000000",
+  "theme_color": "#0e1428",
+  "lang": "es",
+  "icons": [
+    { "src": "/mapachon-juego/app/icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/mapachon-juego/app/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/mapachon-juego/app/icono-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

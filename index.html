@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MINIJUEGOS</title>
+  <link rel="manifest" href="/mapachon-juego/app/manifest.json">
+  <meta name="theme-color" content="#0e1428">
+  <link rel="apple-touch-icon" href="/mapachon-juego/app/icono-apple-180.png">
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -254,6 +257,15 @@
       text-decoration: underline;
     }
     .card-download-alt:hover { color: var(--cyan); }
+    [hidden] { display: none !important; }
+    .card-install { width: 100%; background: transparent; font-family: inherit; cursor: pointer; }
+    .install-help {
+      font-size: 7px;
+      line-height: 2;
+      color: #ccc;
+      border: 2px dashed var(--cyan);
+      padding: 10px;
+    }
 
     /* ── FOOTER ── */
     footer {
@@ -327,6 +339,8 @@
            onclick="event.stopPropagation()" title="Instalador para Windows (unos 80 MB)">⬇ DESCARGAR PARA WINDOWS</a>
         <a class="card-download-alt" href="https://github.com/Pantostado0611/pajaro_flaposo/releases/tag/mapachon-v1.0.1"
            onclick="event.stopPropagation()">versión portable y notas</a>
+        <button class="card-download card-install" hidden onclick="event.stopPropagation(); instalarMapachon()">📲 INSTALAR EN EL CELULAR</button>
+        <div class="install-help" hidden onclick="event.stopPropagation()"></div>
       </div>
     </div>
 
@@ -442,6 +456,27 @@ document.querySelectorAll('.card-bg').forEach(cvs => {
   init();
   setInterval(draw, 80);
 });
+</script>
+<script>
+  // Mapachón: en celular se instala como app (no sirve el .exe de Windows)
+  const esCel = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform));
+  const esIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform));
+  let promptInstalar = null;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptInstalar = e; });
+  if (esCel) {
+    document.querySelectorAll('.card-download:not(.card-install), .card-download-alt').forEach(el => el.hidden = true);
+    const yaInstalada = matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches || navigator.standalone;
+    if (!yaInstalada) document.querySelector('.card-install').hidden = false;
+  }
+  function instalarMapachon() {
+    if (promptInstalar) { promptInstalar.prompt(); promptInstalar = null; return; }
+    const ayuda = document.querySelector('.install-help');
+    ayuda.innerHTML = esIOS
+      ? 'En <b>Safari</b> toca el botón <b>Compartir</b> (el cuadrito con la flecha ↑) y luego <b>"Agregar a pantalla de inicio"</b>.'
+      : 'En <b>Chrome</b> toca el menú <b>⋮</b> (arriba a la derecha) y luego <b>"Instalar app"</b> o <b>"Agregar a la pantalla principal"</b>.';
+    ayuda.hidden = false;
+  }
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('/sw.js').catch(() => {});
 </script>
 </body>
 </html>
