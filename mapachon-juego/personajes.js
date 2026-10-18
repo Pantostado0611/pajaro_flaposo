@@ -34,7 +34,7 @@ const NPCS = {
      'La gran puerta se abría con dos llaves: una azul y una roja. Quién sabe quién las tenga ahora.',
      'Varios han bajado por esa escalera. Ninguno ha vuelto a subir.'] },
   // en la entrada: lleva tanto tiempo atrapado que perdió la cordura; rasca la pared para salir
-  0: { name: 'YisusFM', mad: true, cloak: ['#4e4a44', '#26241f'], x: 44, y: 480, say: () =>
+  0: { name: 'Eusebio... ¿o era Ezequiel?', mad: true, cloak: ['#4e4a44', '#26241f'], x: 44, y: 480, say: () =>
     ['¡La salida estaba aquí! ¡AQUÍ! Yo la vi... yo entré por aquí...',
      '¿Cuánto llevo aquí? ¿Tres días? ¿Tres años? Las paredes se mueven cuando no las miras.',
      'Los que bajaron no volvieron, ¿sabes? Yo sí volví. Creo. ¿Volví?',
@@ -115,7 +115,7 @@ function drawNpc() {
   ctx.restore();
 }
 
-// YisusFM: brinca y rasca la pared; su farol está tirado en el suelo
+// Eusebio: brinca y rasca la pared; su farol está tirado en el suelo
 function drawMadNpc(n, t, bob, face, hop) {
   // farol tirado, parpadeando
   const on = Math.random() > 0.08;
@@ -218,120 +218,5 @@ function drawNpcTalk() {
     ctx.fillStyle = i === L.i ? '#ffc870' : 'rgba(255,200,112,0.3)';
     ctx.beginPath(); ctx.arc(bx + bw - 12 - (lines0.length - 1 - i) * 8, by + 12, 2.2, 0, Math.PI * 2); ctx.fill();
   }
-  ctx.restore();
-}
-
-// ─── NIÑOS DE LA MONTAÑA ─────────────────────────────────────────────────────
-// samuFM y LaRataFM: niños con el cerebro podrido, sentados en la nieve con la
-// mirada perdida. No dicen nada, solo hacen sonidos raros cuando estás cerca
-// (y les salen garabatos de la cabeza).
-const KIDS = {
-  8:  [{ name: 'samuFM', kind: 'samu', x: 300, y: 480, cloak: ['#5a6a3a', '#2e361e'], wait: 40, pops: [] }],
-  29: [{ name: 'LaRataFM', kind: 'rata', x: 2125, y: 480, cloak: ['#6a6058', '#34302c'], wait: 90, pops: [] }], // en la orilla del hueco
-};
-const KID_GLYPHS = { samu: ['¿¿??', 'blbl', '~~~', 'BOING', '@_@', 'ñeee'], rata: ['iik!', 'pbbbt', 'kchkch', '!!!', 'ñ i i', 'squik'] };
-
-function drawKids() {
-  const list = KIDS[currentRoom];
-  if (!list) return;
-  const t = Date.now() * 0.002;
-  for (const k of list) {
-    const d = Math.hypot(player.x + player.w / 2 - k.x, player.y + player.h - k.y);
-    // sonido raro de vez en cuando si estás cerca (no en pausa ni en transición)
-    if (!pauseState && !transitioning && cheatState === 'closed' && d < 320 && --k.wait <= 0) {
-      Music.weird(k.kind, 1 - d / 320);
-      const g = KID_GLYPHS[k.kind];
-      k.pops.push({ txt: g[Math.floor(Math.random() * g.length)], age: 0, dx: (Math.random() - 0.5) * 20 });
-      k.wait = 70 + Math.floor(Math.random() * 120);
-      k.shake = 20;
-    }
-    if (k.shake > 0) k.shake--;
-    ctx.save();
-    ctx.translate(k.x, k.y);
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.beginPath(); ctx.ellipse(0, 1, 11, 2.5, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.save();
-    if (k.shake > 0) ctx.translate((Math.random() - 0.5) * 3, (Math.random() - 0.5) * 2);
-    if (k.kind === 'samu') drawSamu(k, t); else drawRata(k, t);
-    ctx.restore();
-    // garabatos que suben y se desvanecen
-    ctx.font = 'bold 11px monospace'; ctx.textAlign = 'center';
-    const col = k.kind === 'samu' ? '190,255,120' : '255,200,200';
-    for (const p of k.pops) {
-      if (!pauseState) p.age++;
-      ctx.fillStyle = `rgba(${col},${Math.max(0, 1 - p.age / 70).toFixed(2)})`;
-      ctx.fillText(p.txt, p.dx + Math.sin(p.age * 0.3) * 4, -44 - p.age * 0.6);
-    }
-    k.pops = k.pops.filter(p => p.age < 70);
-    // su nombre, solo cuando estás cerca
-    if (d < 140) {
-      ctx.globalAlpha = Math.min(1, (140 - d) / 40);
-      ctx.fillStyle = '#ffc870'; ctx.font = 'bold 10px monospace';
-      ctx.fillText(k.name, 0, 14);
-    }
-    ctx.restore();
-  }
-}
-
-// Ojos con la mirada perdida: fijos, muy abiertos y casi sin parpadear
-function blankEyes(xs, y, r) {
-  const blink = Math.floor(Date.now() / 100) % 55 === 0;
-  for (const x of xs) {
-    if (blink) { ctx.fillStyle = '#2a2020'; ctx.fillRect(x - r, y, r * 2, 0.8); continue; }
-    ctx.fillStyle = '#f4f0e8'; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#1a1414'; ctx.beginPath(); ctx.arc(x + r * 0.15, y - r * 0.2, r * 0.32, 0, Math.PI * 2); ctx.fill();
-  }
-}
-
-// samuFM: sentado en la nieve con las piernas estiradas y los brazos caídos
-function drawSamu(k, t) {
-  ctx.fillStyle = k.cloak[1];
-  ctx.beginPath(); ctx.roundRect(-4, -6, 18, 5, 2); ctx.fill();  // piernas estiradas
-  ctx.fillStyle = '#3a2a20'; ctx.fillRect(13, -8, 4, 7);          // zapatos
-  ctx.fillStyle = k.cloak[0];
-  ctx.beginPath(); ctx.roundRect(-8, -22, 14, 18, 4); ctx.fill(); // cuerpo
-  ctx.strokeStyle = k.cloak[1]; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(-7, -19); ctx.lineTo(-10, -3); ctx.moveTo(5, -19); ctx.lineTo(7, -3); ctx.stroke();
-  ctx.save(); ctx.translate(-1, -27); ctx.rotate(0.22 + Math.sin(t * 0.4) * 0.03); // cabeza ladeada, casi quieta
-  ctx.fillStyle = '#c8b498';
-  ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.fill();
-  blankEyes([-2.5, 3.5], -1, 2.2);
-  ctx.fillStyle = '#3a1a1a'; ctx.beginPath(); ctx.ellipse(1, 4.5, 2, 1.4, 0, 0, Math.PI * 2); ctx.fill(); // boca abierta
-  ctx.fillStyle = 'rgba(160,220,255,0.7)'; ctx.fillRect(1.5, 5.5, 1, 2 + (Math.sin(t * 0.8) + 1) * 2); // baba
-  // gorro de hélice con nieve encima; la hélice apenas gira
-  ctx.fillStyle = '#c03030'; ctx.beginPath(); ctx.arc(0, -4, 8, Math.PI, 0); ctx.fill();
-  ctx.fillStyle = '#f0f4ff'; ctx.beginPath(); ctx.ellipse(-2, -11, 5, 2, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#e0c020'; ctx.fillRect(-0.7, -16, 1.4, 5);
-  const sp = Math.cos(t * 1.2) * 9;
-  ctx.strokeStyle = '#4080e0'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(-sp, -16); ctx.lineTo(sp, -16); ctx.stroke();
-  ctx.restore();
-}
-
-// LaRataFM: sentada abrazando las rodillas, con capucha de orejas y la cola tirada
-function drawRata(k, t) {
-  ctx.strokeStyle = '#c89898'; ctx.lineWidth = 1.8; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(7, -3); ctx.quadraticCurveTo(16, 0, 24, -1 + Math.sin(t * 0.6)); ctx.stroke();
-  ctx.fillStyle = k.cloak[0];
-  ctx.beginPath(); ctx.ellipse(1, -11, 9, 11, 0, 0, Math.PI * 2); ctx.fill();   // cuerpo
-  ctx.fillStyle = k.cloak[1];
-  ctx.beginPath(); ctx.ellipse(-5, -10, 5, 8, -0.2, 0, Math.PI * 2); ctx.fill(); // rodillas
-  ctx.fillStyle = '#3a2a20'; ctx.fillRect(-10, -3, 6, 3);                       // pies
-  ctx.strokeStyle = k.cloak[0]; ctx.lineWidth = 2.5;
-  ctx.beginPath(); ctx.moveTo(2, -16); ctx.quadraticCurveTo(-9, -15, -9, -10); ctx.stroke(); // brazo abrazando
-  ctx.save(); ctx.translate(-2, -26);
-  ctx.fillStyle = k.cloak[0];
-  ctx.beginPath(); ctx.arc(0, 0, 7.5, 0, Math.PI * 2); ctx.fill();
-  for (const ex of [-5, 4]) {
-    ctx.fillStyle = k.cloak[0]; ctx.beginPath(); ctx.arc(ex, -7, 4, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#d8a0a0'; ctx.beginPath(); ctx.arc(ex, -7, 2, 0, Math.PI * 2); ctx.fill();
-  }
-  ctx.fillStyle = '#f0f4ff'; ctx.beginPath(); ctx.ellipse(1, -7.5, 3.5, 1.5, 0, 0, Math.PI * 2); ctx.fill(); // nieve en la cabeza
-  ctx.fillStyle = '#d8c0a8'; ctx.beginPath(); ctx.ellipse(-2, 1, 5, 5, 0, 0, Math.PI * 2); ctx.fill();
-  blankEyes([-4.5, 0], -0.5, 1.9);
-  ctx.fillStyle = '#ff9aa8'; ctx.beginPath(); ctx.arc(-6.5, 2.5, 1.3, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#fff'; ctx.fillRect(-4, 4, 1.5, 2); ctx.fillRect(-2.3, 4, 1.5, 2);
-  ctx.strokeStyle = 'rgba(40,30,30,0.7)'; ctx.lineWidth = 0.6;
-  ctx.beginPath(); ctx.moveTo(-6, 2); ctx.lineTo(-12, 1); ctx.moveTo(-6, 3); ctx.lineTo(-12, 5); ctx.stroke();
   ctx.restore();
 }

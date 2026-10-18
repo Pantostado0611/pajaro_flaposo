@@ -80,7 +80,6 @@ function step() {
   drawChest();
   drawBench();
   drawNpc();
-  drawKids();
   drawCastleDoor();
   drawGuards();
   drawGuardKeys();
