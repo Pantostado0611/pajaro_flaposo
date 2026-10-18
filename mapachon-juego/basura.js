@@ -14,7 +14,7 @@ let healPop = 0;        // saltito de gusto al tragar (cuadros)
 let healJunk = 'lata';  // lo que se está comiendo
 
 const TRASH_KINDS = ['lata', 'cascara', 'espina', 'bolsa', 'manzana'];
-function healHeld() { return keys['KeyF'] || keys['KeyV'] || touch.heal; }
+function healHeld() { return held('heal') || touch.heal; }
 
 function gainTrash(x, y, amount = TRASH_HIT) {
   trash = Math.min(TRASH_MAX, trash + amount);

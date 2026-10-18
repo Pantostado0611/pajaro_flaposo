@@ -1,3 +1,51 @@
+// ─── CONTROLES CONFIGURABLES ─────────────────────────────────────────────────
+// Cada acción tiene sus teclas y sus botones de mando (se cambian en Pausa →
+// Configuraciones → Controles y se guardan). El mando manda códigos 'Pad:acción'.
+const ACTIONS = [
+  ['left', 'Izquierda'], ['right', 'Derecha'], ['down', 'Abajo (descansar)'], ['jump', 'Saltar'],
+  ['attack', 'Atacar'], ['shoot', 'Disparar'], ['heal', 'Curarse'], ['inv', 'Inventario'], ['pause', 'Pausa'],
+];
+const DEFAULT_KEYS = {
+  left: ['ArrowLeft', 'KeyA'], right: ['ArrowRight', 'KeyD'], down: ['ArrowDown', 'KeyS'], jump: ['Space', 'ArrowUp', 'KeyW'],
+  attack: ['KeyZ', 'KeyJ', 'KeyX'], shoot: ['KeyC', 'KeyK'], heal: ['KeyF', 'KeyV'], inv: ['Tab', 'KeyI'], pause: ['Escape'],
+};
+// botones del mando (numeración estándar: 0 A, 1 B, 2 X, 3 Y, 4 LB, 5 RB, 6 LT, 7 RT, 8 Back, 9 Start…)
+const DEFAULT_PAD = { jump: [0], attack: [2], shoot: [3, 5], heal: [1], inv: [8], pause: [9] };
+const PAD_MOVE = ['left', 'right', 'down'];        // con el mando se mueven con la cruceta o el stick
+const RESERVED_KEYS = ['KeyM', 'KeyL', 'F11'];     // música, trucos, pantalla completa
+let keyBinds, padBinds;
+function loadBinds() {
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem('mapachon-controles')); } catch (e) {}
+  keyBinds = JSON.parse(JSON.stringify(DEFAULT_KEYS)); padBinds = JSON.parse(JSON.stringify(DEFAULT_PAD));
+  if (d && d.keys) for (const a in keyBinds) if (Array.isArray(d.keys[a]) && d.keys[a].length) keyBinds[a] = d.keys[a];
+  if (d && d.pad) for (const a in padBinds) if (Array.isArray(d.pad[a]) && d.pad[a].length) padBinds[a] = d.pad[a];
+}
+function saveBinds() {
+  try { localStorage.setItem('mapachon-controles', JSON.stringify({ keys: keyBinds, pad: padBinds })); } catch (e) {}
+}
+function resetBinds() { try { localStorage.removeItem('mapachon-controles'); } catch (e) {} loadBinds(); }
+// pone `code` a la acción; si otra acción la usaba, esa se queda con la tecla vieja (se intercambian)
+function setKeyBind(action, code) {
+  const old = keyBinds[action][0];
+  for (const a in keyBinds) if (a !== action && keyBinds[a].includes(code)) {
+    keyBinds[a] = keyBinds[a].filter(c => c !== code);
+    if (!keyBinds[a].length && old) keyBinds[a] = [old];
+  }
+  keyBinds[action] = [code]; saveBinds();
+}
+function setPadBind(action, btn) {
+  const old = padBinds[action][0];
+  for (const a in padBinds) if (a !== action && padBinds[a].includes(btn)) {
+    padBinds[a] = padBinds[a].filter(b => b !== btn);
+    if (!padBinds[a].length && old !== undefined) padBinds[a] = [old];
+  }
+  padBinds[action] = [btn]; saveBinds();
+}
+const act = (code, a) => keyBinds[a].includes(code) || code === 'Pad:' + a;
+const held = a => keys['Pad:' + a] || keyBinds[a].some(c => keys[c]);
+loadBinds();
+
 // ─── TECLADO ─────────────────────────────────────────────────────────────────
 const keys = {};
 document.addEventListener('keydown', e => {
@@ -12,7 +60,7 @@ document.addEventListener('keydown', e => {
     cheatState = cheatState === 'map' ? 'closed' : 'map'; cheatCode = ''; showInventory = false; updateCheatUI();
     e.preventDefault(); return;
   }
-  if (e.code === 'Tab' || e.code === 'KeyI') { showInventory = !showInventory; e.preventDefault(); return; }
+  if (act(e.code, 'inv')) { showInventory = !showInventory; e.preventDefault(); return; }
   if (e.code === 'KeyL') {
     cheatState = cheatState === 'closed' ? 'input' : 'closed';
     cheatCode = ''; cheatError = 0; updateCheatUI();
@@ -32,9 +80,9 @@ document.addEventListener('keydown', e => {
     e.preventDefault(); return;
   }
   if (!keys[e.code]) {
-    if (['Space','ArrowUp','KeyW'].includes(e.code)) player.jumpBuffered = true;
-    if (['KeyZ','KeyJ','KeyX'].includes(e.code)) tryAttack();
-    if (['KeyC','KeyK'].includes(e.code)) tryShoot();
+    if (act(e.code, 'jump')) player.jumpBuffered = true;
+    if (act(e.code, 'attack')) tryAttack();
+    if (act(e.code, 'shoot')) tryShoot();
   }
   keys[e.code] = true;
   e.preventDefault();
@@ -42,11 +90,11 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keyup', e => { keys[e.code] = false; });
 
 // (mientras come basura para curarse, el mapache no se mueve)
-function left()     { return !healing && (keys['ArrowLeft']  || keys['KeyA'] || touch.left); }
-function right()    { return !healing && (keys['ArrowRight'] || keys['KeyD'] || touch.right); }
+function left()     { return !healing && (held('left') || touch.left); }
+function right()    { return !healing && (held('right') || touch.right); }
 const zoneOf = r => ROOMS[r].zone ?? r; // sala principal de la zona
-function down()     { return keys['ArrowDown'] || keys['KeyS']; }
-function jumpHeld() { return keys['Space'] || keys['ArrowUp'] || keys['KeyW'] || touch.jump; }
+function down()     { return held('down'); }
+function jumpHeld() { return held('jump') || touch.jump; }
 
 // ─── TÁCTIL ───────────────────────────────────────────────────────────────────
 const touch = { left: false, right: false, jump: false, attack: false, shoot: false, heal: false };

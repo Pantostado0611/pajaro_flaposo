@@ -54,3 +54,18 @@
   .np-btn:active { background: rgba(154,106,255,0.25); border-color: #c8a0ff; }
   #np-del { border-color: rgba(255,100,80,0.4); color: rgba(255,120,100,0.9); }
   #np-esc { border-color: rgba(255,100,80,0.4); color: rgba(255,120,100,0.9); }
+
+  /* Editor de botones táctiles (Pausa → Configuraciones) */
+  #touch-edit-bar {
+    position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 40;
+    display: none; flex-direction: column; align-items: center; gap: 6px;
+    background: rgba(10,12,28,0.92); border: 2px solid #5a6aa8; border-radius: 10px; padding: 8px 12px;
+    color: #e8eeff; font: 13px serif; text-align: center; max-width: 96vw;
+  }
+  #touch-edit-bar .te-row { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  #touch-edit-bar button {
+    font: bold 13px serif; color: #e8eeff; background: #1c2340; border: 1px solid #9ab0ff;
+    border-radius: 6px; padding: 6px 10px; cursor: pointer;
+  }
+  #touch-edit-bar button[data-te="listo"] { background: #3a4a8a; }
+  .t-btn.te-sel { outline: 3px dashed #ffe080; outline-offset: 3px; }
