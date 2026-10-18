@@ -287,49 +287,115 @@ const fakeWallUnder = (q, b) => q !== b && !q.breakable && q.x === b.x && q.w ==
 
 function drawPlatforms(room) {
   if (!room.style && !room.width) ctx.drawImage(slabLayer(room), 0, 0, W, H);
-  for (let p of room.platforms) {
-    if (p.breakable && brokenWalls.has(p.breakable)) continue;
-    if (p.breakable && room.platforms.some(q => fakeWallUnder(q, p))) continue; // lo pinta su pared
-    const fake = room.platforms.find(b => b.breakable && !brokenWalls.has(b.breakable) && fakeWallUnder(p, b));
-    if (fake) p = { ...p, h: p.h + fake.h, _src: p };
-    if (p.trapdoor && boss2Defeated) {
-      // Portal abierto: vacío oscuro con bordes que brillan en púrpura
-      const pulse = 0.45 + 0.25 * Math.sin(Date.now() * 0.004);
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(p.x, p.y, p.w, p.h);
-      // borde superior
-      const gTop = ctx.createLinearGradient(0, p.y, 0, p.y + 18);
-      gTop.addColorStop(0, `rgba(192,100,255,${pulse + 0.15})`);
-      gTop.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = gTop; ctx.fillRect(p.x, p.y, p.w, 18);
-      // borde izquierdo
-      const gL = ctx.createLinearGradient(p.x, 0, p.x + 30, 0);
-      gL.addColorStop(0, `rgba(192,100,255,${pulse})`);
-      gL.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = gL; ctx.fillRect(p.x, p.y, 30, p.h);
-      // borde derecho
-      const gR = ctx.createLinearGradient(p.x + p.w, 0, p.x + p.w - 30, 0);
-      gR.addColorStop(0, `rgba(192,100,255,${pulse})`);
-      gR.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = gR; ctx.fillRect(p.x + p.w - 30, p.y, 30, p.h);
-      // línea superior brillante
-      ctx.fillStyle = `rgba(220,160,255,${pulse + 0.2})`;
-      ctx.fillRect(p.x, p.y, p.w, 2);
-      continue;
-    }
-    if (p.secretStair) { if (bossDefeated) drawSecretStair(p); continue; }
-    if (p.breakable && !room.style && !room.width) { drawSlab(ctx, p, room); continue; }
-    if (room.width) { // sala grande: solo lo que se ve
+  if (room.width) {
+    // sala grande: la roca quieta sale de los pedazos guardados; lo que cambia se pinta cada cuadro
+    drawPlatformChunks(room);
+    const live = livePlatforms(room);
+    for (const p of live) {
       if (p.x + p.w < camX - 10 || p.x > camX + W / camZ + 10 || p.y > camY + H / camZ + 10 || p.y + p.h < camY - 10) continue;
-      if (!room.style) { drawSlab(ctx, p, room); continue; }
-      if (room.carved && p.h > 18) { drawCarvedRock(room, p); continue; } // sala de pasillos (roca.js)
+      drawOnePlatform(room, p);
     }
-    if (room.style === 'castleRock') { drawCastleRockStone(p); continue; }
-    if (room.style === 'mountain') { drawMountainRock(p, room.night); continue; }
-    if (room.style === 'organic') { drawOrganicEarth(p, room.smooth, room); continue; }
-    // las losas normales se dibujan una vez y se guardan (ver slabLayer)
-  }
+  } else for (const p of room.platforms) drawOnePlatform(room, p);
   if (room.spikes) drawSpikePits(room);
+}
+
+// Bloques que pueden cambiar (muros falsos y su pared, trampillas, puertas, escaleras secretas)
+function livePlatforms(room) {
+  if (!room._live) room._live = room.platforms.filter(p => p.trapdoor || p.door || p.secretStair || p.breakable ||
+    room.platforms.some(b => b.breakable && fakeWallUnder(p, b)));
+  return room._live;
+}
+
+// ── Salas grandes: la roca se pinta una sola vez, en pedazos, y se guarda ──
+// Pintar cada bloque (ladrillos, nieve, carámbanos...) 60 veces por segundo
+// trababa el juego; ahora cada pedazo se pinta al verse por primera vez y
+// después solo se pega. Se vuelve a pintar si cambia la escala o se rompe un muro.
+const CHUNK_W = 480, CHUNK_H = 270, CHUNK_PAD = 1;
+let chunkCache = { key: null, map: new Map(), room: null };
+function drawPlatformChunks(room) {
+  const S = Math.min(2, renderScale * camZ); // (más de 2 casi no se nota y gasta mucha memoria)
+  const key = currentRoom + '|' + S.toFixed(3) + '|' + [...brokenWalls].join();
+  if (chunkCache.key !== key) chunkCache = { key, map: new Map(), room };
+  const live = livePlatforms(room);
+  const statics = room._statics || (room._statics = room.platforms.filter(p => !live.includes(p)));
+  const top = room.top || 0, RW = room.width;
+  const i0 = Math.max(0, Math.floor(camX / CHUNK_W)), i1 = Math.floor((camX + W / camZ) / CHUNK_W);
+  const j0 = Math.max(0, Math.floor((camY - top) / CHUNK_H)), j1 = Math.floor((camY + H / camZ - top) / CHUNK_H);
+  for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) {
+    const x0 = i * CHUNK_W, y0 = top + j * CHUNK_H;
+    if (x0 >= RW || y0 >= H) continue;
+    let c = chunkCache.map.get(i + ',' + j);
+    if (!c) { c = renderChunk(room, statics, x0, y0, S); chunkCache.map.set(i + ',' + j, c); }
+    ctx.drawImage(c, x0 - CHUNK_PAD, y0 - CHUNK_PAD, CHUNK_W + 2 * CHUNK_PAD, CHUNK_H + 2 * CHUNK_PAD);
+  }
+  // de a poco, deja listos los pedazos que todavía no se ven (así no se traba al avanzar)
+  const cols = Math.ceil(RW / CHUNK_W), rows = Math.ceil((H - top) / CHUNK_H);
+  if (chunkCache.map.size < cols * rows) {
+    for (let k = 0; k < cols * rows; k++) {
+      const i = k % cols, j = Math.floor(k / cols);
+      if (chunkCache.map.has(i + ',' + j)) continue;
+      chunkCache.map.set(i + ',' + j, renderChunk(room, statics, i * CHUNK_W, top + j * CHUNK_H, S));
+      break;
+    }
+  }
+}
+function renderChunk(room, statics, x0, y0, S) {
+  const w = CHUNK_W + 2 * CHUNK_PAD, h = CHUNK_H + 2 * CHUNK_PAD;
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.ceil(w * S)); c.height = Math.max(1, Math.ceil(h * S));
+  const sx = c.width / w, sy = c.height / h, M = 40; // M: lo que sobresale (nieve, carámbanos, raíces)
+  const g = c.getContext('2d');
+  g.setTransform(sx, 0, 0, sy, -(x0 - CHUNK_PAD) * sx, -(y0 - CHUNK_PAD) * sy);
+  const prev = ctx; ctx = g;
+  try {
+    for (const p of statics) {
+      if (p.x > x0 + CHUNK_W + M || p.x + p.w < x0 - M || p.y > y0 + CHUNK_H + M || p.y + p.h < y0 - M) continue;
+      drawOnePlatform(room, p);
+    }
+  } finally { ctx = prev; }
+  return c;
+}
+
+function drawOnePlatform(room, p) {
+  if (p.breakable && brokenWalls.has(p.breakable)) return;
+  if (p.breakable && room.platforms.some(q => fakeWallUnder(q, p))) return; // lo pinta su pared
+  const fake = room.platforms.find(b => b.breakable && !brokenWalls.has(b.breakable) && fakeWallUnder(p, b));
+  if (fake) p = { ...p, h: p.h + fake.h, _src: p };
+  if (p.trapdoor && boss2Defeated) {
+    // Portal abierto: vacío oscuro con bordes que brillan en púrpura
+    const pulse = 0.45 + 0.25 * Math.sin(Date.now() * 0.004);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(p.x, p.y, p.w, p.h);
+    // borde superior
+    const gTop = ctx.createLinearGradient(0, p.y, 0, p.y + 18);
+    gTop.addColorStop(0, `rgba(192,100,255,${pulse + 0.15})`);
+    gTop.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = gTop; ctx.fillRect(p.x, p.y, p.w, 18);
+    // borde izquierdo
+    const gL = ctx.createLinearGradient(p.x, 0, p.x + 30, 0);
+    gL.addColorStop(0, `rgba(192,100,255,${pulse})`);
+    gL.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = gL; ctx.fillRect(p.x, p.y, 30, p.h);
+    // borde derecho
+    const gR = ctx.createLinearGradient(p.x + p.w, 0, p.x + p.w - 30, 0);
+    gR.addColorStop(0, `rgba(192,100,255,${pulse})`);
+    gR.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = gR; ctx.fillRect(p.x + p.w - 30, p.y, 30, p.h);
+    // línea superior brillante
+    ctx.fillStyle = `rgba(220,160,255,${pulse + 0.2})`;
+    ctx.fillRect(p.x, p.y, p.w, 2);
+    return;
+  }
+  if (p.secretStair) { if (bossDefeated) drawSecretStair(p); return; }
+  if (p.breakable && !room.style && !room.width) { drawSlab(ctx, p, room); return; }
+  if (room.width) {
+    if (!room.style) { drawSlab(ctx, p, room); return; }
+    if (room.carved && p.h > 18) { drawCarvedRock(room, p); return; } // sala de pasillos (roca.js)
+  }
+  if (room.style === 'castleRock') { drawCastleRockStone(p); return; }
+  if (room.style === 'mountain') { drawMountainRock(p, room.night); return; }
+  if (room.style === 'organic') { drawOrganicEarth(p, room.smooth, room); return; }
+  // las losas normales se dibujan una vez y se guardan (ver slabLayer)
 }
 
 // Foso con púas (solo lo que se ve)

@@ -1,5 +1,5 @@
 const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d');
+let ctx = canvas.getContext('2d'); // (let: dibujo.js lo cambia un momento para pintar en lienzos guardados)
 const W = 960, H = 540;
 
 // ─── SALAS ───────────────────────────────────────────────────────────────────
