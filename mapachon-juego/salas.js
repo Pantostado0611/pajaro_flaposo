@@ -708,183 +708,184 @@ const ROOMS = {
   },
   22: {
     name: 'Pozo de las Estrellas',
-    width: 2400, top: -540, // pozo grande lleno de estrellas: se sube por piedras flotantes del hueco del suelo al del techo
-    upSpawnX: 2100,         // al bajar desde arriba caes en la última piedra
+    width: 2400, top: -540, // grietas estrechas entre estrellas: del hueco del suelo al del techo
+    upSpawnX: 2100,         // al bajar desde arriba caes en el pasillo de arriba
     zone: 3,
     bg: ['#100818', '#1a0e28'],
     floorColor: '#2a1848', platColor: '#3a2060', edgeColor: '#503080',
     particleColor: '#c080ff',
     platforms: [
-      { x: 0, y: -540, w: 2000, h: 60 },
-      // techo, con el hueco de salida
-      { x: 2200, y: -540, w: 200, h: 60 },
-      { x: 0, y: -480, w: 150, h: 700 },
-      // roca de la izquierda
-      { x: 1950, y: 160, w: 450, h: 320 },
-      // roca de abajo a la derecha
+      // roca (lo que no es pasillo)
+      { x: 0, y: -540, w: 2000, h: 90 },
+      { x: 2200, y: -540, w: 200, h: 90 },
+      { x: 0, y: -450, w: 1700, h: 120 },
+      { x: 2250, y: -450, w: 150, h: 120 },
+      { x: 0, y: -330, w: 1600, h: 180 },
+      { x: 0, y: -150, w: 1180, h: 60 },
+      { x: 1400, y: -150, w: 200, h: 60 },
+      { x: 1950, y: -330, w: 450, h: 370 },
+      { x: 0, y: -90, w: 880, h: 420 },
+      { x: 600, y: 330, w: 280, h: 20 },
+      { x: 1060, y: 40, w: 1340, h: 440 },
+      { x: 0, y: 330, w: 150, h: 150 },
       { x: 0, y: 480, w: 200, h: 60 },
-      // suelo, con el hueco de bajada a la reja
       { x: 400, y: 480, w: 2000, h: 60 },
-      // subida: escalones, una isla, vuelta a la izquierda y piedras flotantes hacia el hueco
-      { x: 700, y: 380, w: 140, h: 18 },
-      { x: 1000, y: 290, w: 140, h: 18 },
-      { x: 1300, y: 200, w: 140, h: 18 },
-      { x: 1500, y: 100, w: 400, h: 40 },
-      { x: 1250, y: 0, w: 140, h: 18 },
-      { x: 980, y: -100, w: 140, h: 18 },
-      { x: 700, y: -200, w: 140, h: 18 },
-      { x: 300, y: -300, w: 300, h: 40 },
-      { x: 710, y: -320, w: 130, h: 18 },
-      { x: 950, y: -320, w: 130, h: 18 },
-      { x: 1190, y: -320, w: 130, h: 18 },
-      { x: 1430, y: -330, w: 130, h: 18 },
-      { x: 1670, y: -340, w: 130, h: 18 },
-      { x: 1910, y: -350, w: 130, h: 18 },
-      { x: 2050, y: -410, w: 130, h: 18 },
+      { x: 890, y: 390, w: 80, h: 18 },
+      { x: 970, y: 290, w: 80, h: 18 },
+      { x: 890, y: 200, w: 80, h: 18 },
+      { x: 970, y: 110, w: 80, h: 18 },
+      { x: 1200, y: -50, w: 80, h: 18 },
+      { x: 1640, y: -50, w: 90, h: 18 },
+      { x: 1780, y: -140, w: 90, h: 18 },
+      { x: 1860, y: -230, w: 80, h: 18 },
+      { x: 2050, y: -430, w: 100, h: 18 },
     ],
+
     exits: {
-      up: { room: 23, spawnX: 2250, spawnY: 400 },
+      up: { room: 23, spawnX: 1900, spawnY: 400 },
       down: { room: 1, spawnX: 1207, spawnY: -470 }, // cae junto a la reja
     },
     spawns: { down: { spawnX: 470, spawnY: 400 } },
     exitBands: { down: [200, 400], up: [2000, 2200] },
-    decorations: [ { type:'star', x:300, y:-200 }, { type:'star', x:900, y:-420 }, { type:'star', x:1700, y:-200 }, { type:'star', x:600, y:200 },
-      { type:'star', x:1200, y:350 }, { type:'star', x:2200, y:-100 }, { type:'star', x:1800, y:-450 } ],
+    decorations: [ { type:'star', x:300, y:380 }, { type:'star', x:700, y:420 }, { type:'star', x:1300, y:-10 }, { type:'star', x:1250, y:-120 },
+      { type:'star', x:1750, y:-250 }, { type:'star', x:1900, y:-100 }, { type:'star', x:2150, y:-400 } ],
   },
   23: {
     name: 'Ascenso Fracturado',
-    width: 2400, top: -540, // cielo roto en tres pisos: se entra abajo a la derecha y se sale por el techo a la izquierda
+    width: 2400, top: -540, // grietas del cielo roto: del hueco del suelo (derecha) al del techo (izquierda)
     upSpawnX: 290,
     zone: 3,
     bg: ['#100818', '#1a0e28'],
     floorColor: '#2a1848', platColor: '#3a2060', edgeColor: '#503080',
     particleColor: '#c080ff',
     platforms: [
-      { x: 0, y: -540, w: 200, h: 60 },
-      // techo, con el hueco de salida
-      { x: 400, y: -540, w: 2000, h: 60 },
+      // roca (lo que no es pasillo)
+      { x: 400, y: -540, w: 2000, h: 120 },
+      { x: 0, y: -540, w: 200, h: 170 },
+      { x: 400, y: -420, w: 350, h: 50 },
+      { x: 1000, y: -420, w: 1400, h: 170 },
+      { x: 0, y: -370, w: 150, h: 120 },
+      { x: 670, y: -250, w: 1730, h: 220 },
+      { x: 670, y: -30, w: 230, h: 60 },
+      { x: 0, y: -250, w: 500, h: 410 },
+      { x: 960, y: 100, w: 340, h: 60 },
+      { x: 1470, y: -30, w: 930, h: 360 },
+      { x: 1470, y: 330, w: 480, h: 10 },
+      { x: 0, y: 160, w: 1300, h: 320 },
       { x: 0, y: 480, w: 2000, h: 60 },
-      // suelo, con el hueco por donde se llega
       { x: 2200, y: 480, w: 200, h: 60 },
-      { x: 300, y: 120, w: 2100, h: 40 },
-      // piso de en medio
-      { x: 0, y: -240, w: 1900, h: 40 },
-      // piso de arriba
-      // a la izquierda: del suelo al piso de en medio
-      { x: 40, y: 380, w: 110, h: 18 },
-      { x: 170, y: 280, w: 110, h: 18 },
-      { x: 40, y: 180, w: 110, h: 18 },
-      // a la derecha: del piso de en medio al de arriba
-      { x: 2000, y: 20, w: 110, h: 18 },
-      { x: 2200, y: -80, w: 110, h: 18 },
-      { x: 2000, y: -170, w: 110, h: 18 },
-      // hasta el hueco del techo
-      { x: 380, y: -330, w: 110, h: 18 },
-      { x: 230, y: -430, w: 110, h: 18 },
-      // pedazos de cielo roto
-      { x: 800, y: 360, w: 140, h: 18 },
-      { x: 1500, y: 360, w: 140, h: 18 },
-      { x: 1100, y: 0, w: 160, h: 18 },
-      { x: 700, y: -380, w: 140, h: 18 },
-      { x: 1400, y: -380, w: 140, h: 18 },
+      { x: 1310, y: 390, w: 80, h: 18 },
+      { x: 1390, y: 300, w: 80, h: 18 },
+      { x: 1310, y: 210, w: 80, h: 18 },
+      { x: 1390, y: 120, w: 80, h: 18 },
+      { x: 510, y: 70, w: 80, h: 18 },
+      { x: 590, y: -20, w: 80, h: 18 },
+      { x: 510, y: -110, w: 80, h: 18 },
+      { x: 590, y: -200, w: 80, h: 18 },
+      { x: 230, y: -350, w: 90, h: 18 },
+      { x: 310, y: -440, w: 80, h: 18 },
+      { x: 800, y: -340, w: 90, h: 18 },
     ],
+
     exits: {
       up: { room: 3, spawnX: 180, spawnY: 450 },
       down: { room: 22, spawnX: 2100, spawnY: -500 },
     },
-    spawns: { down: { spawnX: 2250, spawnY: 400 } },
+    spawns: { down: { spawnX: 1900, spawnY: 400 } },
     exitBands: { up: [200, 400], down: [2000, 2200] },
-    decorations: [ { type:'star', x:300, y:-420 }, { type:'star', x:1000, y:-420 }, { type:'star', x:1800, y:-400 }, { type:'star', x:600, y:-60 },
-      { type:'star', x:1600, y:-80 }, { type:'star', x:900, y:280 }, { type:'star', x:1900, y:300 } ],
+    decorations: [ { type:'star', x:1600, y:400 }, { type:'star', x:1100, y:20 }, { type:'star', x:700, y:80 }, { type:'star', x:400, y:-320 },
+      { type:'star', x:850, y:-400 }, { type:'star', x:2200, y:380 } ],
   },
   24: {
     name: 'Escalera del Herrero',
-    width: 2400, top: -540, // una gran escalera de piedra que sube en diagonal hasta el hueco del techo
+    width: 2400, top: -540, // escalera de piedra en un túnel estrecho que sube en diagonal
     upSpawnX: 2290,         // al bajar desde arriba caes en el último escalón
     zone: 5,
     bg: ['#060412', '#0e0820'],
     floorColor: '#1c1430', platColor: '#2c2048', edgeColor: '#4a3870',
     particleColor: '#9944ff',
     platforms: [
-      { x: 0, y: -540, w: 2220, h: 60 },
-      // techo, con el hueco de salida a la derecha
-      { x: 0, y: -480, w: 840, h: 480 },
-      // techo bajo sobre el principio de la escalera
-      { x: 840, y: -480, w: 700, h: 200 },
-      { x: 0, y: 480, w: 100, h: 60 },
-      // suelo, con el hueco de bajada a la Cima
+      // roca (lo que no es pasillo)
+      { x: 0, y: -540, w: 60, h: 1080 },
+      { x: 60, y: 480, w: 40, h: 60 },
+      { x: 60, y: -540, w: 340, h: 840 },
       { x: 300, y: 480, w: 100, h: 60 },
-      // escalones
+      { x: 400, y: -540, w: 110, h: 770 },
       { x: 400, y: 410, w: 110, h: 130 },
+      { x: 510, y: -540, w: 110, h: 700 },
       { x: 510, y: 340, w: 110, h: 200 },
+      { x: 620, y: -540, w: 110, h: 630 },
       { x: 620, y: 270, w: 110, h: 270 },
-      { x: 730, y: 200, w: 110, h: 340 },
-      { x: 840, y: 200, w: 260, h: 340 },
-      // descanso 1
+      { x: 730, y: -540, w: 110, h: 560 },
+      { x: 730, y: 200, w: 370, h: 340 },
+      { x: 840, y: -540, w: 260, h: 510 },
+      { x: 1100, y: -540, w: 110, h: 490 },
       { x: 1100, y: 130, w: 110, h: 410 },
+      { x: 1210, y: -540, w: 110, h: 420 },
       { x: 1210, y: 60, w: 110, h: 480 },
+      { x: 1320, y: -540, w: 110, h: 350 },
       { x: 1320, y: -10, w: 110, h: 550 },
-      { x: 1430, y: -80, w: 110, h: 620 },
-      { x: 1540, y: -80, w: 260, h: 620 },
-      // descanso 2
+      { x: 1430, y: -540, w: 110, h: 280 },
+      { x: 1540, y: -540, w: 40, h: 230 },
+      { x: 1580, y: -540, w: 180, h: 100 },
+      { x: 1430, y: -80, w: 370, h: 620 },
+      { x: 1760, y: -540, w: 40, h: 230 },
+      { x: 1800, y: -540, w: 110, h: 210 },
       { x: 1800, y: -150, w: 110, h: 690 },
+      { x: 1910, y: -540, w: 110, h: 140 },
       { x: 1910, y: -220, w: 110, h: 760 },
+      { x: 2020, y: -540, w: 110, h: 70 },
       { x: 2020, y: -290, w: 110, h: 830 },
       { x: 2130, y: -360, w: 110, h: 900 },
       { x: 2240, y: -430, w: 160, h: 970 },
-      // último escalón, bajo el hueco del techo
+      { x: 1620, y: -170, w: 90, h: 18 },
     ],
+
     exits: {
       up: { room: 25, spawnX: 2150, spawnY: 400 },
       down: { room: 3, spawnX: 460, spawnY: 110 },
     },
-    exitBands: { down: [100, 300], up: [2220, 2400] },
-    decorations: [ { type:'pillar', x:1000, y:200, h:60 }, { type:'pillar', x:1700, y:-80, h:60 } ],
+    exitBands: { down: [100, 300], up: [2240, 2400] },
+    decorations: [],
   },
   25: {
     name: 'Depósito de Armas',
-    width: 2400, top: -540, // almacén con estantes: se trepa por los estantes y una pasarela hasta el hueco del techo
+    width: 2400, top: -540, // pasillos de almacén entre estantes, del hueco del suelo al del techo
     zone: 5,
     bg: ['#060412', '#0e0820'],
     floorColor: '#1c1430', platColor: '#2c2048', edgeColor: '#4a3870',
     particleColor: '#9944ff',
     platforms: [
-      { x: 0, y: -540, w: 100, h: 60 },
-      // techo, con el hueco a la armería
-      { x: 300, y: -540, w: 2100, h: 60 },
+      // roca (lo que no es pasillo)
+      { x: 300, y: -540, w: 2100, h: 90 },
+      { x: 0, y: -540, w: 100, h: 210 },
+      { x: 880, y: -450, w: 1520, h: 250 },
+      { x: 880, y: -200, w: 120, h: 100 },
+      { x: 1300, y: -200, w: 1100, h: 100 },
+      { x: 0, y: -330, w: 700, h: 370 },
+      { x: 1680, y: -100, w: 720, h: 430 },
+      { x: 0, y: 40, w: 1500, h: 290 },
+      { x: 900, y: 330, w: 600, h: 50 },
+      { x: 0, y: 330, w: 300, h: 150 },
       { x: 0, y: 480, w: 2220, h: 60 },
-      // suelo, con el hueco por donde se llega
-      // estante de la derecha (dos columnas de repisas)
-      { x: 1850, y: 380, w: 140, h: 18 },
-      { x: 1850, y: 180, w: 140, h: 18 },
-      { x: 1850, y: -20, w: 140, h: 18 },
-      { x: 2010, y: 280, w: 140, h: 18 },
-      { x: 2010, y: 80, w: 140, h: 18 },
-      { x: 2010, y: -120, w: 140, h: 18 },
-      // estante del medio
-      { x: 900, y: 380, w: 140, h: 18 },
-      { x: 900, y: 180, w: 140, h: 18 },
-      { x: 900, y: -20, w: 140, h: 18 },
-      { x: 1060, y: 280, w: 140, h: 18 },
-      { x: 1060, y: 80, w: 140, h: 18 },
-      { x: 1060, y: -120, w: 140, h: 18 },
-      // pasarela de arriba (con un hueco sobre el estante del medio)
-      { x: 500, y: -220, w: 550, h: 24 },
-      { x: 1250, y: -220, w: 650, h: 24 },
-      // repisas hasta el hueco del techo
-      { x: 330, y: -320, w: 140, h: 18 },
-      { x: 160, y: -420, w: 140, h: 18 },
-      // cajas
-      { x: 1400, y: 420, w: 120, h: 60 },
-      { x: 1520, y: 440, w: 80, h: 40 },
-      { x: 450, y: 420, w: 100, h: 60 },
+      { x: 1510, y: 390, w: 80, h: 18 },
+      { x: 1590, y: 300, w: 80, h: 18 },
+      { x: 1510, y: 210, w: 80, h: 18 },
+      { x: 1590, y: 120, w: 80, h: 18 },
+      { x: 790, y: -50, w: 80, h: 18 },
+      { x: 710, y: -140, w: 80, h: 18 },
+      { x: 790, y: -230, w: 80, h: 18 },
+      { x: 130, y: -430, w: 90, h: 18 },
+      { x: 1050, y: -60, w: 90, h: 18 },
+      { x: 1180, y: -140, w: 90, h: 18 },
     ],
+
     exits: {
       up: { room: 5, spawnX: 60, spawnY: 400 },
       down: { room: 24, spawnX: 2290, spawnY: -500 },
     },
     exitBands: { up: [100, 300], down: [2220, 2400] },
-    decorations: [ { type:'pillar', x:40, y:420, h:60 }, { type:'pillar', x:1750, y:420, h:60 } ],
+    decorations: [],
   },
   26: {
     name: 'Puente Levadizo',
@@ -1454,23 +1455,24 @@ const ENEMY_TEMPLATES = {
     { x: 2200, y: 456, dir: -1, patrolMin: 2050, patrolMax: 2350, speed: 1.2 },
   ],
   22: [
-    { x: 800, y: 300, dir: 1, patrolMin: 420, patrolMax: 1880, speed: 1.2 },
-    { x: 1200, y: -150, dir: -1, patrolMin: 700, patrolMax: 1700, speed: 1.1 },
-    { x: 1700, y: 0, dir: 1, patrolMin: 1500, patrolMax: 1900, speed: 1.0 },
+    { x: 800, y: 410, dir: 1, patrolMin: 620, patrolMax: 1040, speed: 1.1 },
+    { x: 1300, y: -30, dir: -1, patrolMin: 1080, patrolMax: 1580, speed: 1.1 },
+    { x: 1950, y: -400, dir: 1, patrolMin: 1980, patrolMax: 2230, speed: 1.0 },
   ],
   23: [
-    { x: 1000, y: 300, dir: 1, patrolMin: 320, patrolMax: 1900, speed: 1.2 },
-    { x: 1200, y: -60, dir: -1, patrolMin: 400, patrolMax: 1950, speed: 1.1 },
-    { x: 900, y: -400, dir: 1, patrolMin: 520, patrolMax: 1800, speed: 1.0 },
+    { x: 1600, y: 400, dir: 1, patrolMin: 1320, patrolMax: 1930, speed: 1.1 },
+    { x: 1100, y: 40, dir: -1, patrolMin: 920, patrolMax: 1450, speed: 1.0 },
+    { x: 800, y: -320, dir: 1, patrolMin: 680, patrolMax: 980, speed: 1.0 },
   ],
   24: [
     { x: 900, y: 176, dir: 1, patrolMin: 845, patrolMax: 1090, speed: 1.0 },
     { x: 1600, y: -104, dir: -1, patrolMin: 1545, patrolMax: 1790, speed: 1.0 },
   ],
   25: [
-    { x: 800, y: 456, dir: 1, patrolMin: 120, patrolMax: 1380, speed: 1.3 },
-    { x: 700, y: -244, dir: 1, patrolMin: 505, patrolMax: 1040, speed: 1.1 },
-    { x: 1500, y: -244, dir: -1, patrolMin: 1255, patrolMax: 1890, speed: 1.1 },
+    { x: 1800, y: 456, dir: 1, patrolMin: 1520, patrolMax: 2200, speed: 1.2 },
+    { x: 1000, y: 16, dir: -1, patrolMin: 720, patrolMax: 1480, speed: 1.1 },
+    { x: 500, y: -354, dir: 1, patrolMin: 320, patrolMax: 860, speed: 1.1 },
+    { x: 600, y: 456, dir: 1, patrolMin: 320, patrolMax: 1480, speed: 1.1 },
   ],
   26: [
     { x: 400, y: 456, dir: 1, patrolMin: 20, patrolMax: 800, speed: 1.3 },
