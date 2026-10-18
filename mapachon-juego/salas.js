@@ -146,7 +146,7 @@ const ROOMS = {
     ],
     exits: {
       down:  { room: 1, spawnX: 1207, spawnY: -470 }, // cae junto a la reja
-      up:    { room: 24, spawnX: 180, spawnY: 400 }, // armería (tras vencer al guardián)
+      up:    { room: 24, spawnX: 320, spawnY: 400 }, // armería (tras vencer al guardián)
       right: { room: 26, spawnX:  30, spawnY: 400 }, // castillo (tras vencer al guardián)
     },
     decorations: [
@@ -779,48 +779,92 @@ const ROOMS = {
   },
   24: {
     name: 'Escalera del Herrero',
+    width: 2400, top: -540, // una gran escalera de piedra que sube en diagonal hasta el hueco del techo
+    upSpawnX: 2290,         // al bajar desde arriba caes en el último escalón
     zone: 5,
     bg: ['#060412', '#0e0820'],
     floorColor: '#1c1430', platColor: '#2c2048', edgeColor: '#4a3870',
     particleColor: '#9944ff',
     platforms: [
-      { x: 0, y: 480, w: 380, h: 60 },
-      { x: 580, y: 480, w: 380, h: 60 },
-      { x: 160, y: 390, w: 120, h: 18 },
-      { x: 680, y: 390, w: 120, h: 18 },
-      { x: 420, y: 310, w: 120, h: 18 },
-      { x: 200, y: 230, w: 120, h: 18 },
-      { x: 640, y: 230, w: 120, h: 18 },
-      { x: 400, y: 150, w: 160, h: 18 },
+      { x: 0, y: -540, w: 2220, h: 60 },
+      // techo, con el hueco de salida a la derecha
+      { x: 0, y: -480, w: 840, h: 480 },
+      // techo bajo sobre el principio de la escalera
+      { x: 840, y: -480, w: 700, h: 200 },
+      { x: 0, y: 480, w: 100, h: 60 },
+      // suelo, con el hueco de bajada a la Cima
+      { x: 300, y: 480, w: 100, h: 60 },
+      // escalones
+      { x: 400, y: 410, w: 110, h: 130 },
+      { x: 510, y: 340, w: 110, h: 200 },
+      { x: 620, y: 270, w: 110, h: 270 },
+      { x: 730, y: 200, w: 110, h: 340 },
+      { x: 840, y: 200, w: 260, h: 340 },
+      // descanso 1
+      { x: 1100, y: 130, w: 110, h: 410 },
+      { x: 1210, y: 60, w: 110, h: 480 },
+      { x: 1320, y: -10, w: 110, h: 550 },
+      { x: 1430, y: -80, w: 110, h: 620 },
+      { x: 1540, y: -80, w: 260, h: 620 },
+      // descanso 2
+      { x: 1800, y: -150, w: 110, h: 690 },
+      { x: 1910, y: -220, w: 110, h: 760 },
+      { x: 2020, y: -290, w: 110, h: 830 },
+      { x: 2130, y: -360, w: 110, h: 900 },
+      { x: 2240, y: -430, w: 160, h: 970 },
+      // último escalón, bajo el hueco del techo
     ],
     exits: {
-      up: { room: 25, spawnX: 180, spawnY: 400 },
+      up: { room: 25, spawnX: 2150, spawnY: 400 },
       down: { room: 3, spawnX: 460, spawnY: 110 },
     },
-    decorations: [ { type:'pillar', x:40, y:420, h:60 }, { type:'pillar', x:920, y:420, h:60 } ],
+    exitBands: { down: [100, 300], up: [2220, 2400] },
+    decorations: [ { type:'pillar', x:1000, y:200, h:60 }, { type:'pillar', x:1700, y:-80, h:60 } ],
   },
   25: {
     name: 'Depósito de Armas',
+    width: 2400, top: -540, // almacén con estantes: se trepa por los estantes y una pasarela hasta el hueco del techo
     zone: 5,
     bg: ['#060412', '#0e0820'],
     floorColor: '#1c1430', platColor: '#2c2048', edgeColor: '#4a3870',
     particleColor: '#9944ff',
     platforms: [
-      { x: 0, y: 480, w: 380, h: 60 },
-      { x: 580, y: 480, w: 380, h: 60 },
-      { x: 120, y: 380, w: 140, h: 18 },
-      { x: 700, y: 380, w: 140, h: 18 },
-      { x: 300, y: 290, w: 120, h: 18 },
-      { x: 540, y: 290, w: 120, h: 18 },
-      { x: 140, y: 200, w: 120, h: 18 },
-      { x: 700, y: 200, w: 120, h: 18 },
-      { x: 400, y: 150, w: 160, h: 18 },
+      { x: 0, y: -540, w: 100, h: 60 },
+      // techo, con el hueco a la armería
+      { x: 300, y: -540, w: 2100, h: 60 },
+      { x: 0, y: 480, w: 2220, h: 60 },
+      // suelo, con el hueco por donde se llega
+      // estante de la derecha (dos columnas de repisas)
+      { x: 1850, y: 380, w: 140, h: 18 },
+      { x: 1850, y: 180, w: 140, h: 18 },
+      { x: 1850, y: -20, w: 140, h: 18 },
+      { x: 2010, y: 280, w: 140, h: 18 },
+      { x: 2010, y: 80, w: 140, h: 18 },
+      { x: 2010, y: -120, w: 140, h: 18 },
+      // estante del medio
+      { x: 900, y: 380, w: 140, h: 18 },
+      { x: 900, y: 180, w: 140, h: 18 },
+      { x: 900, y: -20, w: 140, h: 18 },
+      { x: 1060, y: 280, w: 140, h: 18 },
+      { x: 1060, y: 80, w: 140, h: 18 },
+      { x: 1060, y: -120, w: 140, h: 18 },
+      // pasarela de arriba (con un hueco sobre el estante del medio)
+      { x: 500, y: -220, w: 550, h: 24 },
+      { x: 1250, y: -220, w: 650, h: 24 },
+      // repisas hasta el hueco del techo
+      { x: 330, y: -320, w: 140, h: 18 },
+      { x: 160, y: -420, w: 140, h: 18 },
+      // cajas
+      { x: 1400, y: 420, w: 120, h: 60 },
+      { x: 1520, y: 440, w: 80, h: 40 },
+      { x: 450, y: 420, w: 100, h: 60 },
     ],
     exits: {
       up: { room: 5, spawnX: 60, spawnY: 400 },
-      down: { room: 24, spawnX: 460, spawnY: 40 },
+      down: { room: 24, spawnX: 2290, spawnY: -500 },
     },
-    decorations: [ { type:'pillar', x:40, y:420, h:60 }, { type:'pillar', x:920, y:420, h:60 } ],
+    exitBands: { up: [100, 300], down: [2220, 2400] },
+    decorations: [ { type:'pillar', x:40, y:420, h:60 }, { type:'pillar', x:1750, y:420, h:60 } ],
   },
   26: {
     name: 'Puente Levadizo',
@@ -1378,13 +1422,13 @@ const ENEMY_TEMPLATES = {
     { x: 900, y: -400, dir: 1, patrolMin: 520, patrolMax: 1800, speed: 1.0 },
   ],
   24: [
-    { x: 120, y: 456, dir: 1, patrolMin: 20, patrolMax: 350, speed: 1.4 },
-    { x: 780, y: 456, dir: -1, patrolMin: 600, patrolMax: 930, speed: 1.4 },
-    { x: 440, y: 286, dir: 1, patrolMin: 425, patrolMax: 515, speed: 1.0 },
+    { x: 900, y: 176, dir: 1, patrolMin: 845, patrolMax: 1090, speed: 1.0 },
+    { x: 1600, y: -104, dir: -1, patrolMin: 1545, patrolMax: 1790, speed: 1.0 },
   ],
   25: [
-    { x: 100, y: 456, dir: 1, patrolMin: 20, patrolMax: 350, speed: 1.3 },
-    { x: 800, y: 456, dir: -1, patrolMin: 600, patrolMax: 930, speed: 1.3 },
+    { x: 800, y: 456, dir: 1, patrolMin: 120, patrolMax: 1380, speed: 1.3 },
+    { x: 700, y: -244, dir: 1, patrolMin: 505, patrolMax: 1040, speed: 1.1 },
+    { x: 1500, y: -244, dir: -1, patrolMin: 1255, patrolMax: 1890, speed: 1.1 },
   ],
   26: [
     { x: 200, y: 456, dir: 1, patrolMin: 20, patrolMax: 590, speed: 1.3 },
