@@ -1,7 +1,7 @@
 {
   "name": "mapachon",
   "productName": "Mapachón",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Mapachón: Explorador de Ruinas",
   "author": "Burned Games",
   "main": "main.js",
