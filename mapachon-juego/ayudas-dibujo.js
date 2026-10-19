@@ -77,6 +77,35 @@ function drawPlayer() {
     ctx.beginPath(); ctx.arc(0, 0, 34, 0, Math.PI * 2); ctx.fill();
   }
 
+  const S = SKINS[skin];
+  if (skin === 'perro') {
+  // ── COLITA de perro: corta y se menea (más rápido si corre o come) ───────
+  const wag = Math.sin(t * (eat ? 16 : moving ? 14 : 6)) * 0.45;
+  ctx.save(); ctx.translate(-hw + 4, hh - 10); ctx.rotate(0.6 + wag);
+  ctx.fillStyle = '#3a2410';
+  ctx.beginPath(); ctx.ellipse(-12, 0, 11.5, 5.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = vol(-12, -1, 10, S.head[0], S.head[1]);
+  ctx.beginPath(); ctx.ellipse(-12, 0, 10.5, 4.3, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#f4e4c8';
+  ctx.beginPath(); ctx.arc(-20.5, 0, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  } else if (skin === 'gato') {
+  // ── COLA de gato: larga, delgada y parada, con la puntita doblada ────────
+  const N = 18, tx0 = -hw + 3, ty0 = hh - 7;
+  const tcx = -hw - 24 - fs * 1.2, tcy = hh - 12;
+  const tx1 = -hw - 12 - fs * 2 + Math.sin(t * (eat ? 9 : 2)) * (eat ? 6 : 4), ty1 = hh - 50 + Math.abs(fs) * 1.5;
+  for (const pass of [0, 1]) {
+    for (let i = N - 1; i >= 0; i--) {
+      const k = i / (N - 1), pt = bezierPt(k, tx0, ty0, tcx, tcy, tx1, ty1);
+      const r = (pass ? 3.6 : 4.6) - k * 0.8;
+      ctx.fillStyle = pass ? vol(pt.x, pt.y, r, S.body[0], S.body[1]) : '#050507';
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  const tip = bezierPt(1, tx0, ty0, tcx, tcy, tx1, ty1);
+  ctx.strokeStyle = '#1a1a20'; ctx.lineWidth = 5.5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(tip.x, tip.y); ctx.quadraticCurveTo(tip.x + 1, tip.y - 6, tip.x + 5, tip.y - 6); ctx.stroke();
+  } else {
   // ── COLA de mapache: gruesa, peluda, anillos gris/negro y punta negra ────
   const RINGS = 8;
   const tx0 = -hw + 3, ty0 = hh - 7;
@@ -97,6 +126,7 @@ function drawPlayer() {
     ctx.fillStyle = dark ? vol(pt.x, pt.y, r, '#3a3532', '#0e0c0b') : vol(pt.x, pt.y, r, '#d2ccc2', '#7e7870');
     ctx.beginPath(); ctx.arc(pt.x, pt.y, r, 0, Math.PI * 2); ctx.fill();
   }
+  }
 
   // ── PATITAS: pasos alternos al correr ─────────────────────────────────────
   const cyc = moving ? Math.sin(player.bobTimer) : 0;
@@ -106,15 +136,15 @@ function drawPlayer() {
   ];
 
   // ── CUERPO: pelaje gris de mapache, con mechones ──────────────────────────
-  ctx.fillStyle = vol(0, hh * 0.25, hw, '#aaa49a', '#4e4944');
+  ctx.fillStyle = vol(0, hh * 0.25, hw, S.body[0], S.body[1]);
   ctx.beginPath(); ctx.ellipse(0, hh * 0.25, hw * 0.95, hh * 0.75, 0, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = 'rgba(20,18,16,0.45)'; ctx.lineWidth = 1; ctx.stroke();
-  ctx.fillStyle = '#6a655e';
+  ctx.fillStyle = S.tuft;
   for (const [mx, my, d] of [[-hw * 0.95, 2, -1], [-hw * 0.9, 9, -1], [hw * 0.92, 6, 1]]) {
     ctx.beginPath(); ctx.moveTo(mx, my - 3); ctx.lineTo(mx + d * 3.5, my); ctx.lineTo(mx, my + 3); ctx.closePath(); ctx.fill();
   }
   // barriga clara
-  ctx.fillStyle = vol(1, hh * 0.35, hw * 0.6, '#ece6da', '#b4ad9f');
+  ctx.fillStyle = vol(1, hh * 0.35, hw * 0.6, S.belly[0], S.belly[1]);
   ctx.beginPath(); ctx.ellipse(1, hh * 0.35, hw * 0.52, hh * 0.5, 0, 0, Math.PI * 2); ctx.fill();
 
   // ── CHALECO TÁCTICO ───────────────────────────────────────────────────────
@@ -151,9 +181,9 @@ function drawPlayer() {
 
   // patas oscuras con deditos (las "manitas" de mapache)
   for (const ft of feet) {
-    ctx.fillStyle = vol(ft.x, ft.y, 6, '#4a4440', '#141210');
+    ctx.fillStyle = vol(ft.x, ft.y, 6, S.foot[0], S.foot[1]);
     ctx.beginPath(); ctx.ellipse(ft.x, ft.y, 6, 4, ft.r, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#2a2624';
+    ctx.fillStyle = S.toe;
     for (let ci = -1.5; ci <= 1.5; ci++) {
       ctx.beginPath(); ctx.ellipse(ft.x + ci * 2.4, ft.y + 3.4, 1.2, 1.9, 0, 0, Math.PI * 2); ctx.fill();
     }
@@ -162,6 +192,15 @@ function drawPlayer() {
   // ── CABEZA DE MAPACHE ─────────────────────────────────────────────────────
   const hy = -hh + 4 + (eat ? 1 + chew * 1.2 : 0); // al masticar la cabeza sube y baja
 
+  if (skin === 'gato') {
+  // orejas de gato: triángulos negros con el centro rosa
+  for (const s of [-1, 1]) {
+    ctx.fillStyle = vol(s * 8, hy - 14, 7, S.head[0], S.head[1]);
+    ctx.beginPath(); ctx.moveTo(s * 2.5, hy - 10); ctx.lineTo(s * 10, hy - 24); ctx.lineTo(s * 13.5, hy - 5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#e88a9a';
+    ctx.beginPath(); ctx.moveTo(s * 5, hy - 10.5); ctx.lineTo(s * 9.8, hy - 20); ctx.lineTo(s * 11.6, hy - 8); ctx.closePath(); ctx.fill();
+  }
+  } else if (skin === 'mapache') {
   // orejas algo puntiagudas con borde blanco
   for (const s of [-1, 1]) {
     ctx.fillStyle = '#f2eee6';
@@ -173,17 +212,34 @@ function drawPlayer() {
     ctx.moveTo(s * 5.5, hy - 9.5); ctx.quadraticCurveTo(s * 8, hy - 18.5, s * 11.3, hy - 17);
     ctx.quadraticCurveTo(s * 13, hy - 12.5, s * 11.5, hy - 7.5); ctx.closePath(); ctx.fill();
   }
+  }
 
   // cabeza gris
-  ctx.fillStyle = vol(0, hy, 13, '#b8b2a8', '#5e5953');
+  ctx.fillStyle = vol(0, hy, 13, S.head[0], S.head[1]);
   ctx.beginPath(); ctx.arc(0, hy, 13, 0, Math.PI * 2); ctx.fill();
   ctx.strokeStyle = 'rgba(20,18,16,0.45)'; ctx.lineWidth = 1; ctx.stroke();
 
-  // mejillas peludas y blancas que sobresalen (infladas al masticar)
+  if (skin === 'perro') {
+  // orejas caídas de perro (en el aire, al caer, se levantan)
+  const lift = air ? Math.max(0, Math.min(0.9, player.vy * 0.06)) : 0;
   for (const s of [-1, 1]) {
+    ctx.save(); ctx.translate(s * 9.5, hy - 8); ctx.rotate(-s * (0.18 + lift + Math.sin(t * 3) * 0.04));
+    ctx.fillStyle = vol(0, 6, 8, '#8a5228', '#3a2010');
+    ctx.beginPath(); ctx.ellipse(s * 1.5, 8, 4.8, 9.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+  // mancha oscura en un ojo y franja clara en la frente
+  ctx.fillStyle = '#6a3a18';
+  ctx.beginPath(); ctx.ellipse(5.5, hy - 1.5, 5.2, 4.8, 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#f4e4c8';
+  ctx.beginPath(); ctx.moveTo(-1.8, hy - 13); ctx.lineTo(1.8, hy - 13); ctx.lineTo(2.6, hy + 2); ctx.lineTo(-2.6, hy + 2); ctx.closePath(); ctx.fill();
+  }
+
+  // mejillas peludas y blancas que sobresalen (infladas al masticar)
+  if (skin !== 'perro') for (const s of [-1, 1]) {
     ctx.save();
     if (eat) { const ch = 1.12 + Math.max(0, chew) * 0.12; ctx.translate(s * 9, hy + 5); ctx.scale(ch, ch); ctx.translate(-s * 9, -hy - 5); }
-    ctx.fillStyle = '#ece8e0';
+    ctx.fillStyle = skin === 'gato' ? '#f8f8fc' : '#ece8e0';
     ctx.beginPath();
     ctx.moveTo(s * 8, hy - 1);
     ctx.lineTo(s * 17, hy + 2); ctx.lineTo(s * 13, hy + 4.5);
@@ -193,6 +249,12 @@ function drawPlayer() {
     ctx.restore();
   }
 
+  if (skin === 'gato') {
+  // franja blanca de tuxedo que baja entre los ojos
+  ctx.fillStyle = '#f8f8fc';
+  ctx.beginPath(); ctx.moveTo(0, hy - 6); ctx.quadraticCurveTo(-3.5, hy + 1, -5, hy + 5); ctx.lineTo(5, hy + 5); ctx.quadraticCurveTo(3.5, hy + 1, 0, hy - 6); ctx.fill();
+  }
+  if (skin === 'mapache') {
   // cejas blancas sobre el antifaz (le dan cara de decidido)
   ctx.fillStyle = '#f4f0e8';
   for (const s of [-1, 1]) {
@@ -217,6 +279,7 @@ function drawPlayer() {
   // raya oscura que baja de la frente al hocico
   ctx.fillStyle = '#4a4540';
   ctx.beginPath(); ctx.moveTo(-1.6, hy - 12); ctx.lineTo(1.6, hy - 12); ctx.lineTo(1.2, hy - 3); ctx.lineTo(-1.2, hy - 3); ctx.closePath(); ctx.fill();
+  }
 
   // ojos negros brillantes (parpadean de vez en cuando; comiendo, cerrados de gusto)
   if (eat || pop > 0) {
@@ -227,6 +290,17 @@ function drawPlayer() {
     ctx.strokeStyle = '#5a5550'; ctx.lineWidth = 1.3; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(-8, hy - 0.5); ctx.quadraticCurveTo(-5, hy + 1, -2, hy - 0.5); ctx.stroke();
     ctx.beginPath(); ctx.moveTo( 2, hy - 0.5); ctx.quadraticCurveTo( 5, hy + 1,  8, hy - 0.5); ctx.stroke();
+  } else if (skin === 'gato') {
+    // ojos verde-amarillo con pupila de rayita
+    for (const s of [-1, 1]) {
+      const ex = s * 5;
+      ctx.fillStyle = vol(ex, hy - 0.8, 3.4, '#e8f080', '#5a9a18');
+      ctx.beginPath(); ctx.ellipse(ex, hy - 0.8, 3.3, 3.1, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#000';
+      ctx.beginPath(); ctx.ellipse(ex + 0.3, hy - 0.8, 0.9, 2.7, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(ex - 1.1, hy - 2, 0.9, 0, Math.PI * 2); ctx.fill();
+    }
   } else {
     for (const s of [-1, 1]) {
       const ex = s * 5;
@@ -241,6 +315,39 @@ function drawPlayer() {
     }
   }
 
+  if (skin === 'perro') {
+  // hocico grande, nariz negra grandota y la lengua de fuera
+  ctx.fillStyle = vol(1, hy + 6.5, 7.5, '#fff4e0', '#c8a878');
+  ctx.beginPath(); ctx.ellipse(1.5, hy + 6.6, 7.2, 5.4, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = vol(2, hy + 3.4, 3.8, '#4a4444', '#050404');
+  ctx.beginPath(); ctx.ellipse(2, hy + 3.4, 3.9, 2.7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.beginPath(); ctx.arc(0.8, hy + 2.6, 0.9, 0, Math.PI * 2); ctx.fill();
+  if (eat) {
+    ctx.fillStyle = '#3a1a18';
+    ctx.beginPath(); ctx.ellipse(2, hy + 8.5, 3, 0.6 + Math.max(0, chew) * 1.8, 0, 0, Math.PI * 2); ctx.fill();
+  } else {
+    ctx.fillStyle = '#ff7a8a';
+    ctx.beginPath(); ctx.ellipse(3.5, hy + 10.5 + Math.sin(t * 9) * 0.4, 2.2, 3.2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#3a2418'; ctx.lineWidth = 0.9;
+    ctx.beginPath(); ctx.moveTo(2, hy + 5.8); ctx.lineTo(2, hy + 7.5);
+    ctx.quadraticCurveTo(4.5, hy + 9, 6.5, hy + 7.4); ctx.stroke();
+  }
+  } else if (skin === 'gato') {
+  // hocico blanco chiquito, nariz rosa y boca en "w"
+  ctx.fillStyle = vol(0, hy + 6, 5.5, '#ffffff', '#c8c8d0');
+  ctx.beginPath(); ctx.ellipse(0, hy + 6.2, 5.2, 4.2, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#f08a9a';
+  ctx.beginPath(); ctx.moveTo(-2, hy + 3.6); ctx.lineTo(2, hy + 3.6); ctx.lineTo(0, hy + 5.6); ctx.closePath(); ctx.fill();
+  if (eat) {
+    ctx.fillStyle = '#3a1a18';
+    ctx.beginPath(); ctx.ellipse(0.5, hy + 8, 2.4, 0.6 + Math.max(0, chew) * 1.6, 0, 0, Math.PI * 2); ctx.fill();
+  } else {
+    ctx.strokeStyle = '#6a5a60'; ctx.lineWidth = 0.9;
+    ctx.beginPath(); ctx.moveTo(0, hy + 5.6); ctx.lineTo(0, hy + 6.8);
+    ctx.quadraticCurveTo(-1.6, hy + 8.2, -3, hy + 7); ctx.moveTo(0, hy + 6.8); ctx.quadraticCurveTo(1.6, hy + 8.2, 3, hy + 7); ctx.stroke();
+  }
+  } else {
   // hocico blanco, nariz negra y boca
   ctx.fillStyle = vol(0, hy + 6, 6.5, '#ffffff', '#cfc9be');
   ctx.beginPath(); ctx.ellipse(0, hy + 6.2, 6, 4.8, 0, 0, Math.PI * 2); ctx.fill();
@@ -256,31 +363,58 @@ function drawPlayer() {
     ctx.beginPath(); ctx.moveTo(0, hy + 5.6); ctx.lineTo(0, hy + 7);
     ctx.quadraticCurveTo(2, hy + 8.6, 3.6, hy + 7.2); ctx.stroke();
   }
+  }
 
-  // bigotes
+  // bigotes (el perro no tiene; los del gato son más largos)
+  if (skin !== 'perro') {
+  const wl = skin === 'gato' ? 19 : 15;
   ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 0.8; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(4,  hy + 6); ctx.lineTo(15, hy + 3.5); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(4,  hy + 7); ctx.lineTo(15, hy + 9); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(-4, hy + 6); ctx.lineTo(-15, hy + 3.5); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(-4, hy + 7); ctx.lineTo(-15, hy + 9); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(4,  hy + 6); ctx.lineTo(wl, hy + 3.5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(4,  hy + 7); ctx.lineTo(wl, hy + 9); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-4, hy + 6); ctx.lineTo(-wl, hy + 3.5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-4, hy + 7); ctx.lineTo(-wl, hy + 9); ctx.stroke();
+  }
 
   // comiendo: guarda el blaster y sostiene la basura con las dos manitas
   if (eat) {
     const k = healCharge / HEAL_TIME, jy = hy + 11 - Math.max(0, chew) * 1.5;
     for (const s of [-1, 1]) {
-      ctx.fillStyle = vol(4 + s * 6, hy + 14, 5, '#9a948a', '#4e4944');
+      ctx.fillStyle = vol(4 + s * 6, hy + 14, 5, S.arm[0], S.arm[1]);
       ctx.beginPath(); ctx.ellipse(4 + s * 7, hy + 15, 3.5, 5, s * -0.5, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#1e1a18';
+      ctx.fillStyle = S.hand;
       ctx.beginPath(); ctx.ellipse(7 + s * 7, jy + 1, 2.8, 2.6, 0, 0, Math.PI * 2); ctx.fill();
     }
     ctx.save(); ctx.translate(7, jy); ctx.rotate(Math.sin(healCharge * 0.3) * 0.2);
     drawJunk(healJunk, 1.8 * (1 - k * 0.6)); // entre las manitas; cada mordida la hace más chica
     ctx.restore();
   } else {
-  // bracito gris con manita oscura
-  ctx.fillStyle = vol(hw - 1, -hh + 22, 6, '#9a948a', '#4e4944');
+  // bracito con manita
+  ctx.fillStyle = vol(hw - 1, -hh + 22, 6, S.arm[0], S.arm[1]);
   ctx.beginPath(); ctx.ellipse(hw - 1, -hh + 22, 4, 7, 0.4, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#1e1a18';
+  if (skin === 'gato') {
+  // ── ESPADA (el gato no usa blaster) ──────────────────────────────────────
+  ctx.save(); ctx.translate(hw + 2.5, -hh + 17); ctx.rotate(-0.55);
+  // hoja con filo brillante del color del arma
+  const blade = ctx.createLinearGradient(0, -3, 0, 3);
+  blade.addColorStop(0, '#ffffff'); blade.addColorStop(0.5, '#c8d4e4'); blade.addColorStop(1, '#6a7890');
+  ctx.shadowColor = weaponColor; ctx.shadowBlur = 6 + Math.sin(t * 6) * 3;
+  ctx.fillStyle = blade;
+  ctx.beginPath(); ctx.moveTo(6, -2.6); ctx.lineTo(36, -2.2); ctx.lineTo(42, 0); ctx.lineTo(36, 2.2); ctx.lineTo(6, 2.6); ctx.closePath(); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = 'rgba(40,50,70,0.6)'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(7, 0); ctx.lineTo(35, 0); ctx.stroke();
+  // guarda dorada, mango y pomo
+  ctx.fillStyle = vol(5, 0, 4, '#ffe08a', '#a07018');
+  ctx.beginPath(); ctx.roundRect(3.5, -6.5, 3.5, 13, 1.5); ctx.fill();
+  ctx.fillStyle = '#4a2a1a';
+  ctx.beginPath(); ctx.roundRect(-5, -1.8, 9, 3.6, 1); ctx.fill();
+  ctx.fillStyle = vol(-6, 0, 3, '#ffe08a', '#a07018');
+  ctx.beginPath(); ctx.arc(-6, 0, 2.6, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle = S.hand;
+  ctx.beginPath(); ctx.ellipse(hw + 2.5, -hh + 17, 3.2, 3, 0, 0, Math.PI * 2); ctx.fill();
+  } else {
+  ctx.fillStyle = S.hand;
   ctx.beginPath(); ctx.ellipse(hw + 2.5, -hh + 17, 3.2, 3, 0, 0, Math.PI * 2); ctx.fill();
 
   // ── BLASTER ───────────────────────────────────────────────────────────────
@@ -320,6 +454,7 @@ function drawPlayer() {
   ctx.beginPath(); ctx.arc(hw + 41, -hh + 15.5, mr + 1, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = 'rgba(220,255,255,0.95)';
   ctx.beginPath(); ctx.arc(hw + 41, -hh + 15.5, 2, 0, Math.PI * 2); ctx.fill();
+  }
   }
 
   // ── TAJO DE ATAQUE con estela (del color del arma) ────────────────────────

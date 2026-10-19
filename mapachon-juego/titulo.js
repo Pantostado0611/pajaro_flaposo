@@ -41,10 +41,20 @@ function titleLayout() {
   const quit = { x: W / 2 - 80, y: top + SLOTS * (ch + gap) + 14, w: 160, h: 38 };
   const conf = { x: W / 2 - 200, y: H / 2 - 90, w: 400, h: 180,
     buttons: [{ t: 'Sí, borrar', x: W / 2 - 150, y: H / 2 + 20, w: 130, h: 42 }, { t: 'No', x: W / 2 + 20, y: H / 2 + 20, w: 130, h: 42 }] };
-  return { cards, quit, conf };
+  // botón escondido de skins (esquina de abajo a la derecha) y su ventana
+  const skinBtn = { x: W - 46, y: H - 46, w: 38, h: 38 };
+  const skins = SKIN_ORDER.map((k, i) => ({ k, x: W / 2 - 300 + i * 205, y: 130, w: 190, h: 250 }));
+  const skinBack = { x: W / 2 - 70, y: 400, w: 140, h: 38 };
+  return { cards, quit, conf, skinBtn, skins, skinBack };
 }
 
+// Ventana de skins: ← → elegir, Enter ponerla, Esc volver
+let skinSel = 0;
+function openSkins() { skinSel = SKIN_ORDER.indexOf(skin); titleState = 'skins'; }
+function pickSkin(i) { setSkin(SKIN_ORDER[i]); titleState = 'slots'; }
+
 function titleAct() {
+  if (titleSel === SLOTS + 1) { openSkins(); return; }
   if (titleSel === SLOTS) { // en el programa de escritorio cierra el juego; en la web vuelve a los minijuegos
     if (window.escritorio) window.escritorio.salir(); else window.location.href = 'index.html';
     return;
@@ -65,6 +75,20 @@ function titleKey(e) {
     if (c === 'ArrowLeft' || c === 'ArrowRight' || c === 'KeyA' || c === 'KeyD') titleConfirmSel = 1 - titleConfirmSel;
     else if (c === 'Escape') titleConfirm(false);
     else if (ok) titleConfirm(titleConfirmSel === 0);
+    return true;
+  }
+  if (titleState === 'skins') {
+    const n = SKIN_ORDER.length;
+    if (c === 'ArrowLeft' || c === 'KeyA') skinSel = (skinSel + n - 1) % n;
+    else if (c === 'ArrowRight' || c === 'KeyD') skinSel = (skinSel + 1) % n;
+    else if (c === 'Escape') titleState = 'slots';
+    else if (ok) pickSkin(skinSel);
+    return true;
+  }
+  // el botón escondido: → desde "Salir"
+  if (titleSel === SLOTS && (c === 'ArrowRight' || c === 'KeyD')) { titleSel = SLOTS + 1; return true; }
+  if (titleSel === SLOTS + 1 && !ok) {
+    if (['ArrowLeft', 'KeyA', 'ArrowUp', 'KeyW', 'ArrowDown', 'KeyS'].includes(c)) titleSel = SLOTS;
     return true;
   }
   if (c === 'ArrowUp' || c === 'KeyW') { titleSel = (titleSel + SLOTS) % (SLOTS + 1); titleCol = 0; }
@@ -147,6 +171,10 @@ function drawTitle() {
   ctx.fillText('Salir', W / 2, q.y + q.h / 2 + 1);
   ctx.fillStyle = 'rgba(138,152,200,0.6)'; ctx.font = '12px monospace';
   ctx.fillText(gamepadActive ? '↑ ↓ elegir  ·  → borrar  ·  A jugar  ·  B volver' : '↑ ↓ elegir  ·  → borrar  ·  Enter jugar', W / 2, H - 18);
+  // botón escondido de skins: una huellita casi invisible
+  const sb = L.skinBtn, sOn = titleState === 'slots' && titleSel === SLOTS + 1;
+  drawPaw(sb.x + sb.w / 2, sb.y + sb.h / 2, sOn ? 0.85 : 0.1);
+  if (titleState === 'skins') drawSkins(L, t);
   // confirmación
   if (titleState === 'confirm') {
     ctx.fillStyle = 'rgba(2,4,12,0.72)'; ctx.fillRect(0, 0, W, H);
@@ -169,6 +197,43 @@ function drawTitle() {
   ctx.restore();
 }
 
+function drawPaw(x, y, a) {
+  ctx.save();
+  ctx.fillStyle = `rgba(184,196,232,${a})`;
+  ctx.beginPath(); ctx.ellipse(x, y + 4, 7, 6, 0, 0, Math.PI * 2); ctx.fill();
+  for (const [dx, dy] of [[-8, -3], [-3, -8], [3, -8], [8, -3]]) {
+    ctx.beginPath(); ctx.ellipse(x + dx, y + dy, 2.6, 3.2, dx * 0.05, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawSkins(L, t) {
+  ctx.fillStyle = 'rgba(2,4,12,0.92)'; ctx.fillRect(0, 0, W, H);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#e8eeff'; ctx.font = 'bold 30px serif';
+  ctx.fillText('Skins', W / 2, 90);
+  L.skins.forEach((b, i) => {
+    const on = i === skinSel, worn = b.k === skin;
+    ctx.fillStyle = on ? 'rgba(58,74,138,0.92)' : 'rgba(20,26,48,0.92)';
+    ctx.strokeStyle = on ? '#9ab0ff' : '#34406a'; ctx.lineWidth = on ? 2 : 1;
+    ctx.beginPath(); ctx.roundRect(b.x, b.y, b.w, b.h, 10); ctx.fill(); ctx.stroke();
+    ctx.save(); ctx.beginPath(); ctx.roundRect(b.x + 2, b.y + 2, b.w - 4, b.h - 4, 9); ctx.clip();
+    drawSkinPreview(b.k, b.x + b.w / 2 - 14, b.y + 120 + (on ? Math.sin(t * 4) * 3 : 0), 2.3);
+    ctx.restore();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = on ? '#ffffff' : '#b8c4e8'; ctx.font = (on ? 'bold ' : '') + '18px serif';
+    ctx.fillText(SKINS[b.k].name, b.x + b.w / 2, b.y + b.h - 34);
+    if (worn) { ctx.fillStyle = '#8ad08a'; ctx.font = '13px serif'; ctx.fillText('✓ puesta', b.x + b.w / 2, b.y + b.h - 13); }
+  });
+  const q = L.skinBack;
+  ctx.fillStyle = 'rgba(20,26,48,0.92)'; ctx.strokeStyle = '#34406a'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(q.x, q.y, q.w, q.h, 8); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#b8c4e8'; ctx.font = '16px serif';
+  ctx.fillText('Volver', q.x + q.w / 2, q.y + q.h / 2 + 1);
+  ctx.fillStyle = 'rgba(138,152,200,0.6)'; ctx.font = '12px monospace';
+  ctx.fillText(gamepadActive ? '← → elegir  ·  A poner  ·  B volver' : '← → elegir  ·  Enter poner  ·  Esc volver', W / 2, H - 18);
+}
+
 // ── Ratón y toque ────────────────────────────────────────────────────────────
 function titlePoint(e) {
   const r = canvas.getBoundingClientRect(), sc = W / r.width;
@@ -179,22 +244,30 @@ const inBox = (p, b) => p.mx >= b.x && p.mx <= b.x + b.w && p.my >= b.y && p.my 
 function titleHit(e) {
   const p = titlePoint(e), L = titleLayout();
   if (titleState === 'confirm') { const i = L.conf.buttons.findIndex(b => inBox(p, b)); return i >= 0 ? { confirm: i } : null; }
+  if (titleState === 'skins') {
+    if (inBox(p, L.skinBack)) return { skinBack: true };
+    const i = L.skins.findIndex(b => inBox(p, b)); return i >= 0 ? { skin: i } : null;
+  }
   for (let i = 0; i < SLOTS; i++) {
     if (titleSlots[i] && inBox(p, L.cards[i].del)) return { sel: i, col: 1 };
     if (inBox(p, L.cards[i])) return { sel: i, col: 0 };
   }
+  if (inBox(p, L.skinBtn)) return { sel: SLOTS + 1, col: 0 };
   return inBox(p, L.quit) ? { sel: SLOTS, col: 0 } : null;
 }
 canvas.addEventListener('mousemove', e => {
   if (!titleState) return;
   const h = titleHit(e);
-  if (!h) return;
-  if (h.confirm !== undefined) titleConfirmSel = h.confirm; else { titleSel = h.sel; titleCol = h.col; }
+  if (!h || h.skinBack) return;
+  if (h.skin !== undefined) skinSel = h.skin;
+  else if (h.confirm !== undefined) titleConfirmSel = h.confirm; else { titleSel = h.sel; titleCol = h.col; }
 });
 canvas.addEventListener('click', e => {
   if (!titleState) return;
   const h = titleHit(e);
   if (!h) return;
-  if (h.confirm !== undefined) titleConfirm(h.confirm === 0);
+  if (h.skinBack) titleState = 'slots';
+  else if (h.skin !== undefined) pickSkin(h.skin);
+  else if (h.confirm !== undefined) titleConfirm(h.confirm === 0);
   else { titleSel = h.sel; titleCol = h.col; titleAct(); }
 });
