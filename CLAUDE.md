@@ -17,6 +17,17 @@ Cada cambio terminado en `mapachon.html` o en `mapachon-juego/` se despliega **a
 
 En los mensajes de commit no se dice dónde están las salas secretas: el usuario no quiere spoilers.
 
+## Comando: Deploy App
+
+Cuando el usuario diga **"Deploy App"**, sacar una versión nueva del programa de Windows (`escritorio/`, ver `escritorio/LEEME.md`):
+
+1. Subir `version` en `escritorio/package.json` (1.0.3 → 1.0.4, etc.)
+2. `npm run dist` dentro de `escritorio/` (crea el instalador y el portable en `escritorio/dist/`)
+3. Probar que el `.exe` abra
+4. `gh release create mapachon-vX.Y.Z` con los dos `.exe` y notas en español de lo nuevo desde la versión anterior (sin decir dónde están las salas secretas)
+5. Cambiar en `index.html` los enlaces del botón "Descargar para Windows" a la versión nueva
+6. Commit y `git push origin main`, y decirle al usuario la versión y el enlace
+
 ## Estructura del proyecto
 
 - `index.html` — Hub principal de minijuegos
