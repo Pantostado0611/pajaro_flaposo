@@ -27,16 +27,18 @@ async function leerReleases() {
   if (!r.ok) throw new Error('GitHub respondió ' + r.status);
   releases = await r.json();
 }
-function ultima(etiqueta, archivo) {
-  let mejor = null;
+// Todas las versiones publicadas de un juego, de la más nueva a la más vieja
+function versiones(etiqueta, archivo) {
+  const lista = [];
   for (const rel of releases || []) {
     if (rel.draft || rel.prerelease || !rel.tag_name.startsWith(etiqueta)) continue;
     const v = rel.tag_name.slice(etiqueta.length);
     const asset = rel.assets.find(a => a.name === archivo(v));
-    if (asset && (!mejor || comparar(v, mejor.version) > 0)) mejor = { version: v, url: asset.browser_download_url, tam: asset.size };
+    if (asset) lista.push({ version: v, url: asset.browser_download_url, tam: asset.size });
   }
-  return mejor;
+  return lista.sort((a, b) => comparar(b.version, a.version));
 }
+const ultima = (etiqueta, archivo) => versiones(etiqueta, archivo)[0] || null;
 
 // Programa instalado: busca en el registro su versión y su carpeta
 const reg = args => new Promise(res => execFile('reg', ['query', ...args], { windowsHide: true }, (err, out) => res(err ? '' : out)));
@@ -64,13 +66,11 @@ async function estado() {
   try { await leerReleases(); } catch (e) { error = 'No se pudo revisar si hay versiones nuevas (¿hay internet?).'; }
   const juegos = [];
   for (const j of JUEGOS) {
-    if (j.pronto) { juegos.push({ id: j.id, nombre: j.nombre, icono: j.icono, desc: j.desc, pronto: true }); continue; }
-    const inst = await instalado(j.buscar), nueva = releases ? ultima(j.etiqueta, j.instalador) : null;
-    let accion = 'jugar';
-    if (!inst) accion = nueva ? 'instalar' : 'nada';
-    else if (nueva && comparar(nueva.version, inst.version) > 0) accion = 'actualizar';
-    juegos.push({ id: j.id, nombre: j.nombre, icono: j.icono, desc: j.desc, instalada: inst && inst.version,
-      nueva: nueva && nueva.version, tam: nueva && nueva.tam, accion });
+    const base = { id: j.id, nombre: j.nombre, icono: j.icono, desc: j.desc, imagen: j.imagen, color: j.color };
+    if (j.pronto) { juegos.push({ ...base, pronto: true }); continue; }
+    const inst = await instalado(j.buscar);
+    juegos.push({ ...base, instalada: inst && inst.version,
+      versiones: versiones(j.etiqueta, j.instalador).map(v => ({ version: v.version, tam: v.tam })) });
   }
   // ¿hay un Actualizador más nuevo?
   const propia = releases ? ultima(ETIQUETA_PROPIA, v => `Actualizador-Instalador-${v}.exe`) : null;
@@ -107,12 +107,14 @@ function correrInstalador(archivo, args) {
   });
 }
 
-async function instalar(id) {
+// Instala la versión elegida (la última si no se dice); reemplaza la que haya
+async function instalar(id, version) {
   const j = JUEGOS.find(x => x.id === id);
   if (!releases) await leerReleases();
-  const nueva = ultima(j.etiqueta, j.instalador);
+  const lista = versiones(j.etiqueta, j.instalador);
+  const nueva = version ? lista.find(v => v.version === version) : lista[0];
   if (!nueva) throw new Error('No hay versión para descargar.');
-  if (await corriendo(j.exe)) throw new Error(`Cierra ${j.nombre} antes de actualizar.`);
+  if (await corriendo(j.exe)) throw new Error(`Cierra ${j.nombre} antes de cambiar de versión.`);
   // se actualiza donde ya estaba; uno nuevo va solo para este usuario (no pide permiso de administrador)
   const inst = await instalado(j.buscar);
   const destino = path.join(app.getPath('temp'), j.instalador(nueva.version));
@@ -151,7 +153,7 @@ ipcMain.handle('actualizarme', seguro(actualizarme));
 Menu.setApplicationMenu(null);
 app.whenReady().then(() => {
   win = new BrowserWindow({
-    width: 760, height: 520, minWidth: 560, minHeight: 400,
+    width: 1100, height: 660, minWidth: 820, minHeight: 520,
     title: 'Actualizador', backgroundColor: '#05050f',
     icon: path.join(__dirname, 'build', 'icon.png'),
     autoHideMenuBar: true,
