@@ -19,7 +19,7 @@ En los mensajes de commit no se dice dónde están las salas secretas: el usuari
 
 ## Comando: Deploy App
 
-Cuando el usuario diga **"Deploy App"**, sacar una versión nueva del programa de Windows (`escritorio/`, ver `escritorio/LEEME.md`):
+Cuando el usuario diga **"Deploy App"**, sacar una versión nueva del programa de Windows de Mapachón (`escritorio/`, ver `escritorio/LEEME.md`). Si se refiere a otro juego o herramienta (Pájaro Flaposo, Mini Claude, MC Builder), ver `escritorio-juegos/` más abajo; si no queda claro cuál, preguntar:
 
 1. Subir `version` en `escritorio/package.json` (1.0.3 → 1.0.4, etc.)
 2. `npm run dist` dentro de `escritorio/` (crea el instalador y el portable en `escritorio/dist/`)
@@ -31,6 +31,8 @@ Cuando el usuario diga **"Deploy App"**, sacar una versión nueva del programa d
 
 `actualizador/` es un programa de Windows (Electron) que instala, actualiza y abre los juegos que tienen versión de Windows. La lista de juegos está en `actualizador/juegos.js`; las versiones salen de los releases de GitHub (etiqueta `mapachon-v…`, etc.) y la versión instalada, del registro de Windows. La página (`index.html`) tiene su tarjeta con el botón para descargarlo.
 
+`escritorio-juegos/` arma los demás (Pájaro Flaposo, Mini Claude, MC Builder) como programas de Windows con un solo armador: están en `escritorio-juegos/apps.js`. Versión nueva de uno: subir su `version` en `apps.js`, `node armar.js <id>` dentro de `escritorio-juegos/` (deja el instalador en `dist/<id>/`), probarlo, `gh release create <etiqueta>X.Y.Z` con ese instalador y notas en español, commit y push. El programa sirve la página desde `juego://app/`; las llamadas a `/api/chat` (la IA) las manda a https://burnedgames.vercel.app y sin internet responden "Sin acceso a internet". Juego nuevo: agregarlo en `apps.js` (con su ícono en `iconos/<id>.png`) y en `actualizador/juegos.js` (eso requiere una versión nueva del Actualizador).
+
 Versión nueva del Actualizador: subir `version` en `actualizador/package.json`, `npm run dist` dentro de `actualizador/`, `gh release create actualizador-vX.Y.Z` con `Actualizador-Instalador-X.Y.Z.exe`, y cambiar el enlace de su tarjeta en `index.html`. Los que ya lo tienen ven el aviso para actualizarlo desde el mismo programa.
 
 ## Estructura del proyecto
@@ -39,4 +41,6 @@ Versión nueva del Actualizador: subir `version` en `actualizador/package.json`,
 - `pajaro-flaposo.html` — Flappy Bird clone
 - `mapachon.html` — Plataformas con mapache (solo la página; el código está en `mapachon-juego/`)
 - `actualizador/` — programa de Windows que instala y actualiza los juegos (ver arriba)
+- `escritorio/` — Mapachón como programa de Windows
+- `escritorio-juegos/` — Pájaro Flaposo, Mini Claude y MC Builder como programas de Windows
 - `mapachon-juego/` — el juego del mapache repartido en archivos JS normales (no módulos) que se cargan en orden y comparten variables globales, más `estilo.css`. Un archivo puede usar lo que definen los de antes. Si se agrega un archivo nuevo, va en la lista de `<script>` de `mapachon.html`. `vercel.json` publica esta carpeta: si se renombra, actualizarlo.

@@ -66,7 +66,7 @@ async function estado() {
   try { await leerReleases(); } catch (e) { error = 'No se pudo revisar si hay versiones nuevas (¿hay internet?).'; }
   const juegos = [];
   for (const j of JUEGOS) {
-    const base = { id: j.id, nombre: j.nombre, icono: j.icono, desc: j.desc, imagen: j.imagen, color: j.color };
+    const base = { id: j.id, nombre: j.nombre, icono: j.icono, desc: j.desc, imagen: j.imagen, color: j.color, herramienta: !!j.herramienta };
     if (j.pronto) { juegos.push({ ...base, pronto: true }); continue; }
     const inst = await instalado(j.buscar);
     juegos.push({ ...base, instalada: inst && inst.version,

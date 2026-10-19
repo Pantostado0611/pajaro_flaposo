@@ -1,0 +1,6 @@
+node_modules/
+dist/
+juego/
+app.json
+icono.png
+builder.json

@@ -1,0 +1,17 @@
+{
+  "name": "escritorio-juegos",
+  "version": "1.0.0",
+  "description": "Arma los juegos y herramientas de la página como programas de Windows",
+  "author": "Burned Games",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "pajaro": "node armar.js pajaro",
+    "miniclaude": "node armar.js miniclaude",
+    "mcbuilder": "node armar.js mcbuilder"
+  },
+  "devDependencies": {
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
+  }
+}
