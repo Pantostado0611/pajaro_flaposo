@@ -1,7 +1,9 @@
 const DEFAULT_SYSTEM = 'Eres "Mini Claude", un asistente integrado en un hub de minijuegos. Puedes ayudar con Minecraft, desarrollo de videojuegos, programación y cualquier otra pregunta. Responde en español cuando el usuario escriba en español.';
 
-// Si el principal está saturado o tarda, se alterna con el de respaldo
-const MODELS = ['gemini-3.8-flash', 'gemini-flash-latest'];
+// Si el principal está saturado o tarda, se alterna con los de respaldo
+// (el "lite" es más ligero y suele estar menos saturado)
+const MODELS = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest'];
+const SATURADO = 'La IA de Google está saturada en este momento. Intenta de nuevo en unos minutos.';
 const ATTEMPT_TIMEOUT = 20000;
 const DEADLINE = 55000;
 const MAX_ATTEMPTS = 5;
@@ -115,6 +117,8 @@ module.exports = async function handler(req, res) {
     lastStatus = response.status;
     if (response.status === 429) { console.warn(`${model}: 429`, lastText); limited.add(model); quotaInfos.push(parse429(lastText)); continue; }
     if ([500, 503].includes(response.status)) { console.warn(`${model}: ${response.status}`); continue; }
+    // modelo que ya no existe: se salta y se usan los otros
+    if (response.status === 404) { console.warn(`${model}: 404`, lastText); limited.add(model); continue; }
 
     if (!response.ok) {
       console.error('Gemini error:', model, response.status, lastText);
@@ -132,7 +136,8 @@ module.exports = async function handler(req, res) {
     return res.status(429).json({ error: quotaMessage(quotaInfos) });
   }
   if (lastStatus === 504) {
-    return res.status(504).json({ error: 'Gemini tardó demasiado, intenta de nuevo.' });
+    return res.status(504).json({ error: 'La IA de Google está saturada y no respondió a tiempo. Intenta de nuevo en unos minutos.' });
   }
-  return res.status(503).json({ error: `Gemini no disponible (${lastStatus}), intenta de nuevo en unos segundos.` });
+  if ([500, 503].includes(lastStatus)) return res.status(503).json({ error: SATURADO });
+  return res.status(503).json({ error: `La IA no está disponible (${lastStatus}). Intenta de nuevo en unos minutos.` });
 };
