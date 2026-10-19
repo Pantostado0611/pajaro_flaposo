@@ -1622,13 +1622,13 @@ const ENEMY_TEMPLATES = {
     { x: 1900, y: 456, dir: 1, patrolMin: 1420, patrolMax: 2350, speed: 1.2 },
   ],
   11: [
-    { x: 600, y: -224, dir: 1, patrolMin: 20, patrolMax: 880, speed: 1.1 },
+    { x: 600, y: -224, dir: 1, patrolMin: 460, patrolMax: 880, speed: 1.1 },
     { x: 1300, y: -224, dir: -1, patrolMin: 920, patrolMax: 1780, speed: 1.0 },
     { x: 600, y: 456, dir: -1, patrolMin: 480, patrolMax: 780, speed: 1.0 },
   ],
   14: [
     { x: 300, y: 456, dir: 1, patrolMin: 20, patrolMax: 540, speed: 1.2 },
-    { x: 900, y: 96, dir: -1, patrolMin: 740, patrolMax: 990, speed: 1.0 },
+    { x: 1000, y: 96, dir: -1, patrolMin: 950, patrolMax: 1250, speed: 1.0 },
     { x: 1400, y: 96, dir: 1, patrolMin: 1310, patrolMax: 1540, speed: 1.0 },
     { x: 900, y: -274, dir: -1, patrolMin: 440, patrolMax: 1540, speed: 1.2 },
   ],
@@ -1650,7 +1650,7 @@ const ENEMY_TEMPLATES = {
   ],
   18: [
     { x: 2100, y: -204, dir: -1, patrolMin: 1940, patrolMax: 2850, speed: 1.3 },
-    { x: 1000, y: 96, dir: 1, patrolMin: 780, patrolMax: 1740, speed: 1.1 },
+    { x: 1000, y: 96, dir: 1, patrolMin: 780, patrolMax: 1100, speed: 1.1 },
     { x: 300, y: 456, dir: 1, patrolMin: 20, patrolMax: 580, speed: 1.2 },
     { x: 900, y: -324, dir: -1, patrolMin: 220, patrolMax: 1780, speed: 1.2 },
   ],
@@ -1689,7 +1689,7 @@ const ENEMY_TEMPLATES = {
   25: [
     { x: 1800, y: 456, dir: 1, patrolMin: 1520, patrolMax: 2200, speed: 1.2 },
     { x: 1000, y: 16, dir: -1, patrolMin: 720, patrolMax: 1480, speed: 1.1 },
-    { x: 500, y: -354, dir: 1, patrolMin: 320, patrolMax: 860, speed: 1.1 },
+    { x: 500, y: -354, dir: 1, patrolMin: 320, patrolMax: 700, speed: 1.1 },
     { x: 600, y: 456, dir: 1, patrolMin: 320, patrolMax: 1480, speed: 1.1 },
   ],
   26: [
@@ -1720,7 +1720,7 @@ const ENEMY_TEMPLATES = {
   ],
   31: [
     { x: 500, y: 456, dir: 1, patrolMin: 50, patrolMax: 880, speed: 1.1 },
-    { x: 1300, y: 16, dir: -1, patrolMin: 1020, patrolMax: 1980, speed: 1.1 },
+    { x: 1300, y: 16, dir: -1, patrolMin: 1020, patrolMax: 1540, speed: 1.1 },
     { x: 2250, y: -324, dir: 1, patrolMin: 2180, patrolMax: 2380, speed: 1.0 },
   ],
   32: [
@@ -1736,24 +1736,24 @@ const ENEMY_TEMPLATES = {
   ],
   34: [
     { x: 300, y: 456, dir: 1, patrolMin: 20, patrolMax: 440, speed: 1.0 },
-    { x: 1200, y: -144, dir: -1, patrolMin: 660, patrolMax: 1520, speed: 1.0 },
+    { x: 1200, y: -144, dir: -1, patrolMin: 1070, patrolMax: 1520, speed: 1.0 },
     { x: 2000, y: -144, dir: 1, patrolMin: 1720, patrolMax: 2280, speed: 1.0 },
   ],
   35: [
     { x: 1000, y: 456, dir: 1, patrolMin: 820, patrolMax: 1280, speed: 1.0 },
-    { x: 2100, y: 36, dir: -1, patrolMin: 1880, patrolMax: 2380, speed: 1.0 },
+    { x: 2100, y: 36, dir: -1, patrolMin: 1900, patrolMax: 2380, speed: 1.0 },
   ],
   36: [
     { x: 600, y: -264, dir: 1, patrolMin: 480, patrolMax: 880, speed: 1.1 },
-    { x: 1000, y: 76, dir: -1, patrolMin: 480, patrolMax: 1520, speed: 1.1 },
+    { x: 1000, y: 76, dir: -1, patrolMin: 900, patrolMax: 1200, speed: 1.1 },
     { x: 1000, y: 456, dir: 1, patrolMin: 500, patrolMax: 1680, speed: 1.2 },
   ],
   37: [
     { x: 1100, y: -92, dir: 1, patrolMin: 965, patrolMax: 1210, speed: 1.0 },
-    { x: 2100, y: 456, dir: -1, patrolMin: 1980, patrolMax: 2200, speed: 1.0 },
+    { x: 2100, y: 452, dir: -1, patrolMin: 2070, patrolMax: 2160, speed: 1.0 },
   ],
   38: [
-    { x:  100, y: 456, dir:  1, patrolMin:  20, patrolMax: 480, speed: 1.8 },
+    { x:  100, y: 456, dir:  1, patrolMin:  20, patrolMax: 300, speed: 1.8 },
     { x:  320, y: 396, dir:  1, patrolMin: 305, patrolMax: 390, speed: 1.2 },
     { x:  800, y: 456, dir: -1, patrolMin: 640, patrolMax: 880, speed: 1.9 },
     { x: 1200, y: 456, dir: -1, patrolMin: 1070, patrolMax: 1400, speed: 2.0 },

@@ -24,7 +24,7 @@ const NPCS = {
      '¿Ves esa reja en el techo? Desde que me acuerdo ha estado cerrada con candado.',
      'La gente dice que la llave se la quedó el rey de allá abajo. Yo nomás repito lo que oigo.',
      'Varios han ido a buscarla. Ninguno ha regresado.'] },
-  37: { name: 'Rosendo, el viejo mozo', look: 'servant', cloak: ['#5a3a3a', '#2e1e20'], x: 2120, y: 480, say: () =>
+  37: { name: 'Rosendo, el viejo mozo', look: 'servant', cloak: ['#5a3a3a', '#2e1e20'], x: 2120, y: 476, say: () =>
     castleDoorOpen ? ['¿Abriste la gran puerta? Del otro lado estaba el viejo castillo...',
                       'No sé qué quede ahí ahora. Yo me quedo aquí, gracias.'] :
     guardsDefeated ? ['Ya no se oye nada allá abajo... ¿Qué pasó con los guardias?',
