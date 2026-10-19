@@ -43,7 +43,8 @@ function titleLayout() {
     buttons: [{ t: 'Sí, borrar', x: W / 2 - 150, y: H / 2 + 20, w: 130, h: 42 }, { t: 'No', x: W / 2 + 20, y: H / 2 + 20, w: 130, h: 42 }] };
   // botón escondido de skins (esquina de abajo a la derecha) y su ventana
   const skinBtn = { x: W - 46, y: H - 46, w: 38, h: 38 };
-  const skins = SKIN_ORDER.map((k, i) => ({ k, x: W / 2 - 300 + i * 205, y: 130, w: 190, h: 250 }));
+  const sw = 180, sgap = 14, sx0 = W / 2 - (SKIN_ORDER.length * (sw + sgap) - sgap) / 2;
+  const skins = SKIN_ORDER.map((k, i) => ({ k, x: sx0 + i * (sw + sgap), y: 130, w: sw, h: 250 }));
   const skinBack = { x: W / 2 - 70, y: 400, w: 140, h: 38 };
   return { cards, quit, conf, skinBtn, skins, skinBack };
 }

@@ -135,6 +135,8 @@ function drawPlayer() {
     { x:  5 - cyc * 3 + (air ? 2 : 0), y: hh + 1 - Math.max(0,  cyc) * 2.5 - (air ? 2 : 0), r:  0.3 },
   ];
 
+  const hy = -hh + 4 + (eat ? 1 + chew * 1.2 : 0); // al masticar la cabeza sube y baja
+  if (S.sheet) drawSheet(hw, hh, hy, t, eat, feet); else {
   // ── CUERPO: pelaje gris de mapache, con mechones ──────────────────────────
   ctx.fillStyle = vol(0, hh * 0.25, hw, S.body[0], S.body[1]);
   ctx.beginPath(); ctx.ellipse(0, hh * 0.25, hw * 0.95, hh * 0.75, 0, 0, Math.PI * 2); ctx.fill();
@@ -190,7 +192,6 @@ function drawPlayer() {
   }
 
   // ── CABEZA DE MAPACHE ─────────────────────────────────────────────────────
-  const hy = -hh + 4 + (eat ? 1 + chew * 1.2 : 0); // al masticar la cabeza sube y baja
 
   if (skin === 'gato') {
   // orejas de gato: triángulos negros con el centro rosa
@@ -375,6 +376,8 @@ function drawPlayer() {
   ctx.beginPath(); ctx.moveTo(-4, hy + 7); ctx.lineTo(-wl, hy + 9); ctx.stroke();
   }
 
+  }
+
   // comiendo: guarda el blaster y sostiene la basura con las dos manitas
   if (eat) {
     const k = healCharge / HEAL_TIME, jy = hy + 11 - Math.max(0, chew) * 1.5;
@@ -391,8 +394,8 @@ function drawPlayer() {
   // bracito con manita
   ctx.fillStyle = vol(hw - 1, -hh + 22, 6, S.arm[0], S.arm[1]);
   ctx.beginPath(); ctx.ellipse(hw - 1, -hh + 22, 4, 7, 0.4, 0, Math.PI * 2); ctx.fill();
-  if (skin === 'gato') {
-  // ── ESPADA (el gato no usa blaster) ──────────────────────────────────────
+  if (S.sword) {
+  // ── ESPADA (el gato y el fantasma no usan blaster) ───────────────────────
   ctx.save(); ctx.translate(hw + 2.5, -hh + 17); ctx.rotate(-0.55);
   // hoja con filo brillante del color del arma
   const blade = ctx.createLinearGradient(0, -3, 0, 3);
@@ -489,6 +492,57 @@ function drawPlayer() {
   }
 
   ctx.restore();
+}
+
+// Skin de fantasma: el mapache debajo de una sábana con la forma de las orejas,
+// dos agujeros para los ojos y el borde de abajo ondeando. Se dibuja ya
+// trasladado y volteado como el cuerpo del jugador (ver drawPlayer).
+function drawSheet(hw, hh, hy, t, eat, feet) {
+  // patitas oscuras que se asoman por debajo
+  for (const ft of feet) {
+    ctx.fillStyle = vol(ft.x, ft.y, 6, '#4a4440', '#141210');
+    ctx.beginPath(); ctx.ellipse(ft.x, ft.y, 6, 4, ft.r, 0, Math.PI * 2); ctx.fill();
+  }
+  const hem = hh - 1;
+  ctx.beginPath();
+  ctx.moveTo(-16, hem);
+  ctx.quadraticCurveTo(-15, hy + 12, -13, hy + 2);
+  // oreja izquierda, coronilla, oreja derecha
+  ctx.quadraticCurveTo(-15, hy - 10, -12, hy - 20);
+  ctx.quadraticCurveTo(-8, hy - 22, -5, hy - 11);
+  ctx.quadraticCurveTo(0, hy - 14, 5, hy - 11);
+  ctx.quadraticCurveTo(8, hy - 22, 12, hy - 20);
+  ctx.quadraticCurveTo(15, hy - 10, 13, hy + 2);
+  ctx.quadraticCurveTo(15, hy + 12, 16, hem);
+  // borde de abajo en ondas que se mueven
+  for (let i = 4; i >= 1; i--) {
+    const x0 = -16 + i * 8, x1 = x0 - 8, w = Math.sin(t * 5 + i * 1.7) * 1.8;
+    ctx.quadraticCurveTo((x0 + x1) / 2, hem + 4 + w, x1, hem + (i > 1 ? Math.sin(t * 5 + i) : 0));
+  }
+  ctx.closePath();
+  ctx.fillStyle = vol(0, hy, 26, '#ffffff', '#aab0c0');
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(70,80,110,0.55)'; ctx.lineWidth = 1; ctx.stroke();
+  // pliegues de la tela
+  ctx.strokeStyle = 'rgba(120,130,160,0.4)'; ctx.lineWidth = 1.2; ctx.lineCap = 'round';
+  for (const [x0, y0, x1, y1, cx] of [[-9, hy + 12, -11, hem - 2, -12], [7, hy + 13, 9, hem - 1, 11], [-1, hy + 16, 0, hem - 4, -2]]) {
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(cx, (y0 + y1) / 2, x1, y1); ctx.stroke();
+  }
+  // agujeros de los ojos: se ve el antifaz negro y los ojitos brillando
+  for (const s of [-1, 1]) {
+    ctx.fillStyle = '#0c0a0a';
+    ctx.beginPath(); ctx.ellipse(s * 5, hy - 0.5, 3.6, 3.2, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(70,80,110,0.6)'; ctx.lineWidth = 0.8; ctx.stroke();
+    if (!eat && !blinkNow(1)) {
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.arc(s * 5 - 0.8, hy - 1.4, 1.1, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.beginPath(); ctx.arc(s * 5 + 1, hy + 0.6, 0.5, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  // bulto del hocico debajo de la tela
+  ctx.fillStyle = 'rgba(150,158,185,0.35)';
+  ctx.beginPath(); ctx.ellipse(1, hy + 9, 5, 2, 0, 0, Math.PI * 2); ctx.fill();
 }
 
 function drawRoomLabel() {

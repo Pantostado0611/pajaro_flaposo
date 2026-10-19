@@ -9,10 +9,13 @@ const SKINS = {
   perro: { name: 'Perro', body: ['#c8925a', '#6a4220'], tuft: '#8a5a30', belly: ['#f4e4c8', '#c8a878'],
     head: ['#d6a068', '#7a4a24'], foot: ['#f0e0c4', '#a88a64'], toe: '#8a6a48', arm: ['#c8925a', '#6a4220'], hand: '#f0e0c4' },
   // gato tuxedo: negro con pechera, patitas y hocico blancos; lleva espada
-  gato: { name: 'Gato', body: ['#44444c', '#0e0e12'], tuft: '#1c1c22', belly: ['#ffffff', '#c4c4cc'],
+  gato: { name: 'Gato', sword: true, body: ['#44444c', '#0e0e12'], tuft: '#1c1c22', belly: ['#ffffff', '#c4c4cc'],
     head: ['#46464e', '#101014'], foot: ['#ffffff', '#b8b8c0'], toe: '#f0a0b0', arm: ['#3c3c44', '#0e0e12'], hand: '#f4f4f8' },
+  // el mapache tapado con una sábana (cola y patas de fuera); lleva espada
+  fantasma: { name: 'Fantasma', sword: true, sheet: true, body: ['#aaa49a', '#4e4944'], tuft: '#6a655e', belly: ['#ece6da', '#b4ad9f'],
+    head: ['#b8b2a8', '#5e5953'], foot: ['#4a4440', '#141210'], toe: '#2a2624', arm: ['#f4f6fc', '#aab0c0'], hand: '#e6e9f2' },
 };
-const SKIN_ORDER = ['mapache', 'perro', 'gato'];
+const SKIN_ORDER = ['mapache', 'perro', 'gato', 'fantasma'];
 let skin = 'mapache';
 try { const s = localStorage.getItem('mapachon-skin'); if (SKINS[s]) skin = s; } catch (e) {}
 function setSkin(s) { skin = s; try { localStorage.setItem('mapachon-skin', s); } catch (e) {} }
