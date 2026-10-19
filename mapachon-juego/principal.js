@@ -30,6 +30,7 @@ function step() {
     playFrames++;
     updatePlayer();
     updateEnemies();
+    updateEnemyAbilities();
     checkEnemyCollisions();
     updateBoss();
     checkBossCollisions();
@@ -75,6 +76,7 @@ function step() {
   drawPlatforms(room);
   drawExitGlow(room);
   drawEnemies();
+  drawEnemyAbilities();
   drawBoss();
   drawBoss2();
   drawBoss3();
@@ -89,6 +91,7 @@ function step() {
   drawPlayerShots();
   drawShade();
   drawPlayer();
+  drawPlayerWeb();
   drawTrashFx();
   ctx.restore();
   drawNightDark(room);

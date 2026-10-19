@@ -2,10 +2,10 @@
 function updatePlayer() {
   // Movimiento horizontal
   if (left()) {
-    player.vx = -MOVE_SPD;
+    player.vx = -MOVE_SPD * (playerSlow > 0 ? 0.5 : 1); // enredado en telaraña: más lento
     player.facing = -1;
   } else if (right()) {
-    player.vx = MOVE_SPD;
+    player.vx = MOVE_SPD * (playerSlow > 0 ? 0.5 : 1);
     player.facing = 1;
   } else {
     player.vx *= FRICTION;

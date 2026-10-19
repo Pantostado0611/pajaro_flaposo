@@ -435,6 +435,10 @@ function drawCritter(e, cx, cy) {
   }
   ctx.translate(cx, fy);
   let draw = S;
+  if (e.windup > 0) { // avisa que va a usar su habilidad: tiembla y parpadea
+    ctx.translate(Math.sin(e.windup * 1.9) * 1.2, 0);
+    if (Math.floor(e.windup / 4) % 2 === 0) draw = { ...S, c1: '#ffffff', c2: S.c1 || '#c0c0c0' };
+  }
   if (e.hot && e.fuse > 0) {
     const f = 1 - e.fuse / HOT_FUSE;
     ctx.translate(Math.sin(e.fuse * 1.7) * 1.5 * f, 0);
@@ -464,6 +468,7 @@ function initEnemies(roomId) {
   currentEnemies = templates.map(t => ({ ...t, w: 28, h: 24, vy: 0, dead: false, deathTimer: 0,
     speed: t.speed * mult, kind, spec,
     rock, awake: !rock, wake: 0, hot, fuse: 0, exploded: false }));
+  resetAbilities();
 }
 
 const ROCK_ZONES = [7, 8, 9, 10, 11];
@@ -497,6 +502,7 @@ function updateEnemies() {
       continue;
     }
     if (e.wake > 0) { e.wake--; continue; }
+    if (e.busy) continue; // usando su habilidad (habilidades.js)
     if (e.hot) {
       // mecha: se para, se hincha y parpadea… y explota
       if (e.fuse > 0) { if (--e.fuse === 0) explodeEnemy(e); continue; }
@@ -516,7 +522,7 @@ function checkEnemyCollisions() {
   const atkY = player.y + 6;
 
   for (const e of currentEnemies) {
-    if (e.dead) continue;
+    if (e.dead || e.hidden || e.ghost) continue; // enterrado o desvanecido (habilidades.js)
 
     // Ataque del jugador golpea al enemigo
     if (player.attackActive > 0 && !e.bouncy &&
@@ -816,5 +822,9 @@ function drawEnemy(e) {
 }
 
 function drawEnemies() {
-  for (const e of currentEnemies) drawEnemy(e);
+  for (const e of currentEnemies) {
+    if (e.hidden && !e.dead) continue; // enterrado
+    if (e.alpha < 1 && !e.dead) { ctx.save(); ctx.globalAlpha = Math.max(0, e.alpha); drawEnemy(e); ctx.restore(); }
+    else drawEnemy(e);
+  }
 }

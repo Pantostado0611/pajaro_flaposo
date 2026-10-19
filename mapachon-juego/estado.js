@@ -31,6 +31,7 @@ function addMoney(amount, x, y) {
   moneyPops.push({ x, y, text: '+' + amount, t: 60 });
 }
 let currentEnemies = [];
+let playerSlow = 0;    // cuadros que te quedan enredado en telaraña (más lento)
 const jumpPuffs = []; // nubecitas del doble salto
 let camX = 0, camY = 0, camZ = 1; // cámara (solo en salas grandes): posición y zoom
 let camRoom = -1;
