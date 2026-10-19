@@ -321,7 +321,7 @@
       </div>
     </a>
 
-    <!-- Mapachón (también se puede descargar para Windows) -->
+    <!-- Mapachón (para Windows se instala con el Actualizador) -->
     <div class="card" role="link" tabindex="0" onclick="location.href='mapachon.html'" onkeydown="if(event.key==='Enter')location.href='mapachon.html'">
       <div class="card-preview">
         <canvas class="card-bg" data-colors="#050810,#0a1020,#4060b0"></canvas>
@@ -335,12 +335,27 @@
           <span class="card-tag tag-action">1 JUGADOR</span>
         </div>
         <button class="card-play">▶ JUGAR</button>
-        <a class="card-download" href="https://github.com/Pantostado0611/pajaro_flaposo/releases/download/mapachon-v1.0.4/Mapachon-Instalador-1.0.4.exe"
-           onclick="event.stopPropagation()" title="Instalador para Windows (unos 80 MB)">⬇ DESCARGAR PARA WINDOWS</a>
-        <a class="card-download-alt" href="https://github.com/Pantostado0611/pajaro_flaposo/releases/tag/mapachon-v1.0.4"
-           onclick="event.stopPropagation()">versión portable y notas</a>
         <button class="card-download card-install" hidden onclick="event.stopPropagation(); instalarMapachon()">📲 INSTALAR EN EL CELULAR</button>
         <div class="install-help" hidden onclick="event.stopPropagation()"></div>
+      </div>
+    </div>
+
+    <!-- Actualizador: programa de Windows que instala, actualiza y abre los juegos -->
+    <div class="card">
+      <div class="card-preview">
+        <canvas class="card-bg" data-colors="#0a0a14,#141430,#00b0c0"></canvas>
+        <span class="card-emoji">🔄</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">ACTUALIZADOR</div>
+        <div class="card-desc">Instala y actualiza Mapachón en Windows con un clic. Pronto, también los demás juegos.</div>
+        <div>
+          <span class="card-tag tag-plat">WINDOWS</span>
+          <span class="card-tag tag-arcade">PROGRAMA</span>
+        </div>
+        <a class="card-download" href="https://github.com/Pantostado0611/pajaro_flaposo/releases/download/actualizador-v1.0.0/Actualizador-Instalador-1.0.0.exe"
+           title="Instalador para Windows (unos 80 MB)">⬇ DESCARGAR PARA WINDOWS</a>
+        <div class="card-desc solo-pc" hidden>Solo para computadoras con Windows.</div>
       </div>
     </div>
 
@@ -458,13 +473,14 @@ document.querySelectorAll('.card-bg').forEach(cvs => {
 });
 </script>
 <script>
-  // Mapachón: en celular se instala como app (no sirve el .exe de Windows)
+  // Mapachón: en celular se instala como app (el Actualizador de Windows no sirve ahí)
   const esCel = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform));
   const esIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform));
   let promptInstalar = null;
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptInstalar = e; });
   if (esCel) {
     document.querySelectorAll('.card-download:not(.card-install), .card-download-alt').forEach(el => el.hidden = true);
+    document.querySelector('.solo-pc').hidden = false;
     const yaInstalada = matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches || navigator.standalone;
     if (!yaInstalada) document.querySelector('.card-install').hidden = false;
   }

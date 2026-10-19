@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Actualizador</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #05050f; --card: #0d0d1f; --border: #2a2a4a; --yellow: #ffe600; --cyan: #00f0ff; --pink: #ff3c8e; --green: #39ff7a; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: #ddd; font-family: 'Press Start 2P', monospace; padding: 24px; min-height: 100vh; user-select: none; }
+  h1 { font-size: 18px; color: var(--yellow); text-shadow: 3px 3px 0 #443300; letter-spacing: 2px; }
+  .sub { font-size: 8px; color: #666; margin: 10px 0 22px; letter-spacing: 1px; }
+  .aviso { font-size: 8px; line-height: 2; padding: 10px 14px; border: 2px dashed var(--pink); color: #ffb0c8; margin-bottom: 16px; }
+  .aviso.info { border-color: var(--cyan); color: #bff; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .lista { display: flex; flex-direction: column; gap: 14px; }
+  .juego { display: flex; align-items: center; gap: 18px; background: var(--card); border: 2px solid var(--border); padding: 16px 18px; box-shadow: 4px 4px 0 #000; }
+  .icono { font-size: 40px; width: 52px; text-align: center; }
+  .info { flex: 1; min-width: 0; }
+  .nombre { font-size: 12px; color: var(--yellow); letter-spacing: 1px; }
+  .desc { font-size: 7px; color: #777; line-height: 1.9; margin-top: 8px; }
+  .ver { font-size: 7px; color: #9ab; margin-top: 8px; line-height: 1.8; }
+  .ver b { color: var(--green); font-weight: normal; }
+  .ver a { color: var(--cyan); cursor: pointer; text-decoration: underline; }
+  button { font-family: inherit; font-size: 9px; padding: 12px 0; width: 150px; letter-spacing: 1px; cursor: pointer;
+    background: transparent; border: 2px solid var(--cyan); color: var(--cyan); box-shadow: 3px 3px 0 #000; transition: all .15s; }
+  button:hover:not(:disabled) { background: var(--cyan); color: #000; }
+  button.actualizar { border-color: var(--yellow); color: var(--yellow); }
+  button.actualizar:hover:not(:disabled) { background: var(--yellow); }
+  button.jugar { border-color: var(--green); color: var(--green); }
+  button.jugar:hover:not(:disabled) { background: var(--green); }
+  button:disabled { border-color: #333; color: #555; cursor: default; box-shadow: none; }
+  .pronto { font-size: 7px; color: #555; width: 150px; text-align: center; letter-spacing: 1px; }
+  .lado { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .barra { width: 150px; height: 8px; border: 2px solid var(--border); }
+  .barra div { height: 100%; width: 0; background: var(--yellow); transition: width .2s; }
+  .paso { font-size: 6px; color: #aaa; }
+  .error { font-size: 7px; color: #ff8aa8; max-width: 180px; text-align: center; line-height: 1.7; }
+  .pie { font-size: 6px; color: #444; margin-top: 22px; text-align: center; letter-spacing: 1px; }
+  .pie a { color: #666; cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>ACTUALIZADOR</h1>
+<div class="sub">Instala, actualiza y abre tus juegos</div>
+<div id="avisos"></div>
+<div class="lista" id="lista"><div class="sub">Revisando versiones…</div></div>
+<div class="pie"><span id="yo"></span> · <a id="revisar">volver a revisar</a></div>
+
+<script>
+const A = window.actualizador;
+const $ = s => document.querySelector(s);
+let ocupado = null;            // id del juego que se está instalando
+const errores = {};            // último error de cada juego
+const mb = b => (b / 1048576).toFixed(0) + ' MB';
+
+async function refrescar() {
+  const r = await A.estado();
+  if (r.error) { $('#lista').innerHTML = `<div class="aviso">${r.error}</div>`; return; }
+  const { juegos, error, yo, nuevoActualizador } = r.ok;
+  $('#yo').textContent = 'Actualizador v' + yo;
+  let avisos = error ? `<div class="aviso">${error}</div>` : '';
+  if (nuevoActualizador) avisos += `<div class="aviso info"><span>Hay un Actualizador nuevo (v${nuevoActualizador}).</span><button class="actualizar" id="me">ACTUALIZAR</button></div>`;
+  $('#avisos').innerHTML = avisos;
+  if ($('#me')) $('#me').onclick = async () => {
+    $('#me').disabled = true; $('#me').textContent = 'BAJANDO…';
+    const res = await A.actualizarme();
+    if (res.error) { $('#me').disabled = false; $('#me').textContent = 'REINTENTAR'; }
+  };
+  $('#lista').innerHTML = '';
+  for (const j of juegos) $('#lista').appendChild(fila(j));
+}
+
+function fila(j) {
+  const el = document.createElement('div');
+  el.className = 'juego'; el.id = 'j-' + j.id;
+  let ver = '';
+  if (j.pronto) ver = 'Todavía no tiene versión para Windows';
+  else if (j.accion === 'actualizar') ver = `Tienes la v${j.instalada} · Nueva: <b>v${j.nueva}</b> (${mb(j.tam)})`;
+  else if (j.accion === 'instalar') ver = `Versión <b>v${j.nueva}</b> (${mb(j.tam)})`;
+  else if (j.instalada) ver = `Instalado: v${j.instalada} · ya es la última`;
+  el.innerHTML = `<div class="icono">${j.icono}</div>
+    <div class="info"><div class="nombre">${j.nombre.toUpperCase()}</div><div class="desc">${j.desc}</div><div class="ver">${ver}</div></div>
+    <div class="lado"></div>`;
+  const lado = el.querySelector('.lado');
+  if (j.pronto) lado.innerHTML = '<div class="pronto">PRONTO</div>';
+  else if (j.accion !== 'nada') {
+    const b = document.createElement('button');
+    b.className = j.accion;
+    b.textContent = { instalar: '⬇ INSTALAR', actualizar: '⟳ ACTUALIZAR', jugar: '▶ JUGAR' }[j.accion];
+    b.disabled = !!ocupado;
+    b.onclick = () => (j.accion === 'jugar' ? jugar(j, b) : instalar(j, lado));
+    lado.appendChild(b);
+  }
+  if (errores[j.id]) lado.insertAdjacentHTML('beforeend', `<div class="error">${errores[j.id]}</div>`);
+  return el;
+}
+
+async function instalar(j, lado) {
+  ocupado = j.id; delete errores[j.id];
+  document.querySelectorAll('.lado button').forEach(b => (b.disabled = true));
+  lado.innerHTML = '<div class="barra"><div></div></div><div class="paso">Empezando…</div>';
+  const r = await A.instalar(j.id);
+  ocupado = null;
+  if (r.error) errores[j.id] = r.error;
+  refrescar();
+}
+async function jugar(j, b) {
+  b.disabled = true;
+  const r = await A.jugar(j.id);
+  if (r.error) errores[j.id] = r.error; else delete errores[j.id];
+  setTimeout(refrescar, 1500);
+}
+
+A.alProgreso(({ id, paso, p }) => {
+  const el = $('#j-' + id);
+  if (!el || !el.querySelector('.barra')) return;
+  el.querySelector('.barra div').style.width = Math.round(p * 100) + '%';
+  el.querySelector('.paso').textContent = paso + (paso.startsWith('Desc') ? ' ' + Math.round(p * 100) + '%' : '');
+});
+$('#revisar').onclick = () => { if (!ocupado) { $('#lista').innerHTML = '<div class="sub">Revisando versiones…</div>'; refrescar(); } };
+refrescar();
+</script>
+</body>
+</html>
