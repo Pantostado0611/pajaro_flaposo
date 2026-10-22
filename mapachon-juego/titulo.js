@@ -5,6 +5,8 @@
 // Teclado: ↑ ↓ elegir, → / ← ir a "Borrar" y volver, Enter / Espacio / Z
 // aceptar, Supr también borra, Esc cancela. También con ratón o tocando.
 const SLOTS = 4;
+// En la versión para itch.io (se juega dentro de la página de itch) no hay a dónde salir
+const HAY_SALIR = !window.versionItch;
 let titleState = 'slots';   // 'slots' | 'confirm' | null (jugando)
 let titleSel = 0, titleCol = 0, titleConfirmSel = 1, titleSlotToDelete = 0;
 let titleSlots = [];         // resumen de cada partida (o null si está vacía)
@@ -86,14 +88,17 @@ function titleKey(e) {
     else if (ok) pickSkin(skinSel);
     return true;
   }
-  // el botón escondido: → desde "Salir"
-  if (titleSel === SLOTS && (c === 'ArrowRight' || c === 'KeyD')) { titleSel = SLOTS + 1; return true; }
+  // el botón escondido: → desde "Salir" (sin "Salir", ↓ desde la última partida)
+  const abajo = c === 'ArrowDown' || c === 'KeyS';
+  if (HAY_SALIR && titleSel === SLOTS && (c === 'ArrowRight' || c === 'KeyD')) { titleSel = SLOTS + 1; return true; }
+  if (!HAY_SALIR && titleSel === SLOTS - 1 && abajo) { titleSel = SLOTS + 1; titleCol = 0; return true; }
   if (titleSel === SLOTS + 1 && !ok) {
-    if (['ArrowLeft', 'KeyA', 'ArrowUp', 'KeyW', 'ArrowDown', 'KeyS'].includes(c)) titleSel = SLOTS;
+    if (['ArrowLeft', 'KeyA', 'ArrowUp', 'KeyW', 'ArrowDown', 'KeyS'].includes(c)) titleSel = HAY_SALIR ? SLOTS : abajo ? 0 : SLOTS - 1;
     return true;
   }
-  if (c === 'ArrowUp' || c === 'KeyW') { titleSel = (titleSel + SLOTS) % (SLOTS + 1); titleCol = 0; }
-  else if (c === 'ArrowDown' || c === 'KeyS') { titleSel = (titleSel + 1) % (SLOTS + 1); titleCol = 0; }
+  const n = HAY_SALIR ? SLOTS + 1 : SLOTS; // opciones de la lista (con o sin "Salir")
+  if (c === 'ArrowUp' || c === 'KeyW') { titleSel = (titleSel + n - 1) % n; titleCol = 0; }
+  else if (abajo) { titleSel = (titleSel + 1) % n; titleCol = 0; }
   else if ((c === 'ArrowRight' || c === 'KeyD') && titleSlots[titleSel]) titleCol = 1;
   else if (c === 'ArrowLeft' || c === 'KeyA') titleCol = 0;
   else if ((c === 'Delete' || c === 'Backspace') && titleSlots[titleSel]) { titleCol = 1; titleAct(); }
@@ -164,12 +169,15 @@ function drawTitle() {
     }
   });
   // salir
-  const q = L.quit, qOn = titleState === 'slots' && titleSel === SLOTS;
-  ctx.fillStyle = qOn ? 'rgba(58,74,138,0.9)' : 'rgba(20,26,48,0.85)';
-  ctx.strokeStyle = qOn ? '#9ab0ff' : '#34406a'; ctx.lineWidth = qOn ? 2 : 1;
-  ctx.beginPath(); ctx.roundRect(q.x, q.y, q.w, q.h, 8); ctx.fill(); ctx.stroke();
-  ctx.textAlign = 'center'; ctx.fillStyle = qOn ? '#ffffff' : '#b8c4e8'; ctx.font = (qOn ? 'bold ' : '') + '16px serif';
-  ctx.fillText('Salir', W / 2, q.y + q.h / 2 + 1);
+  ctx.textAlign = 'center';
+  if (HAY_SALIR) {
+    const q = L.quit, qOn = titleState === 'slots' && titleSel === SLOTS;
+    ctx.fillStyle = qOn ? 'rgba(58,74,138,0.9)' : 'rgba(20,26,48,0.85)';
+    ctx.strokeStyle = qOn ? '#9ab0ff' : '#34406a'; ctx.lineWidth = qOn ? 2 : 1;
+    ctx.beginPath(); ctx.roundRect(q.x, q.y, q.w, q.h, 8); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = qOn ? '#ffffff' : '#b8c4e8'; ctx.font = (qOn ? 'bold ' : '') + '16px serif';
+    ctx.fillText('Salir', W / 2, q.y + q.h / 2 + 1);
+  }
   ctx.fillStyle = 'rgba(138,152,200,0.6)'; ctx.font = '12px monospace';
   ctx.fillText(gamepadActive ? '↑ ↓ elegir  ·  → borrar  ·  A jugar  ·  B volver' : '↑ ↓ elegir  ·  → borrar  ·  Enter jugar', W / 2, H - 18);
   // botón escondido de skins: una huellita casi invisible
@@ -254,7 +262,7 @@ function titleHit(e) {
     if (inBox(p, L.cards[i])) return { sel: i, col: 0 };
   }
   if (inBox(p, L.skinBtn)) return { sel: SLOTS + 1, col: 0 };
-  return inBox(p, L.quit) ? { sel: SLOTS, col: 0 } : null;
+  return HAY_SALIR && inBox(p, L.quit) ? { sel: SLOTS, col: 0 } : null;
 }
 canvas.addEventListener('mousemove', e => {
   if (!titleState) return;

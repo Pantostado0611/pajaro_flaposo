@@ -35,6 +35,10 @@ Cuando el usuario diga **"Deploy App"**, sacar una versión nueva del programa d
 
 Versión nueva del Actualizador: subir `version` en `actualizador/package.json`, `npm run dist` dentro de `actualizador/`, `gh release create actualizador-vX.Y.Z` con `Actualizador-Instalador-X.Y.Z.exe`, y cambiar el enlace de su tarjeta en `index.html`. Los que ya lo tienen ven el aviso para actualizarlo desde el mismo programa.
 
+## Versión para itch.io
+
+`node itch/armar-itch.js` deja en `itch/dist/` lo que se sube a itch.io: `Mapachon-Web-X.Y.Z.zip` (se juega en el navegador; es `mapachon.html` como `index.html` con `window.versionItch = true`, que esconde el botón "Salir" de la pantalla de inicio, sin manifest ni service worker) y `Mapachon-Windows-X.Y.Z.exe` (el portable de `escritorio/dist`). X.Y.Z sale de `escritorio/package.json`, así que conviene hacerlo después de un "Deploy App". El usuario sube los archivos a itch.io él mismo.
+
 ## Estructura del proyecto
 
 - `index.html` — Hub principal de minijuegos
@@ -43,4 +47,5 @@ Versión nueva del Actualizador: subir `version` en `actualizador/package.json`,
 - `actualizador/` — programa de Windows que instala y actualiza los juegos (ver arriba)
 - `escritorio/` — Mapachón como programa de Windows
 - `escritorio-juegos/` — Pájaro Flaposo, Mini Claude y MC Builder como programas de Windows
+- `itch/` — armador de los archivos para subir Mapachón a itch.io (ver arriba)
 - `mapachon-juego/` — el juego del mapache repartido en archivos JS normales (no módulos) que se cargan en orden y comparten variables globales, más `estilo.css`. Un archivo puede usar lo que definen los de antes. Si se agrega un archivo nuevo, va en la lista de `<script>` de `mapachon.html`. `vercel.json` publica esta carpeta: si se renombra, actualizarlo.
