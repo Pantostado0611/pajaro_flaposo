@@ -1,7 +1,7 @@
 {
   "name": "actualizador",
   "productName": "Actualizador",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Instala, actualiza y abre los juegos de Minijuegos",
   "author": "Burned Games",
   "main": "main.js",
