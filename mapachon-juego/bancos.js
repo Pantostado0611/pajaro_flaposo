@@ -64,8 +64,30 @@ function respawnAtBench() {
   else startTransition(0, 80, 400);
 }
 
+// Botón táctil del banco: solo aparece (encima del banco) cuando puedes sentarte
+const benchBtn = document.getElementById('btn-bench');
+let benchBtnShown = false;
+if (benchBtn) {
+  benchBtn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const b = roomBench();
+    if (b && benchNear && benchRest === 0 && !pauseState) sitOnBench(b);
+  }, { passive: false });
+}
+function placeBenchButton(b) {
+  if (!benchBtn) return;
+  const show = !!b && benchNear && benchRest === 0;
+  if (show) {
+    const r = canvas.getBoundingClientRect(), k = r.width / W;
+    benchBtn.style.left = (r.left + (b.x - camX) * camZ * k) + 'px';
+    benchBtn.style.top  = (r.top + (BENCH_FLOOR - 100 - camY) * camZ * k) + 'px';
+  }
+  if (show !== benchBtnShown) { benchBtnShown = show; benchBtn.style.display = show ? 'flex' : 'none'; }
+}
+
 function drawBench() {
   const b = roomBench();
+  placeBenchButton(b);
   if (!b) return;
   const y = b.fromSky && !skyBench.landed ? (skyBench.y ?? -160) : BENCH_FLOOR;
   const x = b.x, dmg = b.damaged;
